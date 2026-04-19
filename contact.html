@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact | Michael Lehr, Attorney at Law</title>
+<meta name="description" content="Contact Michael Lehr for a free estate planning consultation. Call (415) 596-6007, email, or use our online form. Evening and weekend appointments available.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- STICKY CTA BUTTON -->
+<a href="contact.html" class="sticky-cta" id="stickyCta" aria-label="Schedule Free Consultation">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+    <circle cx="12" cy="10" r="3"/>
+  </svg>
+  <span>Free Consultation</span>
+</a>
+
+<!-- NAVIGATION -->
+<nav id="nav" class="scrolled">
+  <div class="container">
+    <a href="index.html" class="nav-logo">Michael <span>Lehr</span></a>
+    <div class="nav-links" id="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="results.html">Results</a>
+      <a href="process.html">Process</a>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html">Contact</a>
+      <a href="contact.html" class="nav-cta">Free Consultation</a>
+    </div>
+    <button type="button" class="mobile-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<section style="padding: 10rem 0 3rem; background: var(--navy-deep); text-align: center;">
+  <div class="container">
+    <div class="section-label animate" style="justify-content: center; color: var(--gold);">Get in Touch</div>
+    <h1 class="animate delay-1" style="font-family: var(--serif); font-size: clamp(2.5rem, 4vw, 3.5rem); color: var(--white); margin-bottom: 1rem;">Ready to Secure <em style="color: var(--gold-light);">Your Future?</em></h1>
+    <p class="animate delay-2" style="max-width: 700px; margin: 0 auto; font-size: 1.1rem; line-height: 1.75; color: rgba(255,255,255,0.65);">Schedule your free consultation today. We respond to all inquiries within 24 hours.</p>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="container">
+    <div class="contact-grid">
+      <div>
+        <div class="section-label animate">Contact Information</div>
+        <h2 class="section-title animate delay-1">Let's Discuss<br><em>Your Estate Plan</em></h2>
+        <div class="animate delay-2">
+          <div class="contact-info">
+            <h3>Office</h3>
+            <p>645 Hayes Street<br>San Francisco, CA 94102</p>
+            <h3>Phone</h3>
+            <p><a href="tel:+14155966007">(415) 596-6007</a></p>
+            <h3>Text / SMS</h3>
+            <p><a href="sms:+14155966007">(415) 596-6007</a><br><span style="font-size: 0.85rem; color: var(--stone);">Prefer texting? We respond to text messages too!</span></p>
+            <h3>Email</h3>
+            <p><a href="mailto:michael@lehr-law.com">michael@lehr-law.com</a></p>
+            <h3>Response Time</h3>
+            <p style="color: var(--gold); font-weight: 500;">We respond to all inquiries within 24 hours, typically much sooner.</p>
+            <h3>Appointments</h3>
+            <p>Evening, weekend, and house call appointments are available upon request at no additional charge.</p>
+          </div>
+        </div>
+      </div>
+      <div class="animate delay-2">
+        <form id="contactForm" class="contact-form" action="https://api.web3forms.com/submit" method="POST">
+          <!-- Key is public in HTML; restrict allowed domains in the Web3Forms dashboard. -->
+          <input type="hidden" name="access_key" value="34ea0e5a-eb4d-472f-86b2-3b8cf114f8a6">
+          <input type="hidden" name="subject" value="New Contact Form Submission from Estate Planning Website">
+          <input type="hidden" name="from_name" value="Michael Lehr Law Website">
+          <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fname">First Name *</label>
+              <input type="text" id="fname" name="first_name" required>
+            </div>
+            <div class="form-group">
+              <label for="lname">Last Name *</label>
+              <input type="text" id="lname" name="last_name" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone</label>
+              <input type="tel" id="phone" name="phone">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="service">Service Needed</label>
+            <select id="service" name="service">
+              <option value="">Select a service…</option>
+              <option value="Living Trust">Living Trust</option>
+              <option value="Estate Planning">Estate Planning</option>
+              <option value="Wills and Pour Over Wills">Wills &amp; Pour Over Wills</option>
+              <option value="Probate Administration">Probate Administration</option>
+              <option value="Trust Administration">Trust Administration</option>
+              <option value="Power of Attorney">Power of Attorney</option>
+              <option value="Advance Health Care Directive">Advance Health Care Directive</option>
+              <option value="Elder Law">Elder Law</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">Message *</label>
+            <textarea id="message" name="message" placeholder="Briefly describe your situation…" required></textarea>
+          </div>
+          <div id="formMessage" class="form-message"></div>
+          <button type="submit" class="btn-primary" style="align-self: flex-start;">Send Message →</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAP SECTION (Optional - placeholder for Google Maps embed) -->
+<section style="padding: 0; background: var(--cream-light);">
+  <div style="width: 100%; height: 400px; background: linear-gradient(135deg, var(--cream) 0%, var(--cream-light) 100%); display: flex; align-items: center; justify-content: center; color: var(--stone);">
+    <div style="text-align: center;">
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 1rem; opacity: 0.3;">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      <p style="font-size: 0.95rem; opacity: 0.6;">Map placeholder — Add Google Maps embed here</p>
+      <p style="font-size: 0.85rem; opacity: 0.5; margin-top: 0.5rem;">645 Hayes Street, San Francisco, CA 94102</p>
+    </div>
+  </div>
+  <!-- When ready, replace with Google Maps embed:
+  <iframe
+    src="https://www.google.com/maps/embed?pb=YOUR_EMBED_CODE"
+    width="100%"
+    height="400"
+    style="border:0;"
+    allowfullscreen=""
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade">
+  </iframe>
+  -->
+</section>
+
+<!-- CTA BANNER -->
+<section class="cta-banner">
+  <div class="container">
+    <div class="cta-content">
+      <h2 class="animate">Prefer to Call?<br><em>We're Here to Help</em></h2>
+      <p class="animate delay-1">Speak with Michael directly about your estate planning needs. Free consultations available by phone, video, or in-person.</p>
+      <a href="tel:+14155966007" class="btn-primary animate delay-2">Call (415) 596-6007 →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">Michael <span>Lehr</span></div>
+        <p class="footer-tagline">Attorney at Law · 645 Hayes Street, San Francisco, CA 94102 · Estate planning counsel for individuals and families.</p>
+      </div>
+      <div class="footer-links-group">
+        <h4>Services</h4>
+        <a href="services.html">Living Trusts</a>
+        <a href="services.html">Estate Planning</a>
+        <a href="services.html">Probate</a>
+        <a href="services.html">Elder Law</a>
+      </div>
+      <div class="footer-links-group">
+        <h4>Quick Links</h4>
+        <a href="index.html">Home</a>
+        <a href="results.html">Results</a>
+        <a href="faq.html">FAQ</a>
+        <a href="process.html">Process</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <div class="footer-links-group">
+        <h4>Contact</h4>
+        <a href="tel:+14155966007">(415) 596-6007</a>
+        <a href="sms:+14155966007">Text Us</a>
+        <a href="mailto:michael@lehr-law.com">michael@lehr-law.com</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">&copy; 2026 Michael Lehr, Attorney at Law. All rights reserved.</div>
+      <div class="footer-legal">
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="disclaimer.html">Disclaimer</a>
+        <a href="attorney-advertising.html">Attorney Advertising</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>
