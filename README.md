@@ -11,6 +11,7 @@ Static site with schema markup, Google Analytics 4, Web3Forms contact form, lega
 1. Create a form at https://web3forms.com/ and copy the access key.
 2. In `contact.html`, find the hidden input `name="access_key"` and set its `value` to your key.
 3. In the Web3Forms dashboard, restrict the key to your production domain (the key is visible in HTML).
+4. After a successful submit, visitors are sent to `thank-you.html` (see `main.js`). The hidden `redirect` field must use your live site URL; update it in `contact.html` if your canonical domain is not `https://www.lehr-law.com/`.
 
 ### 2. Google Analytics 4
 
@@ -37,6 +38,7 @@ Serve the site over HTTPS so the contact form and third-party scripts behave as 
 michael2.0/
 ├── index.html                 # Home
 ├── contact.html               # Contact form + Web3Forms key
+├── thank-you.html             # Post-submit confirmation (noindex)
 ├── services.html, faq.html, results.html, process.html
 ├── privacy-policy.html, disclaimer.html, attorney-advertising.html
 ├── styles.css

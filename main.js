@@ -107,6 +107,7 @@ if (contactForm && formMessage) {
     formMessage.textContent = '';
     formMessage.className = 'form-message';
 
+    let leavePage = false;
     try {
       const formData = new FormData(this);
       const response = await fetch('https://api.web3forms.com/submit', {
@@ -117,19 +118,22 @@ if (contactForm && formMessage) {
       const data = await response.json();
 
       if (data.success) {
-        formMessage.textContent = 'Thank you for contacting the Law Practices of Michael Lehr. We will respond within 24 hours.';
-        formMessage.className = 'form-message success';
-        this.reset();
+        leavePage = true;
+        const thankYou = new URL('thank-you.html', window.location.href);
+        window.location.assign(thankYou.href);
+        return;
       } else {
         throw new Error(data.message || 'Form submission failed');
       }
     } catch (error) {
-      formMessage.textContent = 'There was an error sending your message. Please try calling us directly at (415) 596-6007 or email michael@lehr-law.com';
+      formMessage.textContent = 'There was an error sending your message. Please try again in a moment, or email michael@lehr-law.com directly.';
       formMessage.className = 'form-message error';
       console.error('Form submission error:', error);
     } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = originalButtonText;
+      if (!leavePage) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
+      }
     }
   });
 }
