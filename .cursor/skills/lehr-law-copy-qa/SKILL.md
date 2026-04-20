@@ -12,7 +12,7 @@ All public marketing and legal notice HTML in the repo root:
 - `index.html`, `services.html`, `process.html`, `faq.html`, `results.html`, `contact.html`
 - `privacy-policy.html`, `disclaimer.html`, `attorney-advertising.html`
 
-Also check JSON-LD in `index.html` (`aggregateRating`, `openingHours`, etc.) for consistency with visible claims.
+Also check JSON-LD in `index.html` (`openingHours`, etc.) for consistency with visible claims. (Do not add `aggregateRating` or on-site client testimonials unless the firm publishes and substantiates them.)
 
 ## Voice and tone
 
@@ -23,7 +23,7 @@ Also check JSON-LD in `index.html` (`aggregateRating`, `openingHours`, etc.) for
 
 ## Attorney advertising and risk
 
-- Do not promise outcomes; past results and testimonials stay **illustrative** (align with disclaimer and attorney-advertising pages).
+- Do not promise outcomes; past results and case studies stay **illustrative** (align with disclaimer and attorney-advertising pages). The public site does not use client testimonials unless the owner adds them later.
 - Avoid absolute claims ("always," "guarantee," "never") unless legally accurate and qualified.
 - Pricing: keep **starting at** / **consultation required** language where complexity varies.
 - Statutory probate numbers: treat as **general California references**; flag if amounts or thresholds need a legal refresh.
@@ -32,7 +32,7 @@ Also check JSON-LD in `index.html` (`aggregateRating`, `openingHours`, etc.) for
 
 1. **Placeholders** — No "coming soon," "placeholder," "EXAMPLE," or dev-only map/video copy visible to visitors without a clear client-facing alternative.
 2. **Links** — Third-party review/profile URLs must be real; no `EXAMPLE` paths. Until URLs exist, use a documented interim (e.g. Maps search by firm name + address) or remove the link and keep plain text.
-3. **Consistency** — Phone, address, email, package price, review counts, and hours match across pages, footer, and schema.
+3. **Consistency** — Phone, address, email, package price, and hours match across pages, footer, and schema. If ratings or reviews are ever added to the site or schema, they must match substantiated, visible content.
 4. **Scannability** — Headings describe content; long credential lines belong on bio/advertising pages if they hurt the homepage.
 5. **Accessibility of language** — Button and CTA text stay action-oriented; FAQ answers stay concise.
 6. **HTML hygiene** — `&` in text/titles escaped as `&amp;` where required.
@@ -52,6 +52,6 @@ When asked to edit files:
 
 ## Inventory notes (maintenance)
 
-- **results.html** — Case studies are anonymized; keep that framing. Google / Avvo / Martindale links currently use Maps or web search by firm name and address; replace with canonical profile or review URLs when you have them. Third-party badges need permission to cite ratings.
+- **results.html** — Case studies are anonymized; keep that framing. Do not add testimonial or third-party review blocks without owner approval and substantiation.
 - **contact.html** — Map block: keep visitor-safe wording until an embed is added.
 - **Legal trio** — Privacy, disclaimer, attorney advertising are template-heavy; substantive legal edits need lawyer approval.
