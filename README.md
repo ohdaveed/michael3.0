@@ -32,6 +32,13 @@ Static site with schema markup, Google Analytics 4, Web3Forms contact form, lega
 
 Serve the site over HTTPS so the contact form and third-party scripts behave as expected.
 
+### 6. Canonical domain, sitemap, and robots
+
+Every public HTML page includes a `link rel="canonical"` and Open Graph tags that assume the live site is served at `https://www.lehr-law.com/` (same host as the Web3Forms redirect note above). If you use a different hostname (for example bare `lehr-law.com` without `www`), search-and-replace that base URL in all `.html` files, in `sitemap.xml`, and in `robots.txt` so they stay consistent.
+
+- `robots.txt` — allows crawlers and points to the sitemap.
+- `sitemap.xml` — lists indexable pages (excluding `thank-you.html`, which stays `noindex`).
+
 ## File structure
 
 ```
@@ -41,6 +48,8 @@ michael2.0/
 ├── thank-you.html             # Post-submit confirmation (noindex)
 ├── services.html, faq.html, results.html, process.html
 ├── privacy-policy.html, disclaimer.html, attorney-advertising.html
+├── robots.txt                 # Crawl rules + sitemap URL
+├── sitemap.xml                # Indexable URLs for search engines
 ├── styles.css
 └── main.js                    # Animations, nav, FAQ, form submit
 ```
@@ -48,8 +57,8 @@ michael2.0/
 ## Testing checklist (before launch)
 
 - [ ] Submit the contact form end-to-end.
-- [ ] Click every nav and footer link (including legal pages returning to `index.html`).
-- [ ] Mobile menu, Escape to close, FAQ accordion on `faq.html`.
+- [ ] Click every nav and footer link (including legal pages and deep links under Services).
+- [ ] Mobile menu and Escape to close on marketing and legal pages; FAQ accordion on `faq.html`.
 - [ ] Smooth scroll from in-page `#` links where used.
 - [ ] GA receives events (optional: GA Debugger).
 
