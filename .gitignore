@@ -1,0 +1,28 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.*
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+
+# Editor/IDE
+.idea/
+.vscode/
+
+# Cursor local project artifacts
+.cursor/

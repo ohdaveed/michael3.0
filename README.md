@@ -4,6 +4,26 @@
 
 Static site with schema markup, Google Analytics 4, Web3Forms contact form, legal pages, FAQ, and shared behavior in `main.js`.
 
+## Local development
+
+### Prerequisites
+
+- Node.js 18+ (recommended)
+
+### Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+This serves the site at `http://localhost:5173`.
+
+### Available scripts
+
+- `npm run dev` — run a local development server
+- `npm run serve` — same as `dev`
+
 ## Required setup steps
 
 ### 1. Contact form (Web3Forms)
