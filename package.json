@@ -1,0 +1,13 @@
+{
+  "name": "michael2.0",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static website for Michael Lehr Law",
+  "scripts": {
+    "dev": "serve . -l 5173",
+    "serve": "serve . -l 5173"
+  },
+  "devDependencies": {
+    "serve": "^14.2.6"
+  }
+}

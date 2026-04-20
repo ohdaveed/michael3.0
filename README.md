@@ -28,7 +28,7 @@ This serves the site at `http://localhost:5173`.
 
 ### 1. Contact form (Web3Forms)
 
-1. Create a form at https://web3forms.com/ and copy the access key.
+1. Create a form at <https://web3forms.com/> and copy the access key.
 2. In `contact.html`, find the hidden input `name="access_key"` and set its `value` to your key.
 3. In the Web3Forms dashboard, restrict the key to your production domain (the key is visible in HTML).
 4. After a successful submit, visitors are sent to `thank-you.html` (see `main.js`). The hidden `redirect` field must use your live site URL; update it in `contact.html` if your canonical domain is not `https://www.lehr-law.com/`.
@@ -61,7 +61,7 @@ Every public HTML page includes a `link rel="canonical"` and Open Graph tags tha
 
 ## File structure
 
-```
+```text
 michael2.0/
 ├── index.html                 # Home
 ├── contact.html               # Contact form + Web3Forms key
@@ -84,6 +84,6 @@ michael2.0/
 
 ## References
 
-- Web3Forms: https://docs.web3forms.com/
-- Google Analytics: https://support.google.com/analytics
-- Schema.org Attorney: https://schema.org/Attorney
+- Web3Forms: <https://docs.web3forms.com/>
+- Google Analytics: <https://support.google.com/analytics>
+- Schema.org Attorney: <https://schema.org/Attorney>

@@ -4,5 +4,26 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"cSpell.ignorePaths": [
+			"styles.css",
+			"docs/audit/**"
+		],
+		"cSpell.ignoreRegExpList": [
+			"/<[^>]+>/g",
+			"/`[^`\\r\\n]+`/g",
+			"/\\b[A-Za-z_$][\\w$]*(?=\\s*\\()/g",
+			"/\\baria-[A-Za-z0-9_-]+\\b/g",
+			"/function\\s+[A-Za-z_$][\\w$]*\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\}/g",
+			"/\\bfunction\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\}/g",
+			"/\\bgtag\\s*\\([^)]*\\)\\s*;?/g",
+			"/\\b(?:https?:\\/\\/|www\\.)[^\\s\"'<>]+/g"
+		],
+		"cSpell.words": [
+			"Fraunces",
+			"Lexend",
+			"Lehr",
+			"Web3Forms"
+		]
+	}
 }

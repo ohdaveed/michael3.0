@@ -12,6 +12,17 @@ document.querySelectorAll('.animate').forEach(el => observer.observe(el));
 
 const nav = document.getElementById('nav');
 const stickyCta = document.getElementById('stickyCta');
+const main = document.querySelector('main');
+const footer = document.querySelector('footer');
+
+function setMobileMenuState(isOpen) {
+  if (!mobileToggle || !navLinks) return;
+  navLinks.classList.toggle('open', isOpen);
+  mobileToggle.setAttribute('aria-expanded', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+  if (main) main.toggleAttribute('inert', isOpen);
+  if (footer) footer.toggleAttribute('inert', isOpen);
+}
 
 function updateScrollUi() {
   const y = window.scrollY;
@@ -30,11 +41,11 @@ if (nav || stickyCta) {
 const mobileToggle = document.querySelector('.mobile-toggle');
 const navLinks = document.querySelector('.nav-links');
 if (mobileToggle && navLinks) {
+  mobileToggle.setAttribute('aria-haspopup', 'true');
   mobileToggle.addEventListener('click', () => {
-    navLinks.classList.toggle('open');
-    const isExpanded = navLinks.classList.contains('open');
-    mobileToggle.setAttribute('aria-expanded', isExpanded);
-    if (isExpanded) {
+    const isOpen = !navLinks.classList.contains('open');
+    setMobileMenuState(isOpen);
+    if (isOpen) {
       const firstLink = navLinks.querySelector('a');
       if (firstLink) requestAnimationFrame(() => firstLink.focus());
     } else {
@@ -43,12 +54,17 @@ if (mobileToggle && navLinks) {
   });
   navLinks.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', () => {
-      navLinks.classList.remove('open');
-      mobileToggle.setAttribute('aria-expanded', 'false');
+      setMobileMenuState(false);
       mobileToggle.focus();
     });
   });
 }
+
+// Decorative SVGs should be ignored by assistive tech.
+document.querySelectorAll('.sticky-cta svg, .faq-icon, .practice-icon, .trust-item svg, .pricing-feature svg, .video-placeholder svg').forEach((icon) => {
+  icon.setAttribute('aria-hidden', 'true');
+  icon.setAttribute('focusable', 'false');
+});
 
 // Smooth scroll for same-page anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -71,19 +87,37 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 });
 
 // FAQ Accordion
-document.querySelectorAll('.faq-question').forEach(button => {
+document.querySelectorAll('.faq-item').forEach((faqItem, idx) => {
+  const button = faqItem.querySelector('.faq-question');
+  const answer = faqItem.querySelector('.faq-answer');
+  if (!button || !answer) return;
+
+  const answerId = answer.id || `faq-answer-${idx + 1}`;
+  answer.id = answerId;
+  button.setAttribute('aria-controls', answerId);
+  answer.setAttribute('role', 'region');
+  if (!answer.hasAttribute('aria-labelledby')) {
+    const buttonId = button.id || `faq-question-${idx + 1}`;
+    button.id = buttonId;
+    answer.setAttribute('aria-labelledby', buttonId);
+  }
+  answer.hidden = !faqItem.classList.contains('active');
+
   button.addEventListener('click', () => {
-    const faqItem = button.parentElement;
     const isActive = faqItem.classList.contains('active');
 
     document.querySelectorAll('.faq-item').forEach(item => {
       item.classList.remove('active');
-      item.querySelector('.faq-question')?.setAttribute('aria-expanded', 'false');
+      const itemButton = item.querySelector('.faq-question');
+      const itemAnswer = item.querySelector('.faq-answer');
+      itemButton?.setAttribute('aria-expanded', 'false');
+      if (itemAnswer) itemAnswer.hidden = true;
     });
 
     if (!isActive) {
       faqItem.classList.add('active');
       button.setAttribute('aria-expanded', 'true');
+      answer.hidden = false;
     }
   });
 });
@@ -140,9 +174,8 @@ if (contactForm && formMessage) {
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && navLinks && navLinks.classList.contains('open')) {
-    navLinks.classList.remove('open');
+    setMobileMenuState(false);
     if (mobileToggle) {
-      mobileToggle.setAttribute('aria-expanded', 'false');
       mobileToggle.focus();
     }
   }
