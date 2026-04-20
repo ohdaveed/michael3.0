@@ -97,7 +97,7 @@ textarea:focus-visible {
 .animate.visible.delay-4 { animation-delay: 0.6s; }
 
 /* === NAVIGATION === */
-nav {
+#nav {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 1000;
@@ -105,14 +105,14 @@ nav {
   transition: all 0.4s ease;
   background: transparent;
 }
-nav.scrolled {
+#nav.scrolled {
   background: rgba(11,29,51,0.97);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   padding: 0.8rem 0;
   box-shadow: 0 2px 30px rgba(0,0,0,0.2);
 }
-nav .container { display: flex; justify-content: space-between; align-items: center; }
+#nav .container { display: flex; justify-content: space-between; align-items: center; }
 .nav-logo {
   font-family: var(--serif);
   font-size: 1.35rem;
@@ -198,6 +198,7 @@ nav .container { display: flex; justify-content: space-between; align-items: cen
   background: var(--navy-deep);
   display: flex;
   align-items: center;
+  padding-top: 6.5rem;
   position: relative;
   overflow: hidden;
 }
@@ -338,12 +339,10 @@ nav .container { display: flex; justify-content: space-between; align-items: cen
   position: relative; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
 }
-.about-image-frame::before {
-  content: 'ML';
-  font-family: var(--serif);
-  font-size: 5rem; font-weight: 300;
-  color: rgba(197,165,90,0.15);
-  letter-spacing: 0.1em;
+.about-photo {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+  display: block;
 }
 .about-image-frame::after {
   content: ''; position: absolute; inset: 12px;
@@ -1311,6 +1310,29 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
     gap: 0.5rem;
   }
 }
+
+/* === PAGE HERO === */
+.page-hero {
+  padding: 10rem 0 3rem;
+  background: var(--navy-deep);
+  text-align: center;
+}
+.page-hero .section-label { justify-content: center; color: var(--gold); }
+.page-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  color: var(--white);
+  margin-bottom: 1rem;
+}
+.page-hero h1 em { color: var(--gold-light); }
+.page-hero > .container > p {
+  max-width: 700px;
+  margin: 0 auto;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.65);
+}
+.page-hero a { color: var(--gold-light); text-decoration: none; }
 
 /* === BREADCRUMB & NEXT STEPS (IA) === */
 .breadcrumb-nav {
