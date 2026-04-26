@@ -121,12 +121,13 @@
   <div class="container">
     <div class="hero-content">
       <div class="hero-label">Estate Planning · San Francisco</div>
-      <h1>Protect Your Legacy<br>With <em>Care</em> &amp; Precision</h1>
-      <p class="hero-body">Trusts, wills, and probate counsel for San Francisco families. Michael helps you avoid probate when possible and document clear wishes your loved ones can follow.</p>
+      <h1>San Francisco Families Count on Michael Lehr<br>to Protect <em>What Matters Most</em></h1>
+      <p class="hero-body">Without an estate plan, your family could face months of costly probate court, tens of thousands in avoidable fees, and painful uncertainty. Michael helps San Francisco families build airtight plans—so loved ones are protected, not left scrambling.</p>
       <div class="hero-btns">
-        <a href="contact.html#contact" class="btn-primary">Send a message →</a>
-        <a href="services.html" class="btn-secondary">Documents You Need</a>
+        <a href="contact.html#contact" class="btn-primary">Book a Free Consultation →</a>
+        <a href="results.html" class="btn-secondary">See Client Results</a>
       </div>
+      <p class="hero-scarcity">⚡ Free consultations available — limited weekly slots</p>
     </div>
   </div>
 </section>
@@ -153,6 +154,32 @@
       <div class="trust-item">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Evenings &amp; Weekends
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ESTATE READINESS QUIZ -->
+<section class="quiz-section" id="quiz" aria-labelledby="quiz-heading">
+  <div class="container">
+    <div class="quiz-wrapper">
+      <div class="quiz-header">
+        <div class="section-label animate" style="justify-content: center;">Quick Check</div>
+        <h2 class="section-title animate delay-1" id="quiz-heading" style="text-align:center;">Is Your Estate <em>Ready?</em></h2>
+        <p class="quiz-intro animate delay-2">Five quick questions reveal where your estate planning stands—and what gaps could put your family at risk.</p>
+      </div>
+      <div class="quiz-body">
+        <div class="quiz-start-view" id="quizStartView">
+          <button type="button" class="btn-primary" id="quizStartBtn">Start the Check →</button>
+        </div>
+        <div class="quiz-questions-view" id="quizQuestionsView" hidden>
+          <div class="quiz-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" id="quizProgress">
+            <div class="quiz-progress-fill" id="quizProgressFill" style="width:0%"></div>
+          </div>
+          <p class="quiz-progress-label" id="quizProgressLabel" aria-live="polite">Question 1 of 5</p>
+          <div class="quiz-question-area" id="quizQuestionArea" aria-live="polite"></div>
+        </div>
+        <div class="quiz-result-view" id="quizResultView" hidden aria-live="polite"></div>
       </div>
     </div>
   </div>
@@ -287,24 +314,69 @@
       </div>
     </div>
 
-    <div class="pricing-comparison animate delay-3">
-      <h3>Probate vs. planning (cost snapshot)</h3>
-      <p>California sets minimum probate fees for the attorney and executor based on gross estate value:</p>
-      <div class="comparison-table">
-        <div class="comparison-row">
-          <span>$184,500 estate</span>
-          <span class="comparison-cost">$5,980 minimum</span>
+    <div class="pricing-calculator animate delay-3">
+      <h3>Estimate Your Probate Exposure</h3>
+      <p>Enter your approximate gross estate value to see what California's statutory probate fees could cost your family—and how much a funded trust can save.</p>
+      <div class="calc-input-row">
+        <div class="calc-input-group">
+          <label for="estateValueInput">Estimated gross estate value</label>
+          <div class="calc-input-wrapper">
+            <span class="calc-prefix">$</span>
+            <input type="number" id="estateValueInput" class="calc-field" placeholder="800000" min="0" max="50000000" step="50000" aria-describedby="calcOutput">
+          </div>
         </div>
-        <div class="comparison-row">
-          <span>$500,000 estate</span>
-          <span class="comparison-cost">$13,000 minimum</span>
-        </div>
-        <div class="comparison-row">
-          <span>$1,000,000 estate</span>
-          <span class="comparison-cost">$23,000 minimum</span>
-        </div>
+        <button type="button" class="btn-primary calc-go-btn" id="calcGoBtn">Calculate →</button>
       </div>
-      <p class="comparison-note">Court costs, appraisals, and months of delay are extra. A funded Living Trust can skip this path for many families.</p>
+      <div class="calc-output" id="calcOutput" hidden role="region" aria-live="polite">
+        <div class="calc-result-row">
+          <span class="calc-label">Estimated minimum probate fees (attorney + executor)</span>
+          <span class="calc-cost" id="calcProbateCost">—</span>
+        </div>
+        <div class="calc-result-row calc-result-row--trust">
+          <span class="calc-label">Living Trust Package (starting at)</span>
+          <span class="calc-cost calc-cost--trust">$2,495</span>
+        </div>
+        <div class="calc-result-row calc-result-row--savings">
+          <span class="calc-label">Potential minimum savings with a trust</span>
+          <span class="calc-cost calc-cost--savings" id="calcSavings">—</span>
+        </div>
+        <p class="calc-disclaimer">Based on California Probate Code §10810 statutory minimum rates. Actual costs including court fees, appraisals, and months of delay can be significantly higher. A funded Living Trust can skip this path for many families.</p>
+        <a href="contact.html#contact" class="btn-primary" id="calcCta">Start Protecting Your Estate →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS HIGHLIGHTS -->
+<section class="results-highlights">
+  <div class="container">
+    <div class="results-highlights-header">
+      <div class="section-label animate">Client Results</div>
+      <h2 class="section-title animate delay-1">Real Families. <em>Real Outcomes.</em></h2>
+      <p class="results-highlights-intro animate delay-2">Anonymized, illustrative case studies showing what estate planning actually changes—in dollars and peace of mind.</p>
+    </div>
+    <div class="results-grid">
+      <article class="result-card animate delay-1">
+        <div class="result-stat">$47,000</div>
+        <div class="result-stat-label">in probate fees saved</div>
+        <p>A San Francisco couple with a $1.8M home set up a funded living trust—avoiding statutory fees and over a year in probate court entirely.</p>
+        <a href="results.html" class="btn-text">Read Case Study 01 →</a>
+      </article>
+      <article class="result-card animate delay-2">
+        <div class="result-stat">$2.4M</div>
+        <div class="result-stat-label">distributed without litigation</div>
+        <p>Three siblings received equal shares from a complex estate holding real estate and a business—closed in ~8 months with no court battles.</p>
+        <a href="results.html" class="btn-text">Read Case Study 03 →</a>
+      </article>
+      <article class="result-card animate delay-3">
+        <div class="result-stat">0</div>
+        <div class="result-stat-label">family disputes in a blended family</div>
+        <p>A widower with children from a prior marriage protected his new spouse AND secured his kids' inheritance—both sides signed off with confidence.</p>
+        <a href="results.html" class="btn-text">Read Case Study 02 →</a>
+      </article>
+    </div>
+    <div class="results-highlights-cta animate delay-4">
+      <a href="results.html" class="btn-secondary-dark">View All Case Studies →</a>
     </div>
   </div>
 </section>
