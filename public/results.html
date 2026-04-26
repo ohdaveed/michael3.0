@@ -28,7 +28,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Lexend:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="css/styles.css">
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-9PV0J0XLVC"></script>
   <script>
@@ -85,69 +85,113 @@
       </div>
     </section>
 
+    <section class="results-disclaimer" aria-label="Results disclaimer">
+      <div class="container">
+        <p><strong>Important note:</strong> Past examples are illustrative and do not guarantee future outcomes.</p>
+      </div>
+    </section>
+
     <!-- CASE STUDIES -->
     <section class="case-studies" id="case-studies">
       <div class="container">
-        <h2 class="sr-only">Estate planning case studies</h2>
+        <div class="case-studies-header">
+          <div class="section-label animate">Case Studies</div>
+          <h2 class="section-title animate delay-1">How to read these examples</h2>
+          <p class="case-studies-intro animate delay-2">Each story shows a common planning problem, the legal approach
+            used, and the practical outcome for the family. The facts are anonymized, and every matter depends on its
+            own documents, assets, and family circumstances.</p>
+        </div>
         <div class="case-grid">
           <div class="case-card animate delay-1">
-            <div class="case-number">Case Study 01</div>
+            <div class="case-card-header">
+              <div class="case-meta">
+                <span class="case-number">Case Study 01</span>
+                <span class="case-tag">Living Trusts</span>
+              </div>
+              <div class="case-outcome">
+                <span class="case-outcome-value">$47k</span>
+                <span class="case-outcome-label">estimated probate fees avoided</span>
+              </div>
+            </div>
             <h3>Avoiding $47,000 in Probate Fees</h3>
-            <div class="case-challenge">
-              <h4>The Challenge</h4>
-              <p>San Francisco couple, late 60s, with a $1.8M home plus retirement and rentals. No plan meant ~$47k in
-                statutory probate fees and 12–18+ months in court.</p>
-            </div>
-            <div class="case-solution">
-              <h4>The Solution</h4>
-              <p>Living Trust package, funded assets, named successor trustees, and added incapacity documents (POA +
-                healthcare).</p>
-            </div>
-            <div class="case-result">
-              <h4>The Result</h4>
-              <p>First death: assets flowed to survivor with no probate filing. Second death routes to kids via
-                trust—avoiding repeat fees and public filings. Net effect: tens of thousands saved versus statutory
-                probate.</p>
+            <div class="case-body">
+              <div class="case-detail">
+                <h4>Challenge</h4>
+                <p>San Francisco couple, late 60s, with a $1.8M home plus retirement and rentals. No plan meant
+                  statutory fees and 12–18+ months in court.</p>
+              </div>
+              <div class="case-detail">
+                <h4>Approach</h4>
+                <p>Living Trust package, funded assets, named successor trustees, and added incapacity documents
+                  including POA and healthcare directives.</p>
+              </div>
+              <div class="case-detail case-detail-result">
+                <h4>Outcome</h4>
+                <p>Assets flowed through the trust without a probate filing, avoiding repeat fees and public court
+                  administration.</p>
+              </div>
             </div>
           </div>
 
           <div class="case-card animate delay-2">
-            <div class="case-number">Case Study 02</div>
+            <div class="case-card-header">
+              <div class="case-meta">
+                <span class="case-number">Case Study 02</span>
+                <span class="case-tag">Blended Families</span>
+              </div>
+              <div class="case-outcome">
+                <span class="case-outcome-value">Clear</span>
+                <span class="case-outcome-label">spouse and children protections</span>
+              </div>
+            </div>
             <h3>Protecting a Blended Family</h3>
-            <div class="case-challenge">
-              <h4>The Challenge</h4>
-              <p>Widower remarried; three adult kids from prior marriage. Needed spouse support for life without
-                disinheriting children—high dispute risk without clear documents.</p>
-            </div>
-            <div class="case-solution">
-              <h4>The Solution</h4>
-              <p>Irrevocable trust structure: lifetime income/housing for spouse, remainder to children, with explicit
-                instructions to reduce ambiguity.</p>
-            </div>
-            <div class="case-result">
-              <h4>The Result</h4>
-              <p>Both sides signed off with shared understanding—spouse secure, children confident, family friction
-                minimized.</p>
+            <div class="case-body">
+              <div class="case-detail">
+                <h4>Challenge</h4>
+                <p>Widower remarried with three adult children from a prior marriage. He needed spouse support without
+                  unintentionally disinheriting his children.</p>
+              </div>
+              <div class="case-detail">
+                <h4>Approach</h4>
+                <p>Irrevocable trust structure with lifetime income and housing for the spouse, remainder to children,
+                  and explicit instructions to reduce ambiguity.</p>
+              </div>
+              <div class="case-detail case-detail-result">
+                <h4>Outcome</h4>
+                <p>Both sides signed off with shared understanding: spouse secure, children confident, and family
+                  friction minimized.</p>
+              </div>
             </div>
           </div>
 
           <div class="case-card animate delay-3">
-            <div class="case-number">Case Study 03</div>
+            <div class="case-card-header">
+              <div class="case-meta">
+                <span class="case-number">Case Study 03</span>
+                <span class="case-tag">Trust Administration</span>
+              </div>
+              <div class="case-outcome">
+                <span class="case-outcome-value">8 months</span>
+                <span class="case-outcome-label">$2.4M distributed without litigation</span>
+              </div>
+            </div>
             <h3>Streamlining Complex Trust Administration</h3>
-            <div class="case-challenge">
-              <h4>The Challenge</h4>
-              <p>Three siblings as equal beneficiaries; trust held real estate, a business, and investments. Eldest
-                trustee overwhelmed by notices, taxes, and beneficiary updates.</p>
-            </div>
-            <div class="case-solution">
-              <h4>The Solution</h4>
-              <p>Michael inventoried assets, ran accounting, coordinated with tax pros, supervised sales, and kept
-                beneficiaries informed to avoid misunderstandings.</p>
-            </div>
-            <div class="case-result">
-              <h4>The Result</h4>
-              <p>Closed in about eight months, California rules satisfied, ~$2.4M distributed without litigation,
-                trustee shielded from DIY missteps.</p>
+            <div class="case-body">
+              <div class="case-detail">
+                <h4>Challenge</h4>
+                <p>Three siblings were equal beneficiaries of a trust holding real estate, a business, and investments.
+                  The trustee was overwhelmed by required notices and updates.</p>
+              </div>
+              <div class="case-detail">
+                <h4>Approach</h4>
+                <p>Michael inventoried assets, ran accounting, coordinated with tax professionals, supervised sales, and
+                  kept beneficiaries informed.</p>
+              </div>
+              <div class="case-detail case-detail-result">
+                <h4>Outcome</h4>
+                <p>The administration closed in about eight months, California rules were satisfied, and approximately
+                  $2.4M was distributed without litigation.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -163,18 +207,6 @@
           <a href="process.html" class="btn-secondary">How the process works</a>
           <a href="services.html" class="btn-secondary">Explore services</a>
           <a href="contact.html#contact" class="btn-primary">Send a message →</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA BANNER -->
-    <section class="cta-banner">
-      <div class="container">
-        <div class="cta-content">
-          <h2 class="animate">Ready to Protect<br><em>Your Legacy?</em></h2>
-          <p class="animate delay-1">Free consult: evenings, weekends, or remote by Zoom or Google Meet—share your
-            goals and Michael will map next steps.</p>
-          <a href="contact.html#contact" class="btn-primary animate delay-2">Send a message →</a>
         </div>
       </div>
     </section>
@@ -223,7 +255,7 @@
     </div>
   </footer>
 
-  <script src="main.js"></script>
+  <script src="js/main.js"></script>
 </body>
 
 </html>

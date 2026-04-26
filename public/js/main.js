@@ -350,7 +350,7 @@ if (mobileToggle && navLinks) {
       urgencyClass = 'quiz-result--medium';
     } else {
       message = 'Your estate has ' + noCount + ' significant gaps.';
-      detail = 'Without these protections in place, your family could face probate delays, avoidable costs, and legal uncertainty. Don\'t wait—a free consultation takes less than an hour.';
+      detail = 'Without these protections, probate can mean months in court, minimum statutory fees, and avoidable pressure on your family. A free consultation can identify the biggest gaps quickly.';
       urgencyClass = 'quiz-result--urgent';
     }
 
@@ -439,9 +439,9 @@ if (mobileToggle && navLinks) {
 
     if (calcCta) {
       if (savings > 500) {
-        calcCta.textContent = 'Save Your Family ' + formatCurrency(savings) + ' → Book a Free Consultation';
+        calcCta.textContent = 'Your family could avoid at least ' + formatCurrency(savings) + ' in statutory fees → Book a Free Consultation';
       } else {
-        calcCta.textContent = 'Start Protecting Your Estate →';
+        calcCta.textContent = 'Protect Your Estate Before Probate Costs Start →';
       }
     }
 
