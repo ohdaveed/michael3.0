@@ -364,15 +364,15 @@ if (mobileToggle && navLinks) {
 
     if (calcCta) {
       if (savings > 500) {
-        var savingsFormatted = formatCurrency(Math.min(savings, 9999999));
-        calcCta.textContent = 'Save Your Family ' + savingsFormatted + ' → Book a Free Consultation';
+        calcCta.textContent = 'Save Your Family ' + formatCurrency(savings) + ' → Book a Free Consultation';
       } else {
         calcCta.textContent = 'Start Protecting Your Estate →';
       }
     }
 
     output.hidden = false;
-    output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    output.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
   }
 
   calcBtn.addEventListener('click', calculate);
