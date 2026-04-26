@@ -347,8 +347,8 @@ if (mobileToggle && navLinks) {
   input.parentNode.parentNode.appendChild(errorMsg);
 
   function calculate() {
-    var raw = parseFloat(input.value);
-    if (!raw || raw <= 0) {
+    var raw = input.valueAsNumber;
+    if (!Number.isFinite(raw) || raw <= 0) {
       errorMsg.textContent = 'Please enter an estate value greater than $0 (e.g. 800000).';
       errorMsg.hidden = false;
       input.focus();
