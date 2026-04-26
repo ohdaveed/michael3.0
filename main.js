@@ -251,6 +251,11 @@ if (mobileToggle && navLinks) {
         }
       });
     });
+
+    var firstOptionButton = questionArea.querySelector('.quiz-option-btn');
+    if (firstOptionButton) {
+      firstOptionButton.focus();
+    }
   }
 
   function showResult() {
