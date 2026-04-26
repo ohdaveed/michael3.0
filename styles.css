@@ -1384,7 +1384,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
 }
 /* === HERO SCARCITY NOTE === */
 .hero-scarcity {
-  font-size: 0.82rem;
+  font-size: 0.875rem;
   color: rgba(255,255,255,0.45);
   margin-top: 1rem;
   letter-spacing: 0.04em;
@@ -1693,6 +1693,12 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   min-width: 0;
 }
 .calc-go-btn { flex-shrink: 0; align-self: flex-end; }
+.calc-error {
+  font-size: 0.875rem;
+  color: #c62828;
+  margin-top: 0.5rem;
+  font-weight: 400;
+}
 .calc-output {
   margin-top: 2rem;
   border-top: 1px solid rgba(197,165,90,0.15);

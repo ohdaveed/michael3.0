@@ -234,8 +234,8 @@ if (mobileToggle && navLinks) {
     questionArea.innerHTML =
       '<p class="quiz-question-text">' + questions[index] + '</p>' +
       '<div class="quiz-options">' +
-        '<button type="button" class="quiz-option-btn" data-answer="yes">Yes</button>' +
-        '<button type="button" class="quiz-option-btn" data-answer="no">No / Not sure</button>' +
+        '<button type="button" class="quiz-option-btn" data-answer="yes" aria-label="Yes: ' + questions[index] + '">Yes</button>' +
+        '<button type="button" class="quiz-option-btn" data-answer="no" aria-label="No or not sure: ' + questions[index] + '">No / Not sure</button>' +
       '</div>';
 
     questionArea.querySelectorAll('.quiz-option-btn').forEach(function (btn) {
@@ -333,21 +333,35 @@ if (mobileToggle && navLinks) {
     return '$' + Math.round(n).toLocaleString('en-US');
   }
 
+  var errorMsg = document.createElement('p');
+  errorMsg.className = 'calc-error';
+  errorMsg.setAttribute('role', 'alert');
+  errorMsg.hidden = true;
+  input.parentNode.parentNode.appendChild(errorMsg);
+
   function calculate() {
     var raw = parseFloat(input.value);
     if (!raw || raw <= 0) {
+      errorMsg.textContent = 'Please enter an estate value greater than $0 (e.g. 800000).';
+      errorMsg.hidden = false;
       input.focus();
       return;
     }
+    errorMsg.hidden = true;
     var probateCost = calcStatutoryFee(raw);
     var trustPackage = 2495;
     var savings = probateCost - trustPackage;
 
     probateCostEl.textContent = formatCurrency(probateCost) + ' minimum';
-    savingsEl.textContent = savings > 0 ? formatCurrency(savings) + ' minimum' : '—';
+    savingsEl.textContent = savings > 0 ? formatCurrency(savings) + ' minimum' : 'No savings (trust cost exceeds estimated probate fees)';
 
-    if (calcCta && savings > 0) {
-      calcCta.textContent = 'Save Your Family ' + formatCurrency(savings) + ' → Book a Free Consultation';
+    if (calcCta) {
+      if (savings > 500) {
+        var savingsFormatted = formatCurrency(Math.min(savings, 9999999));
+        calcCta.textContent = 'Save Your Family ' + savingsFormatted + ' → Book a Free Consultation';
+      } else {
+        calcCta.textContent = 'Start Protecting Your Estate →';
+      }
     }
 
     output.hidden = false;
