@@ -9,10 +9,10 @@
     "format": "prettier --write \"*.{html,css,js,json,md}\" \"docs/**/*.{md,json}\"",
     "format:check": "prettier --check \"*.{html,css,js,json,md}\" \"docs/**/*.{md,json}\"",
     "html:check": "h$(printf 'tmlhint') \"*.html\"",
-    "links:check": "l$(printf 'inkinator') http://localhost:5173 --recurse --skip \"mailto:*\"",
+    "links:check": "linkinator http://localhost:5173 --recurse --skip \"mailto:*\"",
     "a11y:check": "pa11y http://localhost:5173",
     "lighthouse": "lighthouse http://localhost:5173 --output=html --output-path=./lighthouse-report.html --chrome-flags=\"--headless=new --no-sandbox\"",
-    "browser:check": "agent-browser open http://localhost:5173 && agent-browser wait --load net$(printf 'workidle') && agent-browser snapshot -i",
+    "browser:check": "agent-browser open http://localhost:5173 && agent-browser wait --load networkidle && agent-browser snapshot -i",
     "check": "npm run format:check && npm run html:check"
   },
   "devDependencies": {
