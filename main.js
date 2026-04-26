@@ -226,10 +226,12 @@ if (mobileToggle && navLinks) {
   let noCount = 0;
 
   function showQuestion(index) {
-    const pct = Math.round((index / questions.length) * 100);
+    const currentQuestion = index + 1;
+    const pct = Math.round((currentQuestion / questions.length) * 100);
     progressFill.style.width = pct + '%';
-    progressBar.setAttribute('aria-valuenow', index);
-    progressLabel.textContent = 'Question ' + (index + 1) + ' of ' + questions.length;
+    progressBar.setAttribute('aria-valuenow', currentQuestion);
+    progressBar.setAttribute('aria-valuemax', questions.length);
+    progressLabel.textContent = 'Question ' + currentQuestion + ' of ' + questions.length;
 
     questionArea.innerHTML =
       '<p class="quiz-question-text">' + questions[index] + '</p>' +
