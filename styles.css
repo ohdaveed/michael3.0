@@ -63,6 +63,7 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 3px;
+  box-shadow: 0 0 0 2px rgba(11, 29, 51, 0.65);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -587,6 +588,12 @@ textarea:focus-visible {
 .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
   border-color: var(--gold);
 }
+.form-group input[aria-invalid="true"],
+.form-group textarea[aria-invalid="true"],
+.form-group select[aria-invalid="true"] {
+  border-color: #b42318;
+  background: #fff7f6;
+}
 .form-group textarea { min-height: 130px; resize: vertical; }
 
 /* === FOOTER === */
@@ -627,10 +634,14 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
 .footer-copy { font-size: 0.78rem; color: rgba(255,255,255,0.3); font-weight: 300; }
 .footer-legal { display: flex; gap: 1.5rem; }
 .footer-legal a {
-  font-size: 0.78rem; color: rgba(255,255,255,0.3);
+  font-size: 0.78rem; color: rgba(255,255,255,0.72);
   text-decoration: none; transition: color 0.3s;
 }
-.footer-legal a:hover { color: rgba(255,255,255,0.6); }
+.footer-legal a:hover { color: var(--white); }
+
+.footer-copy {
+  color: rgba(255,255,255,0.72);
+}
 
 /* === STICKY CTA BUTTON === */
 .sticky-cta {

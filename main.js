@@ -14,11 +14,56 @@ const nav = document.getElementById('nav');
 const stickyCta = document.getElementById('stickyCta');
 const main = document.querySelector('main');
 const footer = document.querySelector('footer');
+const mobileToggle = document.querySelector('.mobile-toggle');
+const navLinks = document.querySelector('.nav-links');
+
+if (nav) {
+  nav.setAttribute('aria-label', 'Primary');
+}
+
+function normalizePathname(pathname) {
+  const last = pathname.split('/').filter(Boolean).pop();
+  return last || 'index.html';
+}
+
+function setCurrentNavLink() {
+  if (!navLinks) return;
+  const currentPath = normalizePathname(window.location.pathname);
+  const currentHash = window.location.hash;
+  const matchingLinks = [];
+
+  navLinks.querySelectorAll('a[aria-current]').forEach((link) => link.removeAttribute('aria-current'));
+
+  navLinks.querySelectorAll('a[href]').forEach((link) => {
+    const href = link.getAttribute('href');
+    if (!href) return;
+
+    const linkUrl = new URL(href, window.location.href);
+    const linkPath = normalizePathname(linkUrl.pathname);
+    const hashOnlyMatch = href.startsWith('#') && href === currentHash;
+    const samePage = linkPath === currentPath;
+    const hashMatches = !linkUrl.hash || linkUrl.hash === currentHash;
+
+    if ((samePage && hashMatches) || hashOnlyMatch) {
+      matchingLinks.push(link);
+    }
+  });
+
+  const nonCtaMatch = matchingLinks.find((link) => !link.classList.contains('nav-cta'));
+  const activeLink = nonCtaMatch || matchingLinks[0];
+  if (activeLink) {
+    activeLink.setAttribute('aria-current', 'page');
+  }
+}
+
+setCurrentNavLink();
 
 function setMobileMenuState(isOpen) {
   if (!mobileToggle || !navLinks) return;
   navLinks.classList.toggle('open', isOpen);
   mobileToggle.setAttribute('aria-expanded', isOpen);
+  mobileToggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+  navLinks.setAttribute('aria-hidden', String(!isOpen));
   document.body.style.overflow = isOpen ? 'hidden' : '';
   if (main) main.toggleAttribute('inert', isOpen);
   if (footer) footer.toggleAttribute('inert', isOpen);
@@ -38,10 +83,10 @@ if (nav || stickyCta) {
 }
 
 // Mobile nav toggle
-const mobileToggle = document.querySelector('.mobile-toggle');
-const navLinks = document.querySelector('.nav-links');
 if (mobileToggle && navLinks) {
   mobileToggle.setAttribute('aria-haspopup', 'true');
+  mobileToggle.setAttribute('aria-label', 'Open menu');
+  navLinks.setAttribute('aria-hidden', 'true');
   mobileToggle.addEventListener('click', () => {
     const isOpen = !navLinks.classList.contains('open');
     setMobileMenuState(isOpen);
@@ -127,8 +172,36 @@ const contactForm = document.getElementById('contactForm');
 const formMessage = document.getElementById('formMessage');
 
 if (contactForm && formMessage) {
+  const requiredFields = Array.from(contactForm.querySelectorAll('[required]'));
+
+  function markFieldValidity(field) {
+    if (!field) return;
+    field.setAttribute('aria-invalid', String(!field.checkValidity()));
+  }
+
+  requiredFields.forEach((field) => {
+    field.setAttribute('aria-required', 'true');
+    markFieldValidity(field);
+    field.addEventListener('blur', () => markFieldValidity(field));
+    field.addEventListener('input', () => {
+      if (field.getAttribute('aria-invalid') === 'true') {
+        markFieldValidity(field);
+      }
+    });
+  });
+
   contactForm.addEventListener('submit', async function (e) {
     e.preventDefault();
+
+    if (!this.checkValidity()) {
+      requiredFields.forEach((field) => markFieldValidity(field));
+      const firstInvalid = this.querySelector(':invalid');
+      formMessage.textContent = 'Please complete the required fields before sending your message.';
+      formMessage.className = 'form-message error';
+      formMessage.setAttribute('role', 'alert');
+      if (firstInvalid) firstInvalid.focus();
+      return;
+    }
 
     const submitButton = this.querySelector('button[type="submit"]');
     if (!submitButton) return;
@@ -140,6 +213,7 @@ if (contactForm && formMessage) {
 
     formMessage.textContent = '';
     formMessage.className = 'form-message';
+    formMessage.setAttribute('role', 'status');
 
     let leavePage = false;
     try {
@@ -162,6 +236,7 @@ if (contactForm && formMessage) {
     } catch (error) {
       formMessage.textContent = 'There was an error sending your message. Please try again in a moment, or email michael@lehr-law.com directly.';
       formMessage.className = 'form-message error';
+      formMessage.setAttribute('role', 'alert');
       console.error('Form submission error:', error);
     } finally {
       if (!leavePage) {
