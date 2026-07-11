@@ -13,6 +13,9 @@ footer {
   gap: 2rem;
 }
 .footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-family: var(--serif);
   font-size: 1.5rem;
   font-weight: 400;
@@ -21,6 +24,10 @@ footer {
 }
 .footer-brand span {
   color: var(--gold);
+}
+.footer-logo-mark {
+  height: 1.6em;
+  width: auto;
 }
 .footer-tagline {
   font-size: 0.88rem;

@@ -24,6 +24,9 @@
   align-items: center;
 }
 .nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   font-family: var(--serif);
   font-size: 1.35rem;
   font-weight: 500;
@@ -33,6 +36,10 @@
 }
 .nav-logo span {
   color: var(--gold);
+}
+.nav-logo-mark {
+  height: 1.9em;
+  width: auto;
 }
 .nav-links {
   display: flex;

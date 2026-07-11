@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
-import { readFileSync } from "fs";
+import { readFileSync, mkdirSync, copyFileSync } from "fs";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import Sitemap from "vite-plugin-sitemap";
 
@@ -26,10 +26,33 @@ function htmlIncludePlugin() {
   };
 }
 
+// Images referenced only inside partials (nav.html, footer.html) or as a
+// plain JSON-LD string (not an actual tag attribute) are never seen by
+// Vite's own asset-reference scan, so they don't get bundled/copied
+// automatically. Copy them into the build output directly.
+const STATIC_IMAGES = ["logo-mark.svg", "logo-mark-square.png"];
+
+function staticImagesPlugin() {
+  return {
+    name: "static-images",
+    writeBundle() {
+      const outDir = resolve(__dirname, "dist/images");
+      mkdirSync(outDir, { recursive: true });
+      for (const file of STATIC_IMAGES) {
+        copyFileSync(
+          resolve(__dirname, "public/images", file),
+          resolve(outDir, file),
+        );
+      }
+    },
+  };
+}
+
 export default defineConfig({
   root: "public",
   plugins: [
     htmlIncludePlugin(),
+    staticImagesPlugin(),
     ViteImageOptimizer({
       png: {
         quality: 80,
