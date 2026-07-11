@@ -59,6 +59,21 @@ Every public HTML page includes a `link rel="canonical"` and Open Graph tags tha
 - `robots.txt` — allows crawlers and points to the sitemap.
 - `sitemap.xml` — lists indexable pages (excluding `thank-you.html`, which stays `noindex`).
 
+## Deployment (auto-deploy to Bluehost)
+
+Every push to `main` that touches `public/`, `robots.txt`, or `sitemap.xml` triggers `.github/workflows/deploy.yml`, which uploads the contents of `public/` plus `robots.txt` and `sitemap.xml` to Bluehost over FTPS. Only changed files are transferred (the action keeps a state file, `.ftp-deploy-sync-state.json`, on the server to track this).
+
+### One-time setup
+
+1. **Activate the workflow** — the workflow file ships as `.github/workflows-pending/deploy.yml` because automated pushes can't write to `.github/workflows/` without the `workflow` OAuth scope. Move it into place: on GitHub, open the file, click the pencil (edit), change the path from `workflows-pending` to `workflows`, and commit — or locally, `git mv .github/workflows-pending/deploy.yml .github/workflows/deploy.yml` and push.
+2. **Create a deploy-only FTP account in Bluehost** — cPanel → Files → FTP Accounts. Set its home **Directory** to the document root that serves `www.lehr-law.com` (usually `public_html`, or the addon-domain folder). Scoping the account to that folder means the credentials stored in GitHub can't touch anything else on the hosting account.
+3. **Add GitHub Actions secrets** — repo → Settings → Secrets and variables → Actions → New repository secret:
+   - `FTP_SERVER` — the FTP hostname from cPanel (e.g. `ftp.lehr-law.com` or the `*.bluehost.com` server name)
+   - `FTP_USERNAME` — the FTP account you created (e.g. `deploy@lehr-law.com`)
+   - `FTP_PASSWORD` — that account's password
+4. **(Only if not using a scoped account)** If you use the main cPanel login instead, add a repository **variable** `FTP_SERVER_DIR` set to the document root path (e.g. `public_html/`, trailing slash required).
+5. **Test it** — repo → Actions → "Deploy to Bluehost" → Run workflow. The first run uploads everything; later runs upload only diffs.
+
 ## File structure
 
 ```text
