@@ -14,14 +14,17 @@ concurrency:
   group: deploy-bluehost
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
           cache: 'npm'
@@ -33,7 +36,7 @@ jobs:
         run: npm run build
 
       - name: Upload to Bluehost via FTPS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65 # v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -59,34 +62,48 @@ jobs:
         if: success() && env.DEPLOY_WEBHOOK_URL != ''
         env:
           DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+          REPOSITORY: ${{ github.repository }}
+          REF_NAME: ${{ github.ref_name }}
+          RUN_ID: ${{ github.run_id }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
-          curl -s -X POST -H "Content-Type: application/json" --data-binary @- "$DEPLOY_WEBHOOK_URL" <<EOF
-          {
-            "status": "success",
-            "repository": "${{ github.repository }}",
-            "branch": "${{ github.ref_name }}",
-            "run_id": "${{ github.run_id }}",
-            "run_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-            "actor": "${{ github.actor }}",
-            "commit": "${{ github.sha }}",
-            "commit_message": ${{ toJson(github.event.head_commit.message || 'Triggered manually or no head commit info') }}
-          }
-          EOF
+          PAYLOAD=$(jq -n \
+            --arg status "success" \
+            --arg repository "$REPOSITORY" \
+            --arg branch "$REF_NAME" \
+            --arg run_id "$RUN_ID" \
+            --arg run_url "https://github.com/$REPOSITORY/actions/runs/$RUN_ID" \
+            --arg actor "$ACTOR" \
+            --arg commit "$COMMIT_SHA" \
+            --arg commit_message "${COMMIT_MESSAGE:-Triggered manually or no head commit info}" \
+            '{status: $status, repository: $repository, branch: $branch, run_id: $run_id, run_url: $run_url, actor: $actor, commit: $commit, commit_message: $commit_message}')
+          curl -s -X POST -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "$DEPLOY_WEBHOOK_URL"
 
       - name: Send Deploy Failure Notification
         if: failure() && env.DEPLOY_WEBHOOK_URL != ''
         env:
           DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+          REPOSITORY: ${{ github.repository }}
+          REF_NAME: ${{ github.ref_name }}
+          RUN_ID: ${{ github.run_id }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
-          curl -s -X POST -H "Content-Type: application/json" --data-binary @- "$DEPLOY_WEBHOOK_URL" <<EOF
-          {
-            "status": "failed",
-            "repository": "${{ github.repository }}",
-            "branch": "${{ github.ref_name }}",
-            "run_id": "${{ github.run_id }}",
-            "run_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-            "actor": "${{ github.actor }}",
-            "commit": "${{ github.sha }}",
-            "commit_message": ${{ toJson(github.event.head_commit.message || 'Triggered manually or no head commit info') }}
-          }
-          EOF
+          PAYLOAD=$(jq -n \
+            --arg status "failed" \
+            --arg repository "$REPOSITORY" \
+            --arg branch "$REF_NAME" \
+            --arg run_id "$RUN_ID" \
+            --arg run_url "https://github.com/$REPOSITORY/actions/runs/$RUN_ID" \
+            --arg actor "$ACTOR" \
+            --arg commit "$COMMIT_SHA" \
+            --arg commit_message "${COMMIT_MESSAGE:-Triggered manually or no head commit info}" \
+            '{status: $status, repository: $repository, branch: $branch, run_id: $run_id, run_url: $run_url, actor: $actor, commit: $commit, commit_message: $commit_message}')
+          curl -s -X POST -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "$DEPLOY_WEBHOOK_URL"
