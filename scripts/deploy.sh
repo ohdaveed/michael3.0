@@ -29,7 +29,12 @@ BLUEHOST_DIR="${BLUEHOST_DIR:-public_html}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-RSYNC_FLAGS=(-avz --exclude ".DS_Store")
+# --chmod forces 755/644 on everything transferred, regardless of the local
+# machine's file permissions. Without it, -a (archive mode) copies local
+# permissions verbatim — on some setups (e.g. certain WSL umask configs)
+# that means directories/files land on the server as 700/600, which the
+# web server user can't read, producing a 403.
+RSYNC_FLAGS=(-avz --chmod=D755,F644 --exclude ".DS_Store")
 
 for arg in "$@"; do
   case "$arg" in
