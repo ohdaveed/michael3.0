@@ -1,0 +1,44 @@
+/* === PREFERS-CONTRAST: HIGH === */
+@media (prefers-contrast: high) {
+  .hero-body,
+  .doc-callout-text p,
+  .practices-intro,
+  .practice-card p,
+  .cta-banner p,
+  .footer-tagline,
+  .footer-links-group a,
+  .video-placeholder,
+  .process-cta p,
+  .faq-cta p,
+  .page-hero > .container > p,
+  .breadcrumb-nav,
+  .quiz-intro,
+  .quiz-option-btn[data-answer="no"],
+  .quiz-result-score-label,
+  .quiz-result-detail,
+  .results-highlights-intro,
+  .result-card p,
+  .result-stat-label,
+  .thank-you-hero .lede-secondary {
+    color: rgba(255, 255, 255, 0.9);
+  }
+  .footer-copy,
+  .quiz-progress-label,
+  .breadcrumb-sep,
+  .video-placeholder span,
+  .quiz-retake-btn {
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .btn-secondary,
+  .practice-card,
+  .footer-top,
+  .quiz-option-btn[data-answer="no"],
+  .quiz-result-view.quiz-result--urgent,
+  .result-card,
+  .results-highlights .btn-secondary-dark {
+    border-color: rgba(255, 255, 255, 0.55);
+  }
+  .quiz-question-area {
+    background: var(--navy-mid);
+  }
+}

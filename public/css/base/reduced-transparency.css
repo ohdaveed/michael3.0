@@ -1,0 +1,23 @@
+/* === REDUCED TRANSPARENCY === */
+@media (prefers-reduced-transparency: reduce) {
+  #nav {
+    background: var(--navy);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  #nav.scrolled {
+    background: var(--navy-mid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .nav-links.open {
+    background: var(--navy-mid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .section-subnav {
+    background: var(--cream-light);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

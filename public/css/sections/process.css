@@ -1,0 +1,149 @@
+/* === PROCESS (WHAT TO EXPECT) === */
+.process {
+  padding: 7rem 0;
+  background: var(--cream);
+}
+.process-header {
+  max-width: 800px;
+  margin-bottom: 4rem;
+}
+.process-intro {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--text-body);
+  font-weight: 300;
+}
+.process-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 4rem;
+  /* Reset default <ol> numbering/indent — the step order is conveyed by
+     the .process-step-number badge instead. */
+  list-style: none;
+  padding-left: 0;
+}
+.process-step {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 2rem;
+  background: var(--white);
+  padding: 2.5rem;
+  border: 1px solid rgba(197, 165, 90, 0.12);
+  transition: all 0.4s ease;
+}
+.process-step:hover {
+  border-color: rgba(197, 165, 90, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transform: translateX(5px);
+}
+.process-step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.process-timeline {
+  position: relative;
+}
+.process-timeline-track {
+  position: absolute;
+  left: 80px;
+  top: 0;
+  width: 2px;
+  height: 0;
+  background: rgba(197, 165, 90, 0.15);
+  transform: translateX(-50%);
+  z-index: 0;
+}
+.process-timeline-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: var(--gold);
+  transition: height 0.6s ease;
+}
+@media (max-width: 768px) {
+  .process-timeline-track {
+    display: none;
+  }
+}
+.process-step-number span {
+  width: 70px;
+  height: 70px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: var(--gold-text);
+  position: relative;
+  z-index: 1;
+  transition:
+    background 0.4s ease,
+    color 0.4s ease;
+}
+.process-step-number span.reached {
+  background: var(--gold);
+  color: var(--navy);
+}
+.process-step-content h3 {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-bottom: 0.75rem;
+}
+.process-step-content p {
+  font-size: 0.95rem;
+  line-height: 1.85;
+  color: var(--text-body);
+  margin-bottom: 1rem;
+  font-weight: 300;
+}
+.process-step-content p:last-child {
+  margin-bottom: 0;
+}
+.process-step-content strong {
+  color: var(--navy-mid);
+  font-weight: 500;
+}
+.process-action {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+.btn-text {
+  font-size: 0.9rem;
+  color: var(--gold);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+.btn-text:hover {
+  color: var(--gold-light);
+}
+.process-cta {
+  text-align: center;
+  background: var(--navy);
+  padding: 3rem;
+  color: var(--white);
+}
+.process-cta h3 {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 400;
+  margin-bottom: 1rem;
+  color: var(--white);
+}
+.process-cta p {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 2rem;
+  line-height: 1.7;
+}

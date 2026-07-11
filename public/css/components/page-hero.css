@@ -1,0 +1,30 @@
+/* === PAGE HERO === */
+.page-hero {
+  padding: 10rem 0 3rem;
+  background: var(--navy-deep);
+  text-align: center;
+}
+.page-hero .section-label {
+  justify-content: center;
+  color: var(--gold);
+}
+.page-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  color: var(--white);
+  margin-bottom: 1rem;
+}
+.page-hero h1 em {
+  color: var(--gold-light);
+}
+.page-hero > .container > p {
+  max-width: 700px;
+  margin: 0 auto;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.65);
+}
+.page-hero a {
+  color: var(--gold-light);
+  text-decoration: none;
+}

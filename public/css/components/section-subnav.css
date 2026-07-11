@@ -1,0 +1,43 @@
+/* === SECTION SUB-NAV === */
+.section-subnav {
+  position: sticky;
+  top: 64px;
+  z-index: 500;
+  background: rgba(250, 247, 242, 0.92);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(197, 165, 90, 0.2);
+}
+.section-subnav-links {
+  display: flex;
+  gap: 2rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.section-subnav-links::-webkit-scrollbar {
+  display: none;
+}
+.section-subnav-links a {
+  flex-shrink: 0;
+  padding: 0.9rem 0;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--stone);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+.section-subnav-links a:hover,
+.section-subnav-links a:focus-visible {
+  color: var(--gold-text);
+}
+.section-subnav-links a.active {
+  color: var(--gold-text);
+  border-bottom-color: var(--gold);
+}

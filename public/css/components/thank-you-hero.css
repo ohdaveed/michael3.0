@@ -1,0 +1,41 @@
+/* === THANK YOU HERO === */
+.thank-you-hero {
+  padding: 10rem 0 4rem;
+  background: var(--navy-deep);
+  text-align: center;
+}
+.thank-you-hero .section-label {
+  color: var(--gold);
+}
+.thank-you-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  color: var(--white);
+  margin-bottom: 1.25rem;
+}
+.thank-you-hero h1 em {
+  color: var(--gold-light);
+}
+.thank-you-hero .lede {
+  max-width: 640px;
+  margin: 0 auto 2rem;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.7);
+}
+.thank-you-hero .lede a {
+  color: var(--gold-light);
+}
+.thank-you-hero .lede-secondary {
+  max-width: 640px;
+  margin: 0 auto 2rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.62);
+}
+.thank-you-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}

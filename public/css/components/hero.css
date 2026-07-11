@@ -1,0 +1,123 @@
+/* === HERO === */
+.hero {
+  min-height: 100vh;
+  background: var(--navy-deep);
+  display: flex;
+  align-items: center;
+  padding-top: 6.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    var(--grain),
+    radial-gradient(
+      ellipse at 20% 50%,
+      rgba(197, 165, 90, 0.06) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 80% 20%,
+      rgba(19, 43, 71, 0.5) 0%,
+      transparent 50%
+    ),
+    linear-gradient(180deg, rgba(6, 18, 33, 0.3) 0%, transparent 40%);
+  background-size:
+    240px 240px,
+    auto,
+    auto,
+    auto;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(to top, var(--cream-light), transparent);
+  z-index: 2;
+}
+.hero-deco {
+  position: absolute;
+  top: 15%;
+  right: 8%;
+  width: 300px;
+  height: 300px;
+  border: 1px solid rgba(197, 165, 90, 0.08);
+  transform: rotate(45deg);
+  z-index: 1;
+  animation: heroDecoDrift 90s linear infinite;
+}
+@keyframes heroDecoDrift {
+  from {
+    transform: rotate(45deg);
+  }
+  to {
+    transform: rotate(405deg);
+  }
+}
+.hero-deco::before {
+  content: "";
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  right: 30px;
+  bottom: 30px;
+  border: 1px solid rgba(197, 165, 90, 0.05);
+}
+.hero-content {
+  position: relative;
+  z-index: 3;
+  max-width: 750px;
+  animation: fadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
+.hero-label {
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.hero-label::before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: var(--gold);
+  animation: lineGrow 0.8s ease 1s both;
+}
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+  font-weight: 400;
+  color: var(--white);
+  line-height: 1.15;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.01em;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--gold-light);
+}
+.hero-body {
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.75;
+  margin-bottom: 2.5rem;
+  max-width: 560px;
+}
+.hero-btns {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}

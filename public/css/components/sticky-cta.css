@@ -1,0 +1,36 @@
+/* === STICKY CTA BUTTON === */
+.sticky-cta {
+  position: fixed;
+  bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+  right: calc(2rem + env(safe-area-inset-right, 0px));
+  z-index: 999;
+  background: var(--gold);
+  color: var(--navy);
+  padding: 1rem 1.5rem;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(197, 165, 90, 0.4);
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+}
+.sticky-cta.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.sticky-cta:hover {
+  background: var(--gold-light);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(197, 165, 90, 0.5);
+}
+.sticky-cta svg {
+  flex-shrink: 0;
+}

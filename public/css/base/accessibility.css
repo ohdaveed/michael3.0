@@ -1,0 +1,71 @@
+/* === ACCESSIBILITY: skip link, focus, motion === */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 0;
+  z-index: 10001;
+  padding: 0.75rem 1.25rem;
+  background: var(--gold);
+  color: var(--navy);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  border-radius: 4px;
+  transform: translateY(-150%);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0.75rem);
+  outline: 3px solid var(--white);
+  outline-offset: 2px;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px rgba(11, 29, 51, 0.65);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate,
+  .animate.visible,
+  .animate.visible.delay-1,
+  .animate.visible.delay-2,
+  .animate.visible.delay-3,
+  .animate.visible.delay-4 {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  .skip-link {
+    transition: none;
+  }
+  .hero-deco {
+    animation: none !important;
+  }
+  .custom-cursor {
+    display: none !important;
+  }
+  .doc-card,
+  .practice-card,
+  .case-card {
+    transform: none !important;
+  }
+  .process-timeline-fill,
+  .process-step-number span {
+    transition: none !important;
+  }
+}

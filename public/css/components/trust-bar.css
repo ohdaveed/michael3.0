@@ -1,0 +1,31 @@
+/* === TRUST BAR === */
+.trust-bar {
+  padding: 3rem 0;
+  background: var(--cream-light);
+  border-bottom: 1px solid rgba(197, 165, 90, 0.15);
+}
+.trust-items {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--stone);
+  text-transform: uppercase;
+}
+.trust-item svg {
+  flex-shrink: 0;
+}
+.trust-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(197, 165, 90, 0.3);
+}

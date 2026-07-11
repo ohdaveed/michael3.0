@@ -1,0 +1,93 @@
+/* === PRACTICE AREAS === */
+.practices {
+  padding: 7rem 0;
+  background: var(--navy-deep);
+  position: relative;
+}
+.practices::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    var(--grain),
+    radial-gradient(
+      ellipse at 80% 50%,
+      rgba(197, 165, 90, 0.04),
+      transparent 60%
+    );
+  background-size:
+    240px 240px,
+    auto;
+}
+.practices .container {
+  position: relative;
+}
+.practices .section-title {
+  color: var(--white);
+}
+.practices .section-title em {
+  color: var(--gold-light);
+}
+.practices .section-label {
+  color: var(--gold);
+}
+.practices-intro {
+  max-width: 600px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  font-weight: 300;
+  margin-bottom: 4rem;
+}
+.practices-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  position: relative;
+}
+.practice-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 2.5rem 2rem;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+.practice-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--gold);
+  transition: width 0.5s ease;
+}
+.practice-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(197, 165, 90, 0.2);
+  transform: translateY(-4px);
+}
+.practice-card:hover::before {
+  width: 100%;
+}
+.practice-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1.5rem;
+  color: var(--gold);
+  opacity: 0.8;
+}
+.practice-card h3 {
+  font-family: var(--serif);
+  font-size: 1.45rem;
+  font-weight: 500;
+  color: var(--white);
+  margin-bottom: 0.85rem;
+}
+.practice-card p {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 300;
+}
