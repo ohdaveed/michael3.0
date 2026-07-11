@@ -1,0 +1,49 @@
+name: Sync commits to DoltHub
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: dolt-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DOLT_VERSION: "2.1.10"
+  DOLT_TARBALL_SHA256: "bf6528c10db5b304eef3ee0107762ab4a93baa4c42be36b9f37eb67b35bb422c"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Install Dolt
+        run: |
+          curl -sL "https://github.com/dolthub/dolt/releases/download/v${DOLT_VERSION}/dolt-linux-amd64.tar.gz" -o dolt.tar.gz
+          echo "${DOLT_TARBALL_SHA256}  dolt.tar.gz" | sha256sum -c -
+          tar -xzf dolt.tar.gz
+          sudo mv "dolt-linux-amd64/bin/dolt" /usr/local/bin/dolt
+          rm -rf dolt.tar.gz dolt-linux-amd64
+          dolt version
+
+      - name: Configure Dolt credentials
+        env:
+          DOLTHUB_CREDS_B64: ${{ secrets.DOLTHUB_CREDS_B64 }}
+          DOLTHUB_CREDS_ID: ${{ vars.DOLTHUB_CREDS_ID }}
+        run: |
+          mkdir -p ~/.dolt/creds
+          echo "${DOLTHUB_CREDS_B64}" | base64 -d > ~/.dolt/creds/${DOLTHUB_CREDS_ID}.jwk
+          chmod 600 ~/.dolt/creds/${DOLTHUB_CREDS_ID}.jwk
+          dolt config --global --add user.creds "${DOLTHUB_CREDS_ID}"
+          dolt config --global --add user.name "michael3.0 CI"
+          dolt config --global --add user.email "actions@users.noreply.github.com"
+
+      - name: Sync new commits
+        run: .github/scripts/dolt-sync-commits.sh
