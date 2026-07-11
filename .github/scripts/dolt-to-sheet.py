@@ -10,6 +10,8 @@ import csv
 import io
 import os
 import sys
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import google.auth.transport.requests
 import requests
@@ -18,6 +20,15 @@ from google.oauth2 import service_account
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SHEET_TAB = "Sheet1"
 HEADER = ["commit_hash", "author_name", "author_email", "commit_date", "message"]
+PACIFIC = ZoneInfo("America/Los_Angeles")
+
+
+def to_pacific(utc_datetime_str):
+    # Dolt stores commit_date as naive UTC (it normalizes incoming ISO-offset
+    # timestamps to UTC on import); reattach UTC then convert for display.
+    dt = datetime.strptime(utc_datetime_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+    pacific_dt = dt.astimezone(PACIFIC)
+    return pacific_dt.strftime("%Y-%m-%d %H:%M:%S %Z")
 
 
 def main():
@@ -27,7 +38,11 @@ def main():
     reader = csv.DictReader(io.StringIO(sys.stdin.read()))
     rows = sorted(reader, key=lambda r: r["commit_date"], reverse=True)
 
-    values = [HEADER] + [[r[col] for col in HEADER] for r in rows]
+    values = [HEADER]
+    for r in rows:
+        row = [r[col] for col in HEADER]
+        row[HEADER.index("commit_date")] = to_pacific(r["commit_date"])
+        values.append(row)
 
     creds = service_account.Credentials.from_service_account_file(key_file, scopes=SCOPES)
     creds.refresh(google.auth.transport.requests.Request())
