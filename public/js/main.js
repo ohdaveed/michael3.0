@@ -454,6 +454,8 @@ if (mobileToggle && navLinks) {
   var probateCostEl = document.getElementById('calcProbateCost');
   var savingsEl = document.getElementById('calcSavings');
   var calcCta = document.getElementById('calcCta');
+  var slider = document.getElementById('estateValueSlider');
+  var sliderValueEl = document.getElementById('calcSliderValue');
 
   if (!input || !calcBtn || !output) return;
 
@@ -484,9 +486,11 @@ if (mobileToggle && navLinks) {
   errorMsg.hidden = true;
   input.parentNode.parentNode.appendChild(errorMsg);
 
-  function calculate() {
+  function calculate(opts) {
+    opts = opts || {};
     var raw = input.valueAsNumber;
     if (!Number.isFinite(raw) || raw <= 0) {
+      if (opts.silent) return;
       errorMsg.textContent = 'Please enter an estate value greater than $0 (e.g. 800000).';
       errorMsg.hidden = false;
       input.focus();
@@ -509,12 +513,88 @@ if (mobileToggle && navLinks) {
     }
 
     output.hidden = false;
-    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    output.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+    if (!opts.silent) {
+      var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      output.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+    }
   }
 
   calcBtn.addEventListener('click', calculate);
   input.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') calculate();
   });
+
+  if (slider && sliderValueEl) {
+    var syncSliderLabel = function () {
+      sliderValueEl.textContent = formatCurrency(Number(slider.value));
+    };
+    syncSliderLabel();
+
+    slider.addEventListener('input', function () {
+      syncSliderLabel();
+      input.value = slider.value;
+      calculate({ silent: true });
+    });
+
+    input.addEventListener('input', function () {
+      var raw = input.valueAsNumber;
+      if (Number.isFinite(raw)) {
+        var clamped = Math.min(Math.max(raw, Number(slider.min)), Number(slider.max));
+        slider.value = String(clamped);
+        syncSliderLabel();
+        if (!output.hidden) calculate({ silent: true });
+      }
+    });
+  }
+})();
+
+// Trust funding checklist (localStorage-persisted)
+(function () {
+  var list = document.getElementById('fundingChecklistList');
+  if (!list) return;
+
+  var STORAGE_KEY = 'lehr-law-funding-checklist';
+  var track = document.getElementById('fundingProgress');
+  var fill = document.getElementById('fundingProgressFill');
+  var label = document.getElementById('fundingProgressLabel');
+  var checkboxes = Array.prototype.slice.call(list.querySelectorAll('input[type="checkbox"]'));
+  var total = checkboxes.length;
+
+  function loadState() {
+    try {
+      return JSON.parse(window.localStorage.getItem(STORAGE_KEY)) || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveState(state) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      // localStorage unavailable (private browsing, quota) - degrade to session-only state
+    }
+  }
+
+  function updateProgress() {
+    var checked = checkboxes.filter(function (cb) { return cb.checked; }).length;
+    var pct = total ? Math.round((checked / total) * 100) : 0;
+    fill.style.width = pct + '%';
+    if (track) track.setAttribute('aria-valuenow', String(pct));
+    label.textContent = checked + ' of ' + total + ' assets retitled';
+  }
+
+  var state = loadState();
+  checkboxes.forEach(function (cb) {
+    var id = cb.getAttribute('data-funding-id');
+    if (state[id]) cb.checked = true;
+    cb.addEventListener('change', function () {
+      var current = loadState();
+      current[id] = cb.checked;
+      saveState(current);
+      updateProgress();
+    });
+  });
+
+  updateProgress();
 })();

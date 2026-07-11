@@ -151,6 +151,68 @@
   </div>
 </section>
 
+<!-- TRUST FUNDING CHECKLIST -->
+<section class="funding-checklist" id="funding-checklist">
+  <div class="container">
+    <div class="funding-checklist-header">
+      <div class="section-label animate">After You Sign</div>
+      <h2 class="section-title animate delay-1">A Trust Only Works If It's <em>Funded</em></h2>
+      <p class="funding-checklist-intro animate delay-2">Signing your trust is step one. Retitling assets into it is what actually keeps them out of probate. Track your progress below—it's saved on this device so you can pick up where you left off.</p>
+    </div>
+
+    <div class="funding-checklist-widget animate delay-3">
+      <div class="funding-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="fundingProgress">
+        <div class="funding-progress-fill" id="fundingProgressFill" style="width: 0%"></div>
+      </div>
+      <div class="funding-progress-label" id="fundingProgressLabel">0 of 6 assets retitled</div>
+
+      <ul class="funding-checklist-list" id="fundingChecklistList">
+        <li class="funding-item">
+          <label>
+            <input type="checkbox" data-funding-id="home">
+            <span class="funding-item-text"><strong>Primary residence</strong>—deed retitled to the trust</span>
+          </label>
+        </li>
+        <li class="funding-item">
+          <label>
+            <input type="checkbox" data-funding-id="bank">
+            <span class="funding-item-text"><strong>Bank accounts</strong>—checking &amp; savings retitled or made payable-on-death to the trust</span>
+          </label>
+        </li>
+        <li class="funding-item">
+          <label>
+            <input type="checkbox" data-funding-id="brokerage">
+            <span class="funding-item-text"><strong>Brokerage &amp; investment accounts</strong>—retitled in the trust's name</span>
+          </label>
+        </li>
+        <li class="funding-item">
+          <label>
+            <input type="checkbox" data-funding-id="realestate">
+            <span class="funding-item-text"><strong>Other real estate</strong>—rental or vacation property deeds retitled</span>
+          </label>
+        </li>
+        <li class="funding-item">
+          <label>
+            <input type="checkbox" data-funding-id="business">
+            <span class="funding-item-text"><strong>Business interests</strong>—LLC or partnership assignments transferred to the trust</span>
+          </label>
+        </li>
+        <li class="funding-item">
+          <label>
+            <input type="checkbox" data-funding-id="beneficiary">
+            <span class="funding-item-text"><strong>Beneficiary designations</strong>—life insurance &amp; retirement accounts reviewed</span>
+          </label>
+        </li>
+      </ul>
+
+      <div class="funding-checklist-footer">
+        <p class="funding-checklist-note">Retirement accounts (401(k), IRA) generally stay in your name with the trust named as beneficiary—Michael can confirm what's right for your household.</p>
+        <a href="contact.html#contact" class="btn-secondary-dark">Get Help Funding Your Trust →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- PRACTICE AREAS -->
 <section class="practices" id="practices">
   <div class="container" style="position: relative;">
@@ -264,6 +326,6 @@
   </div>
 </footer>
 
-<script src="js/main.js"></script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>

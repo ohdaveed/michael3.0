@@ -332,6 +332,11 @@
         </div>
         <button type="button" class="btn-primary calc-go-btn" id="calcGoBtn">Calculate →</button>
       </div>
+      <div class="calc-slider-row">
+        <label for="estateValueSlider" class="calc-slider-label">Or drag to estimate <span id="calcSliderValue">$800,000</span></label>
+        <input type="range" id="estateValueSlider" class="calc-slider" min="50000" max="5000000" step="25000" value="800000" aria-describedby="calcOutput">
+        <div class="calc-slider-scale"><span>$50K</span><span>$5M</span></div>
+      </div>
       <div class="calc-output" id="calcOutput" hidden role="region" aria-live="polite">
         <div class="calc-result-row">
           <span class="calc-label">Estimated minimum probate fees (attorney + executor)</span>
@@ -472,6 +477,6 @@
   </div>
 </footer>
 
-<script src="js/main.js"></script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
