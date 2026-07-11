@@ -83,6 +83,8 @@ export function useIntersectionObserver(first, second, third) {
       elements.forEach((el) => observer.observe(el));
     } else if (elements instanceof Element) {
       observer.observe(elements);
+    } else if (typeof HTMLCollection !== "undefined" && elements instanceof HTMLCollection) {
+      Array.from(elements).forEach((el) => observer.observe(el));
     }
   };
 
