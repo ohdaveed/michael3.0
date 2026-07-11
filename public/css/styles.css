@@ -4,10 +4,11 @@
   --navy-mid: #132B47;
   --gold: #C5A55A;
   --gold-light: #D4BA78;
+  --gold-text: #9C7F3E;
   --gold-muted: rgba(197,165,90,0.15);
   --cream: #F5F0E8;
   --cream-light: #FAF7F2;
-  --stone: #8B8579;
+  --stone: #6B6559;
   --text-dark: #1A1A1A;
   --text-body: #4A4540;
   --white: #FFFFFF;
@@ -122,7 +123,7 @@ textarea:focus-visible {
   text-decoration: none;
   letter-spacing: 0.02em;
 }
-.nav-logo span { color: var(--gold); }
+.nav-logo span { color: var(--gold-text); }
 .nav-links { display: flex; gap: 2.25rem; align-items: center; }
 .nav-links a {
   color: rgba(255,255,255,0.8);
@@ -142,12 +143,12 @@ textarea:focus-visible {
   background: var(--gold);
   transition: width 0.3s ease;
 }
-.nav-links a:hover { color: var(--gold); }
+.nav-links a:hover { color: var(--gold-text); }
 .nav-links a:hover::after { width: 100%; }
 .nav-cta {
   background: transparent !important;
   border: 1px solid var(--gold) !important;
-  color: var(--gold) !important;
+  color: var(--gold-text) !important;
   padding: 0.55rem 1.4rem !important;
   font-family: var(--sans) !important;
   font-size: 0.8rem !important;
@@ -241,7 +242,7 @@ textarea:focus-visible {
   font-family: var(--sans);
   font-size: 0.75rem; font-weight: 500;
   letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 1.5rem;
+  color: var(--gold-text); margin-bottom: 1.5rem;
   display: flex; align-items: center; gap: 1rem;
 }
 .hero-label::before {
@@ -290,7 +291,7 @@ textarea:focus-visible {
   text-decoration: none; border: 1px solid rgba(255,255,255,0.25);
   cursor: pointer; transition: all 0.35s ease;
 }
-.btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+.btn-secondary:hover { border-color: var(--gold); color: var(--gold-text); }
 
 /* === TRUST BAR === */
 .trust-bar {
@@ -316,7 +317,7 @@ textarea:focus-visible {
   font-family: var(--sans);
   font-size: 0.72rem; font-weight: 500;
   letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 1.25rem;
+  color: var(--gold-text); margin-bottom: 1.25rem;
   display: flex; align-items: center; gap: 0.75rem;
 }
 .section-label::before { content: ''; width: 30px; height: 1px; background: var(--gold); }
@@ -414,7 +415,7 @@ textarea:focus-visible {
 .doc-card-number {
   font-family: var(--serif);
   font-size: 0.85rem; font-weight: 500;
-  color: var(--gold); letter-spacing: 0.1em;
+  color: var(--gold-text); letter-spacing: 0.1em;
   text-transform: uppercase; margin-bottom: 0.75rem;
 }
 .doc-card h3 {
@@ -501,7 +502,7 @@ textarea:focus-visible {
 .practice-icon {
   width: 48px; height: 48px;
   margin-bottom: 1.5rem;
-  color: var(--gold); opacity: 0.8;
+  color: var(--gold-text); opacity: 0.8;
 }
 .practice-card h3 {
   font-family: var(--serif);
@@ -523,7 +524,7 @@ textarea:focus-visible {
 .why-number {
   font-family: var(--serif);
   font-size: 3.5rem; font-weight: 300;
-  color: var(--gold); line-height: 1;
+  color: var(--gold-text); line-height: 1;
   margin-bottom: 1rem; opacity: 0.5;
 }
 .why-card h3 {
@@ -570,7 +571,7 @@ textarea:focus-visible {
   font-size: 0.95rem; line-height: 1.7;
   color: var(--text-body); font-weight: 300; text-decoration: none;
 }
-.contact-info a:hover { color: var(--gold); }
+.contact-info a:hover { color: var(--gold-text); }
 .contact-form { display: flex; flex-direction: column; gap: 1.25rem; }
 .form-row { display: flex; gap: 1.25rem; }
 .form-group { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; }
@@ -609,7 +610,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   font-size: 1.5rem; font-weight: 400;
   color: var(--white); margin-bottom: 0.75rem;
 }
-.footer-brand span { color: var(--gold); }
+.footer-brand span { color: var(--gold-text); }
 .footer-tagline {
   font-size: 0.88rem; color: rgba(255,255,255,0.4);
   font-weight: 300; max-width: 280px; line-height: 1.6;
@@ -618,14 +619,14 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
 .footer-links-group h4 {
   font-size: 0.72rem; font-weight: 500;
   letter-spacing: 0.15em; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 1rem;
+  color: var(--gold-text); margin-bottom: 1rem;
 }
 .footer-links-group a {
   display: block; font-size: 0.88rem;
   color: rgba(255,255,255,0.5); text-decoration: none;
   margin-bottom: 0.6rem; font-weight: 300; transition: color 0.3s;
 }
-.footer-links-group a:hover { color: var(--gold); }
+.footer-links-group a:hover { color: var(--gold-text); }
 .footer-bottom {
   display: flex; justify-content: space-between;
   align-items: center; padding-top: 2rem;
@@ -711,7 +712,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   content: '→';
   position: absolute;
   left: 0;
-  color: var(--gold);
+  color: var(--gold-text);
   font-weight: 500;
 }
 
@@ -770,7 +771,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   padding: 2rem;
 }
 .video-placeholder svg {
-  color: var(--gold);
+  color: var(--gold-text);
   opacity: 0.6;
   margin-bottom: 1rem;
 }
@@ -863,7 +864,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
 }
 .pricing-feature svg {
   flex-shrink: 0;
-  color: var(--gold);
+  color: var(--gold-text);
   margin-top: 0.1rem;
 }
 .pricing-feature span {
@@ -1026,7 +1027,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   font-family: var(--sans);
   font-size: 0.72rem;
   font-weight: 500;
-  color: var(--gold);
+  color: var(--gold-text);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -1108,7 +1109,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   font-weight: 300;
 }
 .case-detail-result h4 {
-  color: var(--gold);
+  color: var(--gold-text);
 }
 
 /* === PROCESS (WHAT TO EXPECT) === */
@@ -1162,7 +1163,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   font-family: var(--serif);
   font-size: 1.8rem;
   font-weight: 400;
-  color: var(--gold);
+  color: var(--gold-text);
 }
 .process-step-content h3 {
   font-family: var(--serif);
@@ -1193,7 +1194,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
 }
 .btn-text {
   font-size: 0.9rem;
-  color: var(--gold);
+  color: var(--gold-text);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s;
@@ -1273,7 +1274,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
 }
 .faq-icon {
   flex-shrink: 0;
-  color: var(--gold);
+  color: var(--gold-text);
   transition: transform 0.3s ease;
 }
 .faq-item.active .faq-icon {
@@ -1398,7 +1399,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   background: var(--navy-deep);
   text-align: center;
 }
-.page-hero .section-label { justify-content: center; color: var(--gold); }
+.page-hero .section-label { justify-content: center; color: var(--gold-text); }
 .page-hero h1 {
   font-family: var(--font-display);
   font-size: clamp(2.5rem, 4vw, 3.5rem);
@@ -1509,7 +1510,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   position: absolute; inset: 0;
   background: radial-gradient(ellipse at 60% 50%, rgba(197,165,90,0.06), transparent 60%);
 }
-.quiz-section .section-label { color: var(--gold); }
+.quiz-section .section-label { color: var(--gold-text); }
 .quiz-section .section-title { color: var(--white); }
 .quiz-section .section-title em { color: var(--gold-light); }
 .quiz-wrapper {
@@ -1611,7 +1612,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   font-family: var(--serif);
   font-size: 4rem;
   font-weight: 400;
-  color: var(--gold);
+  color: var(--gold-text);
   line-height: 1;
   margin-bottom: 0.5rem;
 }
@@ -1712,7 +1713,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   font-family: var(--serif);
   font-size: 3.5rem;
   font-weight: 400;
-  color: var(--gold);
+  color: var(--gold-text);
   line-height: 1;
   margin-bottom: 0.35rem;
 }
@@ -1730,7 +1731,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   font-weight: 300;
   margin-bottom: 1.5rem;
 }
-.result-card .btn-text { color: var(--gold); font-size: 0.88rem; }
+.result-card .btn-text { color: var(--gold-text); font-size: 0.88rem; }
 .result-card .btn-text:hover { color: var(--gold-light); }
 .results-highlights-cta {
   position: relative; z-index: 1;
@@ -1851,7 +1852,7 @@ footer { background: var(--navy-deep); padding: 4rem 0 2rem; }
   color: var(--navy);
   white-space: nowrap;
 }
-.calc-cost--trust { color: var(--gold); }
+.calc-cost--trust { color: var(--gold-text); }
 .calc-cost--savings {
   color: var(--gold-light);
   font-size: 1.6rem;
