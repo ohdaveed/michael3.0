@@ -81,7 +81,7 @@ export function useIntersectionObserver(first, second, third) {
 
     if (NodeList.prototype.isPrototypeOf(elements) || Array.isArray(elements)) {
       elements.forEach((el) => observer.observe(el));
-    } else if (elements instanceof HTMLElement) {
+    } else if (elements instanceof Element) {
       observer.observe(elements);
     }
   };

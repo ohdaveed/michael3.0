@@ -60,34 +60,33 @@ jobs:
         env:
           DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
         run: |
-          curl -s -X POST -H "Content-Type: application/json" \
-            -d '{
-              "status": "success",
-              "repository": "${{ github.repository }}",
-              "branch": "${{ github.ref_name }}",
-              "run_id": "${{ github.run_id }}",
-              "run_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-              "actor": "${{ github.actor }}",
-              "commit": "${{ github.sha }}",
-              "commit_message": ${{ toJson(github.event.head_commit.message || 'Triggered manually or no head commit info') }}
-            }' \
-            "$DEPLOY_WEBHOOK_URL"
+          curl -s -X POST -H "Content-Type: application/json" --data-binary @- "$DEPLOY_WEBHOOK_URL" <<EOF
+          {
+            "status": "success",
+            "repository": "${{ github.repository }}",
+            "branch": "${{ github.ref_name }}",
+            "run_id": "${{ github.run_id }}",
+            "run_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "actor": "${{ github.actor }}",
+            "commit": "${{ github.sha }}",
+            "commit_message": ${{ toJson(github.event.head_commit.message || 'Triggered manually or no head commit info') }}
+          }
+          EOF
 
       - name: Send Deploy Failure Notification
         if: failure() && env.DEPLOY_WEBHOOK_URL != ''
         env:
           DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
         run: |
-          curl -s -X POST -H "Content-Type: application/json" \
-            -d '{
-              "status": "failed",
-              "repository": "${{ github.repository }}",
-              "branch": "${{ github.ref_name }}",
-              "run_id": "${{ github.run_id }}",
-              "run_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-              "actor": "${{ github.actor }}",
-              "commit": "${{ github.sha }}",
-              "commit_message": ${{ toJson(github.event.head_commit.message || 'Triggered manually or no head commit info') }}
-            }' \
-            "$DEPLOY_WEBHOOK_URL"
-
+          curl -s -X POST -H "Content-Type: application/json" --data-binary @- "$DEPLOY_WEBHOOK_URL" <<EOF
+          {
+            "status": "failed",
+            "repository": "${{ github.repository }}",
+            "branch": "${{ github.ref_name }}",
+            "run_id": "${{ github.run_id }}",
+            "run_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "actor": "${{ github.actor }}",
+            "commit": "${{ github.sha }}",
+            "commit_message": ${{ toJson(github.event.head_commit.message || 'Triggered manually or no head commit info') }}
+          }
+          EOF

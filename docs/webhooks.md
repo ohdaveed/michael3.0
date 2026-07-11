@@ -21,7 +21,7 @@ This document provides setup instructions for configuring deployment status noti
 
 ## 1. GitHub Actions CI/CD Deployment Notifications
 
-The GitHub Actions workflow defined in [.github/workflows/deploy.yml](file:///home/parallax/projects/michael3.0/.github/workflows/deploy.yml) automatically compiles the static site using Vite and deploys the files to the Bluehost server via FTPS on every push to the `main` branch.
+The GitHub Actions workflow defined in [.github/workflows/deploy.yml](../.github/workflows/deploy.yml) automatically compiles the static site using Vite and deploys the files to the Bluehost server via FTPS on every push to the `main` branch.
 
 To provide real-time updates of the build and deployment pipeline, we have configured custom post-deployment steps that trigger a webhook notification on both success and failure events.
 
@@ -80,7 +80,7 @@ The contact page uses Web3Forms to capture client inquiries without requiring a 
 
 ### Form Implementation
 
-The frontend form is defined in [public/contact.html](file:///home/parallax/projects/michael3.0/public/contact.html). It submits data directly to the Web3Forms endpoint:
+The frontend form is defined in [public/contact.html](../public/contact.html). It submits data directly to the Web3Forms endpoint:
 
 ```html
 <form
@@ -103,7 +103,7 @@ The frontend form is defined in [public/contact.html](file:///home/parallax/proj
 To configure webhooks in Web3Forms:
 
 1. Log in to your [Web3Forms Dashboard](https://web3forms.com/).
-2. Locate the form matching your `access_key` (configured in [public/contact.html](file:///home/parallax/projects/michael3.0/public/contact.html)).
+2. Locate the form matching your `access_key` (configured in [public/contact.html](../public/contact.html)).
 3. Click on the **Integrations** tab or the form settings page.
 4. Locate the **Webhook** card, toggle it **ON**, and input the destination URL (e.g., your Zapier webhook endpoint).
 
