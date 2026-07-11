@@ -115,6 +115,17 @@ textarea:focus-visible {
   .skip-link {
     transition: none;
   }
+  .hero-deco {
+    animation: none !important;
+  }
+  .custom-cursor {
+    display: none !important;
+  }
+  .doc-card,
+  .practice-card,
+  .case-card {
+    transform: none !important;
+  }
 }
 
 /* === ANIMATIONS === */
@@ -211,16 +222,19 @@ textarea:focus-visible {
   position: absolute;
   bottom: -4px;
   left: 0;
-  width: 0;
+  width: 100%;
   height: 1px;
   background: var(--gold);
-  transition: width 0.3s ease;
+  transform: scaleX(0);
+  transform-origin: var(--underline-origin, 50%) center;
+  transition: transform 0.35s ease;
 }
 .nav-links a:hover {
   color: var(--gold);
 }
-.nav-links a:hover::after {
-  width: 100%;
+.nav-links a:hover::after,
+.nav-links a:focus-visible::after {
+  transform: scaleX(1);
 }
 .nav-cta {
   background: transparent !important;
@@ -336,6 +350,15 @@ textarea:focus-visible {
   border: 1px solid rgba(197, 165, 90, 0.08);
   transform: rotate(45deg);
   z-index: 1;
+  animation: heroDecoDrift 90s linear infinite;
+}
+@keyframes heroDecoDrift {
+  from {
+    transform: rotate(45deg);
+  }
+  to {
+    transform: rotate(405deg);
+  }
 }
 .hero-deco::before {
   content: "";
@@ -422,6 +445,10 @@ textarea:focus-visible {
   transform: translateY(-2px);
   box-shadow: 0 8px 30px rgba(197, 165, 90, 0.25);
 }
+.btn-primary:active {
+  transform: scale(0.96);
+  box-shadow: 0 4px 14px rgba(197, 165, 90, 0.25);
+}
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -442,6 +469,9 @@ textarea:focus-visible {
 .btn-secondary:hover {
   border-color: var(--gold);
   color: var(--gold);
+}
+.btn-secondary:active {
+  transform: scale(0.96);
 }
 
 /* === TRUST BAR === */
@@ -1451,6 +1481,9 @@ footer {
   background: var(--navy);
   color: var(--white);
 }
+.btn-secondary-dark:active {
+  transform: scale(0.96);
+}
 .pricing-comparison {
   background: var(--white);
   padding: 3rem;
@@ -2330,6 +2363,9 @@ footer {
   color: var(--navy);
   border-color: var(--gold);
 }
+.quiz-option-btn:active {
+  transform: scale(0.96);
+}
 .quiz-option-btn[data-answer="no"] {
   border-color: rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.5);
@@ -3106,4 +3142,60 @@ footer {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+}
+
+/* === CUSTOM GOLD-RING CURSOR (dark sections) === */
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    width 0.25s ease,
+    height 0.25s ease,
+    background 0.25s ease;
+  mix-blend-mode: difference;
+}
+.custom-cursor.visible {
+  opacity: 1;
+}
+.custom-cursor.hover {
+  width: 46px;
+  height: 46px;
+  background: rgba(197, 165, 90, 0.15);
+}
+
+/* === SECTION-TRANSITION DIVIDERS === */
+/* A faint centered gold hairline at the seam where a navy section meets
+   the lighter section after it, softening the hard color-block cut. */
+.practices,
+.cta-banner,
+.quiz-section,
+.results-highlights {
+  isolation: isolate;
+}
+.practices::after,
+.cta-banner::after,
+.quiz-section::after,
+.results-highlights::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(320px, 60%);
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(197, 165, 90, 0.45),
+    transparent
+  );
 }
