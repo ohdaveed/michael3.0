@@ -871,6 +871,9 @@ textarea:focus-visible {
 .practices .section-title {
   color: var(--white);
 }
+.practices .section-title em {
+  color: var(--gold-light);
+}
 .practices .section-label {
   color: var(--gold);
 }
@@ -2948,7 +2951,7 @@ footer {
   display: block;
 }
 .link-gold {
-  color: var(--gold);
+  color: var(--gold-text);
 }
 
 /* === LEGAL PAGE TEMPLATE ===
