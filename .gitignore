@@ -13,9 +13,13 @@ pnpm-debug.log*
 # Environment files
 .env
 .env.*
+.netrc
 
+# Vercel
+.vercel
 
-
+# Generated reports
+lighthouse-report.html
 
 .vs/
 
