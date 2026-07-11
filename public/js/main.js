@@ -181,7 +181,6 @@ if (contactForm && formMessage) {
 
   requiredFields.forEach((field) => {
     field.setAttribute('aria-required', 'true');
-    markFieldValidity(field);
     field.addEventListener('blur', () => markFieldValidity(field));
     field.addEventListener('input', () => {
       if (field.getAttribute('aria-invalid') === 'true') {
