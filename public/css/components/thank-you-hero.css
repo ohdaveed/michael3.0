@@ -39,3 +39,42 @@
   justify-content: center;
   flex-wrap: wrap;
 }
+
+/* === THANK YOU BOOKING === */
+.thank-you-booking {
+  padding: 5rem 0;
+  background: var(--cream-light);
+}
+.booking-section {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.booking-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.booking-header h2 {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-bottom: 1rem;
+}
+.booking-header p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-body);
+  max-width: 600px;
+  margin: 0 auto;
+}
+.booking-widget {
+  border: 1px solid var(--gold-a20);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.booking-widget iframe {
+  display: block;
+  width: 100%;
+  border: none;
+}
