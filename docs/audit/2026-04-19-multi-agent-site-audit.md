@@ -90,24 +90,24 @@ Your site already matches strong boutique patterns: **geography + practice clari
 
 **Ten gated “imitation ideas”** (from Agent 4; do not copy competitor prose):
 
-1. Three parallel **outcome subheads** under the hero before long copy — risk: must map to real deliverables.  
-2. Homepage block on **how fees are set** (flat vs hourly) — risk: bar review and accuracy.  
-3. One calm **incapacity** line tied to POA/healthcare docs — risk: stay in legal scope, not medical advice.  
-4. **“When to update”** strip for life events — risk: do not read as offering divorce representation.  
-5. Dedicated **probate awareness** entry (article or linked explainer) — risk: disclaimers for any tool-like content.  
-6. Split CTAs only if **ops** can route new vs existing clients — risk: dropped leads.  
-7. **Value pillars** (education, access, customization) with proof — risk: avoid empty claims.  
-8. **Trustee checklist** or PDF narrative if you actually deliver it — risk: do not advertise materials you lack.  
-9. **Recognition row** below the fold — risk: stale or unverifiable honors.  
+1. Three parallel **outcome subheads** under the hero before long copy — risk: must map to real deliverables.
+2. Homepage block on **how fees are set** (flat vs hourly) — risk: bar review and accuracy.
+3. One calm **incapacity** line tied to POA/healthcare docs — risk: stay in legal scope, not medical advice.
+4. **“When to update”** strip for life events — risk: do not read as offering divorce representation.
+5. Dedicated **probate awareness** entry (article or linked explainer) — risk: disclaimers for any tool-like content.
+6. Split CTAs only if **ops** can route new vs existing clients — risk: dropped leads.
+7. **Value pillars** (education, access, customization) with proof — risk: avoid empty claims.
+8. **Trustee checklist** or PDF narrative if you actually deliver it — risk: do not advertise materials you lack.
+9. **Recognition row** below the fold — risk: stale or unverifiable honors.
 10. **Short education strip** (timely CA topics) — risk: content maintenance burden.
 
 ---
 
 ## Appendix A — Agent 1 (Copy / legal) highlights
 
-- Strengths: SF placement, starting-at pricing, illustrative case framing, aligned address/email.  
-- **Post-audit:** Testimonial / ratings / meta / legal-page cluster **addressed** (no on-site testimonials; no `aggregateRating` in schema).  
-- Remaining copy work: P1-1 — P1-5 in the table above (voice, absolutes, FAQ mediation/probate lines, `&amp;` on process headings).  
+- Strengths: SF placement, starting-at pricing, illustrative case framing, aligned address/email.
+- **Post-audit:** Testimonial / ratings / meta / legal-page cluster **addressed** (no on-site testimonials; no `aggregateRating` in schema).
+- Remaining copy work: P1-1 — P1-5 in the table above (voice, absolutes, FAQ mediation/probate lines, `&amp;` on process headings).
 - Verify over time: 20+ years copy, bar “good standing,” response-time promises, case-study dollar amounts.
 
 ---
@@ -137,18 +137,18 @@ See P1/P2 table above for integrated items. Additional notes: internal `services
 
 ## Appendix D — Agent 4 (Benchmark) — firms list
 
-1. <https://defontelaw.com/>  
-2. <https://www.ogradylaw.com/>  
-3. <https://www.irenezhulaw.com/>  
-4. <https://www.michnickalaw.com/>  
-5. <https://lagoriolaw.com/>  
-6. <https://anthoorlawgroup.com/>  
+1. <https://defontelaw.com/>
+2. <https://www.ogradylaw.com/>
+3. <https://www.irenezhulaw.com/>
+4. <https://www.michnickalaw.com/>
+5. <https://lagoriolaw.com/>
+6. <https://anthoorlawgroup.com/>
 7. <https://jonesdevoy.com/>
 
 ---
 
 ## Follow-up (optional)
 
-- Have counsel **skim revised** `disclaimer.html` and `attorney-advertising.html` (testimonial sections removed; prior-results language updated).  
-- Run a short **verification pass** on remaining P1/P2: Rich Results Test on `index.html` JSON-LD (without reviews), mobile FAQ + nav, font variables.  
+- Have counsel **skim revised** `disclaimer.html` and `attorney-advertising.html` (testimonial sections removed; prior-results language updated).
+- Run a short **verification pass** on remaining P1/P2: Rich Results Test on `index.html` JSON-LD (without reviews), mobile FAQ + nav, font variables.
 - If the firm later **opts in** to testimonials or third-party ratings, re-add substantiated visible content **before** any schema or legal copy that references them.

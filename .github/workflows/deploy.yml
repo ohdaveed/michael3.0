@@ -20,11 +20,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Assemble site files
-        run: |
-          mkdir dist
-          cp -r public/. dist/
-          cp robots.txt sitemap.xml dist/
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
+
+      - name: Copy robots.txt and sitemap.xml to dist
+        run: cp robots.txt sitemap.xml dist/
 
       - name: Upload to Bluehost via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5

@@ -30,8 +30,8 @@ Assets: `styles.css`, `main.js`
 
 ## Firm facts (for consistency checks)
 
-- Address: 645 Hayes Street, San Francisco, CA 94102  
-- Email: <michael@lehr-law.com>  
-- Canonical domain: <https://www.lehr-law.com>  
-- Living trust package copy references starting at $2,495  
+- Address: 645 Hayes Street, San Francisco, CA 94102
+- Email: <michael@lehr-law.com>
+- Canonical domain: <https://www.lehr-law.com>
+- Living trust package copy references starting at $2,495
 - Schema: opening hours 09:00–20:00 all days in JSON-LD (verify against actual practice policy)

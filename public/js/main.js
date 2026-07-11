@@ -411,15 +411,36 @@ if (mobileToggle && navLinks) {
   if (!startView || !questionsView || !resultView || !startBtn) return;
 
   const questions = [
-    "Do you have a living trust or will already in place?",
-    "Has your estate plan been reviewed in the last 3 years?",
-    "Do you have a healthcare directive and durable power of attorney?",
-    "Are beneficiaries clearly named on all your accounts and insurance policies?",
-    "Have you set up a guardianship plan or provisions for dependents?",
+    {
+      text: "Do you have a living trust or will already in place?",
+      gapAnchor: "services.html#living-trusts",
+      gapLabel: "Explore Living Trusts",
+    },
+    {
+      text: "Has your estate plan been reviewed in the last 3 years?",
+      gapAnchor: "services.html#estate-planning",
+      gapLabel: "Explore Estate Planning",
+    },
+    {
+      text: "Do you have a healthcare directive and durable power of attorney?",
+      gapAnchor: "services.html#wills-powers-of-attorney",
+      gapLabel: "Explore Wills & Powers of Attorney",
+    },
+    {
+      text: "Are beneficiaries clearly named on all your accounts and insurance policies?",
+      gapAnchor: "services.html#funding-checklist",
+      gapLabel: "See the Trust Funding Checklist",
+    },
+    {
+      text: "Have you set up a guardianship plan or provisions for dependents?",
+      gapAnchor: "services.html#estate-planning",
+      gapLabel: "Explore Estate Planning",
+    },
   ];
 
   let current = 0;
   let noCount = 0;
+  let firstGap = null;
 
   function showQuestion(index) {
     const currentQuestion = index + 1;
@@ -430,22 +451,26 @@ if (mobileToggle && navLinks) {
     progressLabel.textContent =
       "Question " + currentQuestion + " of " + questions.length;
 
+    var questionText = questions[index].text;
     questionArea.innerHTML =
       '<p class="quiz-question-text">' +
-      questions[index] +
+      questionText +
       "</p>" +
       '<div class="quiz-options">' +
       '<button type="button" class="quiz-option-btn" data-answer="yes" aria-label="Yes: ' +
-      questions[index] +
+      questionText +
       '">Yes</button>' +
       '<button type="button" class="quiz-option-btn" data-answer="no" aria-label="No or not sure: ' +
-      questions[index] +
+      questionText +
       '">No / Not sure</button>' +
       "</div>";
 
     questionArea.querySelectorAll(".quiz-option-btn").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        if (this.dataset.answer === "no") noCount++;
+        if (this.dataset.answer === "no") {
+          noCount++;
+          if (!firstGap) firstGap = questions[index];
+        }
         current++;
         if (current < questions.length) {
           showQuestion(current);
@@ -492,6 +517,26 @@ if (mobileToggle && navLinks) {
       urgencyClass = "quiz-result--urgent";
     }
 
+    var actionsHtml;
+    if (firstGap) {
+      // Route to the most relevant service first (lower commitment than
+      // booking outright), with consultation as the secondary action.
+      actionsHtml =
+        '<div class="quiz-result-actions">' +
+        '<a href="' +
+        firstGap.gapAnchor +
+        '" class="btn-primary">' +
+        firstGap.gapLabel +
+        " →</a>" +
+        '<a href="contact.html#contact" class="btn-secondary">Book a Free Consultation →</a>' +
+        "</div>";
+    } else {
+      actionsHtml =
+        '<div class="quiz-result-actions">' +
+        '<a href="contact.html#contact" class="btn-primary">Book a Free Consultation →</a>' +
+        "</div>";
+    }
+
     resultView.className = "quiz-result-view " + urgencyClass;
     resultView.innerHTML =
       '<div class="quiz-result-score">' +
@@ -506,9 +551,7 @@ if (mobileToggle && navLinks) {
       '<p class="quiz-result-detail">' +
       detail +
       "</p>" +
-      '<div class="quiz-result-actions">' +
-      '<a href="contact.html#contact" class="btn-primary">Book a Free Consultation →</a>' +
-      "</div>" +
+      actionsHtml +
       '<button type="button" class="quiz-retake-btn" id="quizRetakeBtn">Retake the check</button>';
 
     resultView
@@ -519,6 +562,7 @@ if (mobileToggle && navLinks) {
   function resetQuiz() {
     current = 0;
     noCount = 0;
+    firstGap = null;
     resultView.hidden = true;
     resultView.innerHTML = "";
     startView.hidden = false;
