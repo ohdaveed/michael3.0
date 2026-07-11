@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import { readFileSync } from "fs";
+import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
+import Sitemap from "vite-plugin-sitemap";
 
 // Matches `<!--#include:partials/foo.html?KEY=value-->` in the page HTML and
 // inlines the referenced partial, substituting any `{{KEY}}` placeholders it
@@ -26,7 +28,31 @@ function htmlIncludePlugin() {
 
 export default defineConfig({
   root: "public",
-  plugins: [htmlIncludePlugin()],
+  plugins: [
+    htmlIncludePlugin(),
+    ViteImageOptimizer({
+      png: {
+        quality: 80,
+      },
+      jpeg: {
+        quality: 80,
+      },
+      jpg: {
+        quality: 80,
+      },
+      webp: {
+        quality: 80,
+      },
+      svg: {
+        multipass: true,
+      },
+    }),
+    Sitemap({
+      hostname: "https://www.lehr-law.com/",
+      exclude: ["/thank-you", "/thank-you.html"],
+      outDir: "dist",
+    }),
+  ],
   build: {
     outDir: "../dist",
     emptyOutDir: true,

@@ -2,13 +2,15 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import Fuse from "fuse.js";
 import JustValidate from "just-validate";
+import { useScroll, useIntersectionObserver, useAccordion } from "./hooks.js";
 
 // Scroll-triggered animations
 // threshold 0.15 + a -40px bottom margin means an element must be 15% visible
 // and already 40px past the viewport edge before it fades in — avoids
 // triggering the animation the instant a section's top pixel appears.
-const observer = new IntersectionObserver(
-  (entries) => {
+useIntersectionObserver(
+  ".animate",
+  (entries, observer) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         entry.target.classList.add("visible");
@@ -18,8 +20,6 @@ const observer = new IntersectionObserver(
   },
   { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
 );
-
-document.querySelectorAll(".animate").forEach((el) => observer.observe(el));
 
 const nav = document.getElementById("nav");
 const stickyCta = document.getElementById("stickyCta");
@@ -84,17 +84,19 @@ function setMobileMenuState(isOpen) {
   if (footer) footer.toggleAttribute("inert", isOpen);
 }
 
-function updateScrollUi() {
-  const y = window.scrollY;
-  if (nav) nav.classList.toggle("scrolled", y > 60);
-  if (stickyCta) {
-    stickyCta.classList.toggle("visible", y > window.innerHeight * 0.8);
-  }
+if (nav) {
+  useScroll((isPassed) => {
+    nav.classList.toggle("scrolled", isPassed);
+  }, 60);
 }
 
-if (nav || stickyCta) {
-  window.addEventListener("scroll", updateScrollUi, { passive: true });
-  updateScrollUi();
+if (stickyCta) {
+  useScroll(
+    (isPassed) => {
+      stickyCta.classList.toggle("visible", isPassed);
+    },
+    () => window.innerHeight * 0.8,
+  );
 }
 
 // Mobile nav toggle
@@ -155,40 +157,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
 });
 
 // FAQ Accordion
-document.querySelectorAll(".faq-item").forEach((faqItem, idx) => {
-  const button = faqItem.querySelector(".faq-question");
-  const answer = faqItem.querySelector(".faq-answer");
-  if (!button || !answer) return;
-
-  const answerId = answer.id || `faq-answer-${idx + 1}`;
-  answer.id = answerId;
-  button.setAttribute("aria-controls", answerId);
-  answer.setAttribute("role", "region");
-  if (!answer.hasAttribute("aria-labelledby")) {
-    const buttonId = button.id || `faq-question-${idx + 1}`;
-    button.id = buttonId;
-    answer.setAttribute("aria-labelledby", buttonId);
-  }
-  answer.hidden = !faqItem.classList.contains("active");
-
-  button.addEventListener("click", () => {
-    const isActive = faqItem.classList.contains("active");
-
-    document.querySelectorAll(".faq-item").forEach((item) => {
-      item.classList.remove("active");
-      const itemButton = item.querySelector(".faq-question");
-      const itemAnswer = item.querySelector(".faq-answer");
-      itemButton?.setAttribute("aria-expanded", "false");
-      if (itemAnswer) itemAnswer.hidden = true;
-    });
-
-    if (!isActive) {
-      faqItem.classList.add("active");
-      button.setAttribute("aria-expanded", "true");
-      answer.hidden = false;
-    }
-  });
-});
+useAccordion(".faq-item", ".faq-question", ".faq-answer", "active");
 
 // FAQ Search with Fuse.js
 (function () {
@@ -631,11 +600,12 @@ if (mobileToggle && navLinks) {
     requestAnimationFrame(tick);
   }
 
-  var counterObserver = new IntersectionObserver(
-    function (entries) {
+  useIntersectionObserver(
+    counterEls,
+    function (entries, observer) {
       entries.forEach(function (entry) {
         if (!entry.isIntersecting) return;
-        counterObserver.unobserve(entry.target);
+        observer.unobserve(entry.target);
         var el = entry.target;
         var target = parseTarget(el.textContent);
         if (!target) return;
@@ -649,10 +619,6 @@ if (mobileToggle && navLinks) {
     },
     { threshold: 0.4 },
   );
-
-  counterEls.forEach(function (el) {
-    counterObserver.observe(el);
-  });
 })();
 
 // === PROBATE COST CALCULATOR ===
@@ -962,7 +928,8 @@ if (mobileToggle && navLinks) {
     });
   }
 
-  const spy = new IntersectionObserver(
+  useIntersectionObserver(
+    targets.map((t) => t.el),
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -972,6 +939,4 @@ if (mobileToggle && navLinks) {
     },
     { rootMargin: "-45% 0px -50% 0px", threshold: 0 },
   );
-
-  targets.forEach(({ el }) => spy.observe(el));
 })();

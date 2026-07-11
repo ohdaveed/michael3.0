@@ -5,8 +5,8 @@ on:
     branches: [main]
     paths:
       - "public/**"
-      - "robots.txt"
-      - "sitemap.xml"
+      - "vite.config.js"
+      - "package.json"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
@@ -32,9 +32,6 @@ jobs:
       - name: Build site
         run: npm run build
 
-      - name: Copy robots.txt and sitemap.xml to dist
-        run: cp robots.txt sitemap.xml dist/
-
       - name: Upload to Bluehost via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -48,3 +45,49 @@ jobs:
           # repository variable FTP_SERVER_DIR (e.g. "public_html/") if you
           # use the main cPanel account instead.
           server-dir: ${{ vars.FTP_SERVER_DIR || './' }}
+
+      # To set up build and deploy notifications:
+      # 1. Create a webhook URL in your chat application (e.g., Slack, Discord), CRM (e.g., Clio),
+      #    or automation platform (e.g., Zapier, Make).
+      # 2. In your GitHub repository, go to Settings > Secrets and variables > Actions.
+      # 3. Click "New repository secret".
+      # 4. Name the secret DEPLOY_WEBHOOK_URL and paste your webhook URL as the value.
+      #
+      # Note: These notification steps will only run if DEPLOY_WEBHOOK_URL is configured in your repository secrets.
+
+      - name: Send Deploy Success Notification
+        if: success() && env.DEPLOY_WEBHOOK_URL != ''
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+        run: |
+          curl -s -X POST -H "Content-Type: application/json" \
+            -d '{
+              "status": "success",
+              "repository": "${{ github.repository }}",
+              "branch": "${{ github.ref_name }}",
+              "run_id": "${{ github.run_id }}",
+              "run_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "actor": "${{ github.actor }}",
+              "commit": "${{ github.sha }}",
+              "commit_message": ${{ toJson(github.event.head_commit.message || 'Triggered manually or no head commit info') }}
+            }' \
+            "$DEPLOY_WEBHOOK_URL"
+
+      - name: Send Deploy Failure Notification
+        if: failure() && env.DEPLOY_WEBHOOK_URL != ''
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+        run: |
+          curl -s -X POST -H "Content-Type: application/json" \
+            -d '{
+              "status": "failed",
+              "repository": "${{ github.repository }}",
+              "branch": "${{ github.ref_name }}",
+              "run_id": "${{ github.run_id }}",
+              "run_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "actor": "${{ github.actor }}",
+              "commit": "${{ github.sha }}",
+              "commit_message": ${{ toJson(github.event.head_commit.message || 'Triggered manually or no head commit info') }}
+            }' \
+            "$DEPLOY_WEBHOOK_URL"
+
