@@ -48,14 +48,16 @@ PYEOF
 
 NEW_COUNT=$(($(wc -l < new_commits.csv) - 1))
 
-if [ "$NEW_COUNT" -le 0 ]; then
+if [ "$NEW_COUNT" -gt 0 ]; then
+  dolt table import -u git_commits new_commits.csv
+  dolt add git_commits
+  dolt commit -m "Sync ${NEW_COUNT} new commit(s) from GitHub Actions run ${GITHUB_RUN_ID:-manual}"
+  dolt push origin main
+  echo "Synced ${NEW_COUNT} new commit(s) to DoltHub."
+else
   echo "No new commits to sync."
-  exit 0
 fi
 
-dolt table import -u git_commits new_commits.csv
-dolt add git_commits
-dolt commit -m "Sync ${NEW_COUNT} new commit(s) from GitHub Actions run ${GITHUB_RUN_ID:-manual}"
-dolt push origin main
-
-echo "Synced ${NEW_COUNT} new commit(s) to DoltHub."
+# Always refresh the full-table export so the Google Sheet stays in lockstep
+# with Dolt even when this run added zero new commits.
+dolt sql -q "SELECT commit_hash, author_name, author_email, commit_date, message FROM git_commits" -r csv > "$OLDPWD/full_commits.csv"
