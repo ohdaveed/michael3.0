@@ -73,6 +73,10 @@ function setCurrentNavLink() {
 
 setCurrentNavLink();
 
+/**
+ * Updates the mobile navigation state and page interactivity.
+ * @param {boolean} isOpen - Whether the mobile navigation should be open.
+ */
 function setMobileMenuState(isOpen) {
   if (!mobileToggle || !navLinks) return;
   navLinks.classList.toggle("open", isOpen);
@@ -584,6 +588,11 @@ if (mobileToggle && navLinks) {
       target.suffix;
   }
 
+  /**
+   * Animates a numeric value from zero to its target value.
+   * @param {HTMLElement} el - The element whose displayed value is updated.
+   * @param {Object} target - The target value and its display formatting details.
+   */
   function animateCounter(el, target) {
     // 1400ms felt like a natural count-up pace in testing — long enough to
     // register as a count rather than a jump, short enough not to drag.
@@ -915,6 +924,10 @@ if (mobileToggle && navLinks) {
 
   if (!targets.length) return;
 
+  /**
+   * Marks the section navigation link for the specified section as active.
+   * @param {string} id - The target section identifier.
+   */
   function setActive(id) {
     links.forEach((link) => {
       const isActive =
