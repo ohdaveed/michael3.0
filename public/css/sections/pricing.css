@@ -20,7 +20,7 @@
 }
 .pricing-card {
   background: var(--white);
-  border: 1px solid rgba(197, 165, 90, 0.15);
+  border: 1px solid var(--gold-muted);
   padding: 3rem;
   position: relative;
 }
@@ -46,7 +46,7 @@
 .pricing-amount {
   margin-bottom: 2rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(197, 165, 90, 0.15);
+  border-bottom: 1px solid var(--gold-muted);
 }
 .price-from {
   display: block;
@@ -140,7 +140,7 @@
 .pricing-comparison {
   background: var(--white);
   padding: 3rem;
-  border: 1px solid rgba(197, 165, 90, 0.15);
+  border: 1px solid var(--gold-muted);
 }
 .pricing-comparison h3 {
   font-family: var(--serif);

@@ -36,7 +36,7 @@
   .quiz-result-view.quiz-result--urgent,
   .result-card,
   .results-highlights .btn-secondary-dark {
-    border-color: rgba(255, 255, 255, 0.55);
+    border-color: var(--white-a55);
   }
   .quiz-question-area {
     background: var(--navy-mid);

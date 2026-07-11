@@ -35,8 +35,8 @@
   opacity: 0.8;
 }
 .case-card:hover {
-  border-color: rgba(197, 165, 90, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-color: var(--gold-a30);
+  box-shadow: 0 4px 20px var(--black-a05);
 }
 .case-card-header {
   display: grid;
@@ -70,7 +70,7 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  background: rgba(197, 165, 90, 0.08);
+  background: var(--gold-a08);
 }
 .case-outcome {
   min-width: 180px;

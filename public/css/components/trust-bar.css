@@ -2,7 +2,7 @@
 .trust-bar {
   padding: 3rem 0;
   background: var(--cream-light);
-  border-bottom: 1px solid rgba(197, 165, 90, 0.15);
+  border-bottom: 1px solid var(--gold-muted);
 }
 .trust-items {
   display: flex;
@@ -27,5 +27,5 @@
 .trust-divider {
   width: 1px;
   height: 24px;
-  background: rgba(197, 165, 90, 0.3);
+  background: var(--gold-a30);
 }

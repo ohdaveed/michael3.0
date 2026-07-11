@@ -22,7 +22,7 @@
 }
 .doc-card {
   background: var(--cream-light);
-  border: 1px solid rgba(197, 165, 90, 0.12);
+  border: 1px solid var(--gold-a12);
   padding: 2.5rem;
   transition: all 0.4s ease;
   position: relative;
@@ -40,7 +40,7 @@
   transition: opacity 0.4s ease;
 }
 .doc-card:hover {
-  border-color: rgba(197, 165, 90, 0.3);
+  border-color: var(--gold-a30);
   transform: translateY(-3px);
 }
 .doc-card:hover::before {
@@ -71,7 +71,7 @@
 .doc-card .doc-note {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(197, 165, 90, 0.12);
+  border-top: 1px solid var(--gold-a12);
   font-size: 0.82rem;
   color: var(--stone);
   font-style: italic;
@@ -103,7 +103,7 @@
 }
 .doc-callout-text p {
   font-size: 0.92rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--white-a55);
   font-weight: 300;
   line-height: 1.6;
 }

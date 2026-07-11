@@ -72,7 +72,7 @@
 .legal-notice {
   margin-bottom: 2.5rem;
   padding: 1.5rem;
-  background: rgba(197, 165, 90, 0.15);
+  background: var(--gold-muted);
   border-left: 4px solid var(--gold);
 }
 .legal-cta {

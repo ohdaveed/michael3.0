@@ -17,7 +17,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   text-decoration: none;
-  box-shadow: 0 4px 20px rgba(197, 165, 90, 0.4);
+  box-shadow: 0 4px 20px var(--gold-a40);
   transition: all 0.3s ease;
   opacity: 0;
   transform: translateY(20px);

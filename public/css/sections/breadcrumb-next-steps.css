@@ -19,7 +19,7 @@
 .breadcrumb-nav {
   font-family: var(--sans);
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--white-a55);
   margin-bottom: 1.25rem;
   text-align: center;
 }
@@ -70,5 +70,5 @@
 .next-steps .btn-secondary:hover {
   color: var(--navy);
   border-color: var(--gold);
-  background: rgba(197, 165, 90, 0.08);
+  background: var(--gold-a08);
 }

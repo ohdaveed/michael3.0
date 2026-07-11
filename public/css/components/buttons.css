@@ -19,11 +19,11 @@
 .btn-primary:hover {
   background: var(--gold-light);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(197, 165, 90, 0.25);
+  box-shadow: 0 8px 30px var(--gold-a25);
 }
 .btn-primary:active {
   transform: scale(0.96);
-  box-shadow: 0 4px 14px rgba(197, 165, 90, 0.25);
+  box-shadow: 0 4px 14px var(--gold-a25);
 }
 .btn-secondary {
   display: inline-flex;

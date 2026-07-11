@@ -6,7 +6,7 @@
   background: rgba(250, 247, 242, 0.92);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(197, 165, 90, 0.2);
+  border-bottom: 1px solid var(--gold-a20);
 }
 .section-subnav-links {
   display: flex;

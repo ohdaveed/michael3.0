@@ -57,7 +57,7 @@
   font-family: var(--sans);
   font-size: 0.95rem;
   padding: 0.85rem 1rem;
-  border: 1px solid rgba(197, 165, 90, 0.2);
+  border: 1px solid var(--gold-a20);
   background: var(--white);
   color: var(--text-dark);
   transition: border-color 0.3s;

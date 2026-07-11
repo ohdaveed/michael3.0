@@ -23,5 +23,5 @@
 .custom-cursor.hover {
   width: 46px;
   height: 46px;
-  background: rgba(197, 165, 90, 0.15);
+  background: var(--gold-muted);
 }

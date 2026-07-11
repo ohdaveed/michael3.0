@@ -29,12 +29,12 @@
   gap: 2rem;
   background: var(--white);
   padding: 2.5rem;
-  border: 1px solid rgba(197, 165, 90, 0.12);
+  border: 1px solid var(--gold-a12);
   transition: all 0.4s ease;
 }
 .process-step:hover {
-  border-color: rgba(197, 165, 90, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-color: var(--gold-a30);
+  box-shadow: 0 4px 20px var(--black-a05);
   transform: translateX(5px);
 }
 .process-step-number {
@@ -51,7 +51,7 @@
   top: 0;
   width: 2px;
   height: 0;
-  background: rgba(197, 165, 90, 0.15);
+  background: var(--gold-muted);
   transform: translateX(-50%);
   z-index: 0;
 }
@@ -143,7 +143,7 @@
 }
 .process-cta p {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--white-a65);
   margin-bottom: 2rem;
   line-height: 1.7;
 }
