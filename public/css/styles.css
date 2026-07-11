@@ -126,6 +126,10 @@ textarea:focus-visible {
   .case-card {
     transform: none !important;
   }
+  .process-timeline-fill,
+  .process-step-number span {
+    transition: none !important;
+  }
 }
 
 /* === ANIMATIONS === */
@@ -1721,6 +1725,33 @@ footer {
   align-items: center;
   justify-content: center;
 }
+.process-timeline {
+  position: relative;
+}
+.process-timeline-track {
+  position: absolute;
+  left: 80px;
+  top: 0;
+  width: 2px;
+  height: 0;
+  background: rgba(197, 165, 90, 0.15);
+  transform: translateX(-50%);
+  z-index: 0;
+}
+.process-timeline-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: var(--gold);
+  transition: height 0.6s ease;
+}
+@media (max-width: 768px) {
+  .process-timeline-track {
+    display: none;
+  }
+}
 .process-step-number span {
   width: 70px;
   height: 70px;
@@ -1733,6 +1764,15 @@ footer {
   font-size: 1.8rem;
   font-weight: 400;
   color: var(--gold-text);
+  position: relative;
+  z-index: 1;
+  transition:
+    background 0.4s ease,
+    color 0.4s ease;
+}
+.process-step-number span.reached {
+  background: var(--gold);
+  color: var(--navy);
 }
 .process-step-content h3 {
   font-family: var(--serif);
