@@ -69,11 +69,11 @@
 .form-group select:focus {
   border-color: var(--gold);
 }
-.form-group input[aria-invalid="true"],
-.form-group textarea[aria-invalid="true"],
-.form-group select[aria-invalid="true"] {
-  border-color: #b42318;
-  background: #fff7f6;
+.form-group input.is-invalid,
+.form-group textarea.is-invalid,
+.form-group select.is-invalid {
+  border-color: var(--error);
+  background: var(--error-bg);
 }
 .form-group textarea {
   min-height: 130px;

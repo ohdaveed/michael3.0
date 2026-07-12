@@ -133,7 +133,7 @@
 }
 .calc-error {
   font-size: 0.875rem;
-  color: #c62828;
+  color: var(--error);
   margin-top: 0.5rem;
   font-weight: 400;
 }
