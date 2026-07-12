@@ -1,0 +1,103 @@
+/* === THANK YOU HERO === */
+.thank-you-hero {
+  padding: 10rem 0 4rem;
+  background: var(--navy-deep);
+  text-align: center;
+}
+.thank-you-hero .section-label {
+  color: var(--gold);
+}
+.thank-you-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  color: var(--white);
+  margin-bottom: 1.25rem;
+}
+.thank-you-hero h1 em {
+  color: var(--gold-light);
+}
+.thank-you-hero .lede {
+  max-width: 640px;
+  margin: 0 auto 2rem;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: var(--white-a70);
+}
+.thank-you-hero .lede a {
+  color: var(--gold-light);
+}
+.thank-you-hero .lede-secondary {
+  max-width: 640px;
+  margin: 0 auto 2rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.62);
+}
+.thank-you-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* === THANK YOU BOOKING === */
+.thank-you-booking {
+  padding: 5rem 0;
+  background: var(--cream-light);
+}
+.booking-section {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.booking-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.booking-header h2 {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-bottom: 1rem;
+}
+.booking-header p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-body);
+  max-width: 600px;
+  margin: 0 auto;
+}
+.booking-widget {
+  border: 1px solid var(--gold-a20);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 3rem 2rem;
+  text-align: center;
+  background: var(--white);
+}
+.booking-widget iframe {
+  display: block;
+  width: 100%;
+  border: none;
+}
+.btn-booking {
+  display: inline-block;
+  padding: 1rem 2.5rem;
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--white);
+  background: var(--gold);
+  border: 2px solid var(--gold);
+  border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.btn-booking:hover {
+  background: var(--gold-text);
+  border-color: var(--gold-text);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(197, 165, 90, 0.3);
+}

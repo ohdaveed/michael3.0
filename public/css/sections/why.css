@@ -1,0 +1,47 @@
+/* === WHY CHOOSE === */
+.why {
+  padding: 7rem 0;
+  background: var(--cream);
+}
+.why-header {
+  text-align: center;
+  max-width: 650px;
+  margin: 0 auto 4rem;
+}
+.why-header .section-label {
+  justify-content: center;
+}
+.why-header .section-label::before {
+  display: none;
+}
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+}
+.why-card {
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+.why-number {
+  font-family: var(--serif);
+  font-size: 3.5rem;
+  font-weight: 300;
+  color: var(--gold-text);
+  line-height: 1;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+.why-card h3 {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-bottom: 0.75rem;
+}
+.why-card p {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--stone);
+  font-weight: 300;
+}

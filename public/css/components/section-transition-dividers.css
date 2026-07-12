@@ -1,0 +1,27 @@
+/* === SECTION-TRANSITION DIVIDERS === */
+/* A faint centered gold hairline at the seam where a navy section meets
+   the lighter section after it, softening the hard color-block cut. */
+.practices,
+.cta-banner,
+.quiz-section,
+.results-highlights {
+  isolation: isolate;
+}
+.practices::after,
+.cta-banner::after,
+.quiz-section::after,
+.results-highlights::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(320px, 60%);
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(197, 165, 90, 0.45),
+    transparent
+  );
+}

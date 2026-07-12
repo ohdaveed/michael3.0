@@ -23,7 +23,7 @@
     />
     <meta
       property="og:image"
-      content="https://www.lehr-law.com/images/michael-lehr.jpg"
+      content="https://www.lehr-law.com/images/michael-lehr.webp"
     />
     <meta property="og:site_name" content="Michael Lehr, Attorney at Law" />
     <meta property="og:locale" content="en_US" />
@@ -38,7 +38,7 @@
     />
     <meta
       name="twitter:image"
-      content="https://www.lehr-law.com/images/michael-lehr.jpg"
+      content="https://www.lehr-law.com/images/michael-lehr.webp"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -102,8 +102,10 @@
         stroke="currentColor"
         stroke-width="2"
       >
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-        <circle cx="12" cy="10" r="3" />
+        <path
+          d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+        />
+        <polyline points="22,6 12,13 2,6" />
       </svg>
       <span>Send a message</span>
     </a>
@@ -164,117 +166,124 @@
       <section class="process">
         <div class="container">
           <h2 class="sr-only">Estate planning process steps</h2>
-          <ol class="process-steps">
-            <li class="process-step animate delay-1" id="step-consultation">
-              <div class="process-step-number">
-                <span>01</span>
-              </div>
-              <div class="process-step-content">
-                <h3>Free Initial Consultation</h3>
-                <p>
-                  <strong>Duration:</strong> 45-60 minutes |
-                  <strong>Location:</strong> Our office, your home, or remote
-                </p>
-                <p>
-                  Michael reviews your family, assets, and goals, then outlines
-                  the documents you need and quotes fees upfront—no pressure.
-                </p>
-                <div class="process-action">
-                  <a href="contact.html#contact" class="btn-secondary-dark"
-                    >Send a message →</a
-                  >
+          <div class="process-timeline">
+            <div class="process-timeline-track" aria-hidden="true">
+              <div class="process-timeline-fill" id="processTimelineFill"></div>
+            </div>
+            <ol class="process-steps">
+              <li class="process-step animate delay-1" id="step-consultation">
+                <div class="process-step-number">
+                  <span>01</span>
                 </div>
-              </div>
-            </li>
+                <div class="process-step-content">
+                  <h3>Free Initial Consultation</h3>
+                  <p>
+                    <strong>Duration:</strong> 45-60 minutes |
+                    <strong>Location:</strong> Our office, your home, or remote
+                  </p>
+                  <p>
+                    Michael reviews your family, assets, and goals, then
+                    outlines the documents you need and quotes fees upfront—no
+                    pressure.
+                  </p>
+                  <div class="process-action">
+                    <a href="contact.html#contact" class="btn-secondary-dark"
+                      >Send a message →</a
+                    >
+                  </div>
+                </div>
+              </li>
 
-            <li class="process-step animate delay-2" id="step-design">
-              <div class="process-step-number">
-                <span>02</span>
-              </div>
-              <div class="process-step-content">
-                <h3>Design Your Plan</h3>
-                <p>
-                  <strong>Duration:</strong> 1-2 weeks |
-                  <strong>Format:</strong> Detailed questionnaire
-                </p>
-                <p>
-                  You complete a detailed questionnaire; Michael reviews answers
-                  with you and locks the design before drafting begins.
-                </p>
-              </div>
-            </li>
+              <li class="process-step animate delay-2" id="step-design">
+                <div class="process-step-number">
+                  <span>02</span>
+                </div>
+                <div class="process-step-content">
+                  <h3>Design Your Plan</h3>
+                  <p>
+                    <strong>Duration:</strong> 1-2 weeks |
+                    <strong>Format:</strong> Detailed questionnaire
+                  </p>
+                  <p>
+                    You complete a detailed questionnaire; Michael reviews
+                    answers with you and locks the design before drafting
+                    begins.
+                  </p>
+                </div>
+              </li>
 
-            <li class="process-step animate delay-3" id="step-drafting">
-              <div class="process-step-number">
-                <span>03</span>
-              </div>
-              <div class="process-step-content">
-                <h3>Draft &amp; Review Documents</h3>
-                <p>
-                  <strong>Duration:</strong> 2-3 weeks |
-                  <strong>Revisions:</strong> Unlimited
-                </p>
-                <p>
-                  Drafts arrive for your review. Ask anything—Michael revises
-                  until the language matches your intent and you understand each
-                  section.
-                </p>
-              </div>
-            </li>
+              <li class="process-step animate delay-3" id="step-drafting">
+                <div class="process-step-number">
+                  <span>03</span>
+                </div>
+                <div class="process-step-content">
+                  <h3>Draft &amp; Review Documents</h3>
+                  <p>
+                    <strong>Duration:</strong> 2-3 weeks |
+                    <strong>Revisions:</strong> Unlimited
+                  </p>
+                  <p>
+                    Drafts arrive for your review. Ask anything—Michael revises
+                    until the language matches your intent and you understand
+                    each section.
+                  </p>
+                </div>
+              </li>
 
-            <li class="process-step animate delay-4" id="step-signing">
-              <div class="process-step-number">
-                <span>04</span>
-              </div>
-              <div class="process-step-content">
-                <h3>Signing Ceremony</h3>
-                <p>
-                  <strong>Duration:</strong> 60-90 minutes |
-                  <strong>Location:</strong> Our office or your home
-                </p>
-                <p>
-                  Guided signing with witnesses and notary—spouses, trustees, or
-                  other signers coordinated in one sitting when possible.
-                </p>
-              </div>
-            </li>
+              <li class="process-step animate delay-4" id="step-signing">
+                <div class="process-step-number">
+                  <span>04</span>
+                </div>
+                <div class="process-step-content">
+                  <h3>Signing Ceremony</h3>
+                  <p>
+                    <strong>Duration:</strong> 60-90 minutes |
+                    <strong>Location:</strong> Our office or your home
+                  </p>
+                  <p>
+                    Guided signing with witnesses and notary—spouses, trustees,
+                    or other signers coordinated in one sitting when possible.
+                  </p>
+                </div>
+              </li>
 
-            <li class="process-step animate delay-5" id="step-implementation">
-              <div class="process-step-number">
-                <span>05</span>
-              </div>
-              <div class="process-step-content">
-                <h3>Implementation &amp; Asset Transfers</h3>
-                <p>
-                  <strong>Duration:</strong> Ongoing support |
-                  <strong>Guidance:</strong> Step-by-step
-                </p>
-                <p>
-                  Funding checklists for deeds, banks, and brokerage accounts;
-                  Michael prepares deeds and coaches you through the rest so the
-                  trust actually holds assets.
-                </p>
-              </div>
-            </li>
+              <li class="process-step animate delay-5" id="step-implementation">
+                <div class="process-step-number">
+                  <span>05</span>
+                </div>
+                <div class="process-step-content">
+                  <h3>Implementation &amp; Asset Transfers</h3>
+                  <p>
+                    <strong>Support:</strong> Ongoing |
+                    <strong>Guidance:</strong> Step-by-step
+                  </p>
+                  <p>
+                    Funding checklists for deeds, banks, and brokerage accounts;
+                    Michael prepares deeds and coaches you through the rest so
+                    the trust actually holds assets.
+                  </p>
+                </div>
+              </li>
 
-            <li class="process-step animate delay-6" id="step-ongoing">
-              <div class="process-step-number">
-                <span>06</span>
-              </div>
-              <div class="process-step-content">
-                <h3>Ongoing Support</h3>
-                <p>
-                  <strong>Updates:</strong> As needed |
-                  <strong>Availability:</strong> Ongoing support
-                </p>
-                <p>
-                  Email or use the contact form after births, marriages, moves,
-                  or big purchases—Michael amends plans as life evolves and
-                  later advises trustees or executors.
-                </p>
-              </div>
-            </li>
-          </ol>
+              <li class="process-step animate delay-6" id="step-ongoing">
+                <div class="process-step-number">
+                  <span>06</span>
+                </div>
+                <div class="process-step-content">
+                  <h3>Ongoing Support</h3>
+                  <p>
+                    <strong>Response:</strong> Within 24 hours |
+                    <strong>Access:</strong> As needed
+                  </p>
+                  <p>
+                    Email or use the contact form after births, marriages,
+                    moves, or big purchases—Michael amends plans as life evolves
+                    and later advises trustees or executors.
+                  </p>
+                </div>
+              </li>
+            </ol>
+          </div>
 
           <div class="process-cta animate delay-4">
             <h3>Ready to Get Started?</h3>

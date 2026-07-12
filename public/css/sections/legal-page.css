@@ -1,0 +1,81 @@
+/* === LEGAL PAGE TEMPLATE ===
+   Shared shell for privacy-policy.html, disclaimer.html, and
+   attorney-advertising.html — three near-identical long-form legal
+   documents that previously repeated this styling inline on every
+   heading/paragraph/list. */
+.legal-hero {
+  padding: 10rem 0 5rem;
+  background: var(--cream-light);
+}
+.legal-container {
+  max-width: 900px;
+}
+.legal-title {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+}
+.legal-lede {
+  color: var(--stone);
+  margin-bottom: 3rem;
+}
+.legal-body {
+  color: var(--text-body);
+  line-height: 1.8;
+}
+.legal-body h2 {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  margin: 2.5rem 0 1rem;
+  color: var(--navy-mid);
+}
+.legal-body p {
+  margin-bottom: 1.5rem;
+}
+/* Paragraph spacing modifiers for the tighter address/contact blocks
+   inside .legal-body, where the default 1.5rem paragraph gap is too
+   loose (e.g. name / street / city stacked lines). */
+.legal-body .mb-1 {
+  margin-bottom: 1rem;
+}
+.legal-body .mb-05 {
+  margin-bottom: 0.5rem;
+}
+.legal-body .mb-025 {
+  margin-bottom: 0.25rem;
+}
+.legal-list {
+  margin: 0 0 1.5rem 2rem;
+}
+.legal-list li {
+  margin-bottom: 0.5rem;
+}
+.legal-callout {
+  margin-top: 2.5rem;
+  padding: 1.5rem;
+  background: rgba(197, 165, 90, 0.1);
+  border-left: 3px solid var(--gold);
+}
+.legal-callout-lead {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+.legal-callout-lead--lg {
+  font-size: 1.1rem;
+}
+.legal-callout-text {
+  font-size: 0.95rem;
+}
+/* The bolder, higher-contrast notice used once per legal page for the
+   required attorney-advertising disclosure banner. */
+.legal-notice {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: var(--gold-muted);
+  border-left: 4px solid var(--gold);
+}
+.legal-cta {
+  margin-top: 3rem;
+  text-align: center;
+}

@@ -1,0 +1,117 @@
+/* === TRUST FUNDING CHECKLIST === */
+.funding-checklist {
+  padding: 7rem 0;
+  background: var(--cream-light);
+}
+.funding-checklist-header {
+  max-width: 700px;
+  margin: 0 auto 3.5rem;
+  text-align: center;
+}
+.funding-checklist-header .section-label {
+  justify-content: center;
+}
+.funding-checklist-intro {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--text-body);
+  font-weight: 300;
+  margin-top: 1rem;
+}
+.funding-checklist-widget {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--white);
+  border: 1px solid var(--gold-muted);
+  padding: 3rem;
+}
+.funding-progress-track {
+  height: 4px;
+  background: rgba(11, 29, 51, 0.08);
+  overflow: hidden;
+}
+.funding-progress-fill {
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.4s ease;
+  width: 0%;
+}
+.funding-progress-label {
+  font-size: 0.78rem;
+  color: var(--stone);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0.75rem 0 2rem;
+}
+.funding-checklist-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.funding-item label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 0.9rem 0.5rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--gold-a12);
+  transition: background 0.25s ease;
+}
+.funding-item:last-child label {
+  border-bottom: none;
+}
+.funding-item label:hover {
+  background: var(--gold-a05);
+}
+.funding-item input[type="checkbox"] {
+  margin-top: 0.2rem;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gold-text);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.funding-item-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-body);
+  font-weight: 300;
+}
+.funding-item-text strong {
+  color: var(--text-dark);
+  font-weight: 500;
+}
+.funding-item input:checked ~ .funding-item-text,
+.funding-item input:checked + .funding-item-text {
+  color: var(--stone);
+  text-decoration: line-through;
+  text-decoration-color: rgba(197, 165, 90, 0.5);
+}
+.funding-checklist-footer {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--gold-a12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.funding-checklist-note {
+  font-size: 0.85rem;
+  color: var(--stone);
+  font-style: italic;
+  line-height: 1.6;
+  max-width: 420px;
+}
+@media (max-width: 640px) {
+  .funding-checklist-widget {
+    padding: 2rem 1.5rem;
+  }
+  .funding-checklist-footer {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+}

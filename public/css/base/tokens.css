@@ -1,0 +1,56 @@
+:root {
+  --navy: #0b1d33;
+  --navy-deep: #061221;
+  --navy-mid: #132b47;
+  --gold: #c5a55a;
+  --gold-light: #d4ba78;
+  --gold-text: #806b3a;
+  --gold-muted: rgba(197, 165, 90, 0.15);
+  --gold-a05: rgba(197, 165, 90, 0.05);
+  --gold-a06: rgba(197, 165, 90, 0.06);
+  --gold-a08: rgba(197, 165, 90, 0.08);
+  --gold-a12: rgba(197, 165, 90, 0.12);
+  --gold-a20: rgba(197, 165, 90, 0.2);
+  --gold-a25: rgba(197, 165, 90, 0.25);
+  --gold-a30: rgba(197, 165, 90, 0.3);
+  --gold-a40: rgba(197, 165, 90, 0.4);
+  --white-a06: rgba(255, 255, 255, 0.06);
+  --white-a50: rgba(255, 255, 255, 0.5);
+  --white-a55: rgba(255, 255, 255, 0.55);
+  --white-a60: rgba(255, 255, 255, 0.6);
+  --white-a65: rgba(255, 255, 255, 0.65);
+  --white-a70: rgba(255, 255, 255, 0.7);
+  --black-a05: rgba(0, 0, 0, 0.05);
+  --cream: #f5f0e8;
+  --cream-light: #faf7f2;
+  --stone: #6b6559;
+  --text-dark: #1a1a1a;
+  --text-body: #4a4540;
+  --white: #ffffff;
+  --font-display: "Fraunces", Georgia, serif;
+  --serif: "Fraunces", Georgia, serif;
+  --sans: "Lexend", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  /* Fluid type scale (scales with viewport, no media queries needed) */
+  --text-xs: clamp(0.75rem, 0.7vw + 0.5rem, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8vw + 0.5rem, 1rem);
+  --text-base: clamp(1rem, 1vw + 0.5rem, 1.125rem);
+  --text-lg: clamp(1.25rem, 1.5vw + 0.5rem, 1.5rem);
+  --text-xl: clamp(1.5rem, 2vw + 1rem, 2.25rem);
+  --text-2xl: clamp(2rem, 3vw + 1rem, 3rem);
+  --text-3xl: clamp(2.5rem, 4vw + 1rem, 4rem);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 20px rgba(197, 165, 90, 0.15);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}

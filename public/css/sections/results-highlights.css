@@ -1,0 +1,117 @@
+/* === RESULTS HIGHLIGHTS === */
+.results-highlights {
+  padding: 7rem 0;
+  background: var(--navy-deep);
+  position: relative;
+}
+.results-highlights::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    var(--grain),
+    radial-gradient(
+      ellipse at 20% 50%,
+      rgba(197, 165, 90, 0.04),
+      transparent 60%
+    );
+  background-size:
+    240px 240px,
+    auto;
+}
+.results-highlights .section-label {
+  color: var(--gold);
+}
+.results-highlights-header {
+  max-width: 680px;
+  margin-bottom: 4rem;
+  position: relative;
+  z-index: 1;
+}
+.results-highlights .section-title {
+  color: var(--white);
+}
+.results-highlights .section-title em {
+  color: var(--gold-light);
+}
+.results-highlights-intro {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--white-a55);
+  font-weight: 300;
+}
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  position: relative;
+  z-index: 1;
+}
+.result-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--white-a06);
+  padding: 2.5rem 2rem;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+.result-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--gold);
+  transition: width 0.5s ease;
+}
+.result-card:hover {
+  background: var(--white-a06);
+  border-color: var(--gold-a20);
+  transform: translateY(-4px);
+}
+.result-card:hover::before {
+  width: 100%;
+}
+.result-stat {
+  font-family: var(--serif);
+  font-size: 3.5rem;
+  font-weight: 400;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+.result-stat-label {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1.25rem;
+}
+.result-card p {
+  font-size: 0.92rem;
+  line-height: 1.75;
+  color: var(--white-a50);
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+}
+.result-card .btn-text {
+  color: var(--gold);
+  font-size: 0.88rem;
+}
+.result-card .btn-text:hover {
+  color: var(--gold-light);
+}
+.results-highlights-cta {
+  position: relative;
+  z-index: 1;
+}
+.results-highlights .btn-secondary-dark {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--white-a70);
+}
+.results-highlights .btn-secondary-dark:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--white);
+}

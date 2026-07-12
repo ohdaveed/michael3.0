@@ -1,0 +1,50 @@
+/* === CTA BANNER === */
+.cta-banner {
+  padding: 6rem 0;
+  background: var(--navy);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.cta-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    var(--grain),
+    radial-gradient(
+      circle at 30% 50%,
+      rgba(197, 165, 90, 0.07),
+      transparent 50%
+    ),
+    radial-gradient(circle at 70% 50%, var(--gold-a05), transparent 50%);
+  background-size:
+    240px 240px,
+    auto,
+    auto;
+}
+.cta-content {
+  position: relative;
+  z-index: 1;
+}
+.cta-banner h2 {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  color: var(--white);
+  margin-bottom: 1rem;
+}
+.cta-banner h2 em {
+  font-style: italic;
+  color: var(--gold-light);
+}
+.cta-banner p {
+  font-size: 1.05rem;
+  color: var(--white-a55);
+  font-weight: 300;
+  margin-bottom: 2.5rem;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.7;
+}

@@ -1,0 +1,27 @@
+/* z-index scale (highest wins on overlap):
+     10001  .skip-link      — must sit above literally everything, incl. nav
+      1000  #nav             — fixed header
+       999  .sticky-cta      — fixed mobile CTA button, sits under the nav
+       500  .section-subnav  — sticky in-page sub-nav, under the sticky-cta
+   Everything else on the page uses 1-3 purely for local stacking within a
+   single component (e.g. layering text over a ::before texture) and never
+   needs to compete with the fixed/sticky elements above. */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+body {
+  font-family: var(--sans);
+  color: var(--text-body);
+  background: var(--cream-light);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
