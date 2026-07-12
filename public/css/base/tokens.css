@@ -27,6 +27,12 @@
   --text-dark: #1a1a1a;
   --text-body: #4a4540;
   --white: #ffffff;
+  --error: #c62828;
+  --error-bg: rgba(198, 40, 40, 0.08);
+  --error-border: rgba(198, 40, 40, 0.3);
+  --success: #2e7d32;
+  --success-bg: rgba(46, 125, 50, 0.08);
+  --success-border: rgba(46, 125, 50, 0.3);
   --font-display: "Fraunces", Georgia, serif;
   --serif: "Fraunces", Georgia, serif;
   --sans: "Lexend", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;

@@ -9,7 +9,7 @@ if (contactForm && formMessage) {
     errorFieldCssClass: "is-invalid",
     errorLabelCssClass: "just-validate-error-label",
     errorLabelStyle: {
-      color: "var(--gold-text)",
+      color: "var(--error)",
       fontSize: "0.85rem",
       marginTop: "0.25rem",
       display: "block",

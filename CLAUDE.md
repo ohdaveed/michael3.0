@@ -8,19 +8,7 @@ Static marketing site for Michael Lehr Estate Planning (San Francisco). Plain HT
 
 ## Commands
 
-```bash
-npm install
-npm run dev            # serve site locally at http://localhost:5173 using Vite (alias: npm run serve)
-npm run build          # compile and bundle production assets into dist/
-npm run format          # prettier --write over *.{html,css,js,json,md} and docs/**
-npm run format:check    # prettier --check (same scope)
-npm run html:check      # htmlhint over *.html (note: repo-root only, not public/)
-npm run links:check     # linkinator crawl of the running local server
-npm run a11y:check      # pa11y against the running local server
-npm run lighthouse      # lighthouse report against the running local server -> lighthouse-report.html
-npm run browser:check   # agent-browser open/snapshot against the running local server
-npm run check           # format:check + html:check
-```
+See `package.json` scripts for available npm commands.
 
 `links:check`, `a11y:check`, `lighthouse`, and `browser:check` all require `npm run dev` running in another terminal first — they hit `http://localhost:5173`, not the filesystem.
 
