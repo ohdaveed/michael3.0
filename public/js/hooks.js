@@ -1,10 +1,9 @@
 /**
- * A throttled scroll handler that uses requestAnimationFrame to monitor scroll position
- * and execute a callback when scroll y passes a threshold.
+ * Monitors scroll position and notifies when it crosses a threshold.
  *
- * @param {Function} callback - Executed with (isPassed, scrollY) when the threshold is crossed.
- * @param {number|Function} threshold - The threshold value or a function returning a threshold value.
- * @returns {Function} A cleanup function to remove the scroll listener.
+ * @param {Function} callback - Receives the passed state and current scroll position.
+ * @param {number|Function} threshold - A threshold value or a function that returns one.
+ * @return {Function} A cleanup function that removes the scroll listener.
  */
 export function useScroll(callback, threshold) {
   let ticked = false;
@@ -46,15 +45,13 @@ export function useScroll(callback, threshold) {
 }
 
 /**
- * A reusable helper around IntersectionObserver that takes a list of elements/selectors
- * and runs the callback when they intersect. Supports dual signature:
- * - useIntersectionObserver(elementsOrSelector, callback, options)
- * - useIntersectionObserver(callback, options) (returns an observe function/wrapper)
+ * Creates an IntersectionObserver wrapper for observing elements immediately or on demand.
+ * Supports `(elementsOrSelector, callback, options)` and `(callback, options)` signatures.
  *
- * @param {string|Element|Element[]|NodeList|Function} first - Selector, element(s), or the callback function.
- * @param {Function|Object} [second] - Callback function or options object.
- * @param {Object} [third] - Options object if first is selector/elements.
- * @returns {Object & Function} An observe function that also exposes observer control methods.
+ * @param {string|Element|Element[]|NodeList|Function} first - Elements, a selector, or the observer callback.
+ * @param {Function|Object} [second] - The observer callback or options.
+ * @param {Object} [third] - Observer options when `first` specifies elements.
+ * @return {Function} A function that observes targets and exposes observer control methods.
  */
 export function useIntersectionObserver(first, second, third) {
   let elementsOrSelector = null;
@@ -83,7 +80,10 @@ export function useIntersectionObserver(first, second, third) {
       elements.forEach((el) => observer.observe(el));
     } else if (elements instanceof Element) {
       observer.observe(elements);
-    } else if (typeof HTMLCollection !== "undefined" && elements instanceof HTMLCollection) {
+    } else if (
+      typeof HTMLCollection !== "undefined" &&
+      elements instanceof HTMLCollection
+    ) {
       Array.from(elements).forEach((el) => observer.observe(el));
     }
   };
@@ -105,12 +105,12 @@ export function useIntersectionObserver(first, second, third) {
 }
 
 /**
- * A reusable helper that sets up accessibility attributes and toggle behaviors for faq/accordion components.
+ * Initializes accordion items with accessibility attributes and exclusive toggle behavior.
  *
- * @param {string} accordionSelector - Selector for the individual accordion items (e.g. '.faq-item').
- * @param {string} questionSelector - Selector for the question trigger button (e.g. '.faq-question').
- * @param {string} answerSelector - Selector for the answer panel (e.g. '.faq-answer').
- * @param {string} activeClass - Class name to toggle when active (e.g. 'active').
+ * @param {string} accordionSelector - Selector for the accordion items.
+ * @param {string} questionSelector - Selector for each item's trigger button.
+ * @param {string} answerSelector - Selector for each item's answer panel.
+ * @param {string} activeClass - Class applied to the expanded item.
  */
 export function useAccordion(
   accordionSelector,
