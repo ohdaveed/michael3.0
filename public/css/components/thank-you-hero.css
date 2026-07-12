@@ -87,7 +87,7 @@
   font-family: var(--sans);
   font-size: 1.1rem;
   font-weight: 500;
-  color: var(--white);
+  color: var(--navy);
   background: var(--gold);
   border: 2px solid var(--gold);
   border-radius: 4px;
@@ -96,8 +96,8 @@
   cursor: pointer;
 }
 .btn-booking:hover {
-  background: var(--gold-text);
-  border-color: var(--gold-text);
+  background: var(--gold-light);
+  border-color: var(--gold-light);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(197, 165, 90, 0.3);
 }
