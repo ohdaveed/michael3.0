@@ -1,4 +1,5 @@
 import JustValidate from "just-validate";
+import productContract from "./product-contract.json";
 
 // Contact Form Handler with Web3Forms & JustValidate
 const contactForm = document.getElementById("contactForm");
@@ -39,6 +40,12 @@ if (contactForm && formMessage) {
         errorMessage: "Please enter a valid email address.",
       },
     ])
+    .addField("#service", [
+      {
+        rule: "required",
+        errorMessage: "Please choose a service, or select “Not sure yet.”",
+      },
+    ])
     .addField("#message", [
       {
         rule: "required",
@@ -58,6 +65,22 @@ if (contactForm && formMessage) {
       formMessage.className = "form-message";
       formMessage.setAttribute("role", "status");
 
+      // Intake parsing contract (see the HTML comment above the form): the
+      // Power Automate flow filters on the "[INTAKE]" subject prefix and
+      // reads both the stable product code and its display label.
+      const productCode = contactForm.querySelector(
+        'select[name="product_code"]',
+      ).value;
+      const product = productContract.products.find(
+        (p) => p.code === productCode,
+      );
+      const productLabel = product ? product.label : productCode;
+      contactForm.querySelector('input[name="service"]').value = productLabel;
+      const firstName = contactForm.querySelector("#fname").value.trim();
+      const lastName = contactForm.querySelector("#lname").value.trim();
+      contactForm.querySelector('input[name="subject"]').value =
+        `[INTAKE] ${productLabel} — ${firstName} ${lastName}`;
+
       let leavePage = false;
       try {
         const formData = new FormData(contactForm);
@@ -70,6 +93,14 @@ if (contactForm && formMessage) {
 
         if (data.success) {
           leavePage = true;
+          // Codes only — never send names, emails, phones, or message
+          // content to analytics.
+          if (typeof window.gtag === "function") {
+            window.gtag("event", "generate_lead", {
+              method: "contact_form",
+              product_code: productCode,
+            });
+          }
           const thankYou = new URL("thank-you.html", window.location.href);
           window.location.assign(thankYou.href);
           return;

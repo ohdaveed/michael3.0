@@ -1,4 +1,6 @@
 // === ESTATE READINESS QUIZ ===
+import { BOOKING_URL } from "./booking-url.js";
+
 (function () {
   const startView = document.getElementById("quizStartView");
   const questionsView = document.getElementById("quizQuestionsView");
@@ -118,6 +120,13 @@
       urgencyClass = "quiz-result--urgent";
     }
 
+    var bookingLink =
+      '<a href="' +
+      BOOKING_URL +
+      '" target="_blank" rel="noopener" data-cta="book-consult" class="' +
+      (firstGap ? "btn-secondary" : "btn-primary") +
+      '">Book a Free Consultation<span class="sr-only"> (opens in a new tab)</span> →</a>';
+
     var actionsHtml;
     if (firstGap) {
       // Route to the most relevant service first (lower commitment than
@@ -129,13 +138,11 @@
         '" class="btn-primary">' +
         firstGap.gapLabel +
         " →</a>" +
-        '<a href="contact.html#contact" class="btn-secondary">Book a Free Consultation →</a>' +
+        bookingLink +
         "</div>";
     } else {
       actionsHtml =
-        '<div class="quiz-result-actions">' +
-        '<a href="contact.html#contact" class="btn-primary">Book a Free Consultation →</a>' +
-        "</div>";
+        '<div class="quiz-result-actions">' + bookingLink + "</div>";
     }
 
     resultView.className = "quiz-result-view " + urgencyClass;

@@ -1,0 +1,43 @@
+/* === WHAT TO EXPECT ===
+   Long-form onboarding content for what-to-expect.html — the page linked
+   from acknowledgment emails and the thank-you page. */
+.wte-content {
+  padding: 5rem 0;
+  background: var(--cream-light);
+}
+.wte-container {
+  max-width: 900px;
+}
+.wte-body {
+  color: var(--text-body);
+  line-height: 1.8;
+}
+.wte-body h2 {
+  font-family: var(--serif);
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin: 2.5rem 0 1rem;
+  color: var(--navy-mid);
+}
+.wte-body h2:first-child {
+  margin-top: 0;
+}
+.wte-body p {
+  margin-bottom: 1.5rem;
+}
+.wte-list {
+  margin: 0 0 1.5rem 2rem;
+}
+.wte-list li {
+  margin-bottom: 0.5rem;
+}
+.wte-callout {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(197, 165, 90, 0.1);
+  border-left: 3px solid var(--gold);
+}
+.wte-callout p {
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}

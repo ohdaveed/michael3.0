@@ -48,3 +48,9 @@
   margin-right: auto;
   line-height: 1.7;
 }
+.cta-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}

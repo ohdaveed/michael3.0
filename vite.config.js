@@ -3,6 +3,7 @@ import { resolve } from "path";
 import { readFileSync, mkdirSync, copyFileSync } from "fs";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import Sitemap from "vite-plugin-sitemap";
+import { BOOKING_URL } from "./public/js/booking-url.js";
 
 // Matches `<!--#include:partials/foo.html?KEY=value-->` in the page HTML and
 // inlines the referenced partial, substituting any `{{KEY}}` placeholders it
@@ -10,27 +11,53 @@ import Sitemap from "vite-plugin-sitemap";
 // since Vite calls transformIndexHtml in both modes.
 const INCLUDE_PATTERN = /<!--\s*#include:([^\s?]+)(?:\?([^\s]*))?\s*-->/g;
 
+// Tokens substituted in every partial and page, without needing an include
+// query param. Must be applied to partials BEFORE the unmatched-token
+// cleanup below, or `{{BOOKING_URL}}` would be silently stripped to "".
+const GLOBAL_TOKENS = { BOOKING_URL };
+
+function substituteGlobalTokens(html) {
+  let out = html;
+  for (const [key, value] of Object.entries(GLOBAL_TOKENS)) {
+    out = out.replaceAll(`{{${key}}}`, value);
+  }
+  return out;
+}
+
 function htmlIncludePlugin() {
   return {
     name: "html-include",
     transformIndexHtml(html) {
-      return html.replace(INCLUDE_PATTERN, (match, file, query) => {
-        let partial = readFileSync(resolve(__dirname, "public", file), "utf-8");
-        const params = new URLSearchParams(query ?? "");
-        for (const [key, value] of params) {
-          partial = partial.replaceAll(`{{${key}}}`, value);
-        }
-        return partial.replace(/\{\{[A-Z_]+\}\}/g, "");
-      });
+      const withIncludes = html.replace(
+        INCLUDE_PATTERN,
+        (match, file, query) => {
+          let partial = readFileSync(
+            resolve(__dirname, "public", file),
+            "utf-8",
+          );
+          const params = new URLSearchParams(query ?? "");
+          for (const [key, value] of params) {
+            partial = partial.replaceAll(`{{${key}}}`, value);
+          }
+          partial = substituteGlobalTokens(partial);
+          return partial.replace(/\{\{[A-Z_]+\}\}/g, "");
+        },
+      );
+      return substituteGlobalTokens(withIncludes);
     },
   };
 }
 
-// Images referenced only inside partials (nav.html, footer.html) or as a
-// plain JSON-LD string (not an actual tag attribute) are never seen by
-// Vite's own asset-reference scan, so they don't get bundled/copied
-// automatically. Copy them into the build output directly.
-const STATIC_IMAGES = ["logo-mark.svg", "logo-mark-square.png"];
+// Images referenced only inside partials (nav.html, footer.html), as a
+// plain JSON-LD string, or via absolute og:image/twitter:image URLs (not an
+// actual tag attribute) are never seen by Vite's own asset-reference scan,
+// so they don't get bundled/copied automatically. Copy them into the build
+// output directly so /images/<name> resolves on the live site.
+const STATIC_IMAGES = [
+  "logo-mark.svg",
+  "logo-mark-square.png",
+  "michael-lehr.webp",
+];
 
 function staticImagesPlugin() {
   return {
@@ -88,6 +115,7 @@ export default defineConfig({
         process: resolve(__dirname, "public/process.html"),
         results: resolve(__dirname, "public/results.html"),
         thankYou: resolve(__dirname, "public/thank-you.html"),
+        whatToExpect: resolve(__dirname, "public/what-to-expect.html"),
         privacyPolicy: resolve(__dirname, "public/privacy-policy.html"),
         disclaimer: resolve(__dirname, "public/disclaimer.html"),
         attorneyAdvertising: resolve(
