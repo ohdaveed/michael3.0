@@ -1,10 +1,39 @@
 import JustValidate from "just-validate";
+import productContract from "./product-contract.json";
 
 // Contact Form Handler with Web3Forms & JustValidate
 const contactForm = document.getElementById("contactForm");
 const formMessage = document.getElementById("formMessage");
 
+function productLabelFor(code) {
+  const product = productContract.products.find((p) => p.code === code);
+  return product ? product.label : code;
+}
+
 if (contactForm && formMessage) {
+  // JustValidate owns validation from here on; without JS the form keeps
+  // native browser validation of its required fields (no novalidate in
+  // the markup).
+  contactForm.setAttribute("novalidate", "novalidate");
+
+  // Mirror the selected product's display label into the hidden `service`
+  // field as soon as it changes, so submissions that bypass onSuccess
+  // (e.g. the native form action when fetch fails) still carry the label.
+  // No-JS submissions can't populate it at all — the parsing flow treats
+  // product_code as authoritative and derives the label when `service`
+  // is blank.
+  const productSelect = contactForm.querySelector(
+    'select[name="product_code"]',
+  );
+  const serviceLabelInput = contactForm.querySelector('input[name="service"]');
+  if (productSelect && serviceLabelInput) {
+    productSelect.addEventListener("change", () => {
+      serviceLabelInput.value = productSelect.value
+        ? productLabelFor(productSelect.value)
+        : "";
+    });
+  }
+
   const validator = new JustValidate(contactForm, {
     errorFieldCssClass: "is-invalid",
     errorLabelCssClass: "just-validate-error-label",
@@ -39,6 +68,12 @@ if (contactForm && formMessage) {
         errorMessage: "Please enter a valid email address.",
       },
     ])
+    .addField("#service", [
+      {
+        rule: "required",
+        errorMessage: "Please choose a service, or select “Not sure yet.”",
+      },
+    ])
     .addField("#message", [
       {
         rule: "required",
@@ -58,6 +93,19 @@ if (contactForm && formMessage) {
       formMessage.className = "form-message";
       formMessage.setAttribute("role", "status");
 
+      // Intake parsing contract (see the HTML comment above the form): the
+      // Power Automate flow filters on the "[INTAKE]" subject prefix and
+      // reads both the stable product code and its display label.
+      const productCode = contactForm.querySelector(
+        'select[name="product_code"]',
+      ).value;
+      const productLabel = productLabelFor(productCode);
+      contactForm.querySelector('input[name="service"]').value = productLabel;
+      const firstName = contactForm.querySelector("#fname").value.trim();
+      const lastName = contactForm.querySelector("#lname").value.trim();
+      contactForm.querySelector('input[name="subject"]').value =
+        `[INTAKE] ${productLabel} — ${firstName} ${lastName}`;
+
       let leavePage = false;
       try {
         const formData = new FormData(contactForm);
@@ -71,7 +119,27 @@ if (contactForm && formMessage) {
         if (data.success) {
           leavePage = true;
           const thankYou = new URL("thank-you.html", window.location.href);
-          window.location.assign(thankYou.href);
+          let navigated = false;
+          const navigate = () => {
+            if (navigated) return;
+            navigated = true;
+            window.location.assign(thankYou.href);
+          };
+          // Codes only — never send names, emails, phones, or message
+          // content to analytics. Navigation waits for the event callback
+          // (or the timeout, if gtag is blocked and never calls back) so
+          // the lead event isn't lost to the redirect.
+          if (typeof window.gtag === "function") {
+            window.gtag("event", "generate_lead", {
+              method: "contact_form",
+              product_code: productCode,
+              event_callback: navigate,
+              event_timeout: 800,
+            });
+            setTimeout(navigate, 1000);
+          } else {
+            navigate();
+          }
           return;
         } else {
           throw new Error(data.message || "Form submission failed");

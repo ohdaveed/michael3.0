@@ -67,27 +67,7 @@
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>
 
-    <a
-      href="contact.html#contact"
-      class="sticky-cta"
-      id="stickyCta"
-      aria-label="Send a message"
-    >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path
-          d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-        />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-      <span>Send a message</span>
-    </a>
+    <!--#include:partials/sticky-cta.html-->
 
     <!--#include:partials/nav.html?NAV_CLASS_ATTR=%20class%3D%22scrolled%22-->
 
@@ -107,12 +87,14 @@
             with “urgent” in the subject line.
           </p>
           <p class="animate visible delay-2 lede-secondary">
-            While you wait, you can review the six-step process so you know what
-            to expect next.
+            While you wait, see what happens next and how to prepare for your
+            consultation.
           </p>
           <div class="animate visible delay-3 thank-you-actions">
-            <a href="process.html" class="btn-primary">Review the process →</a>
-            <a href="index.html" class="btn-secondary">Return to home</a>
+            <a href="what-to-expect.html" class="btn-primary"
+              >See what happens next →</a
+            >
+            <a href="process.html" class="btn-secondary">Review the process</a>
           </div>
         </div>
       </section>
@@ -131,12 +113,16 @@
             </div>
             <div class="booking-widget">
               <a
-                href="https://outlook.office.com/bookwithme/user/0b9bd49f7de44f3a91a007a517b326f3@lehr-law.com?anonymous&ismsaljsauthenabled&ep=plink"
+                href="{{BOOKING_URL}}"
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener"
+                data-cta="book-consult"
                 class="btn-booking"
               >
-                Open Booking Calendar →
+                Open Booking Calendar<span class="sr-only">
+                  (opens in a new tab)</span
+                >
+                →
               </a>
             </div>
           </div>

@@ -88,27 +88,7 @@
     <a class="skip-link" href="#main">Skip to main content</a>
 
     <!-- STICKY CTA BUTTON -->
-    <a
-      href="contact.html#contact"
-      class="sticky-cta"
-      id="stickyCta"
-      aria-label="Send a message"
-    >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path
-          d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-        />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-      <span>Send a message</span>
-    </a>
+    <!--#include:partials/sticky-cta.html-->
 
     <!-- NAVIGATION -->
     <!--#include:partials/nav.html?NAV_CLASS_ATTR=%20class%3D%22scrolled%22-->
@@ -187,8 +167,16 @@
                     pressure.
                   </p>
                   <div class="process-action">
-                    <a href="contact.html#contact" class="btn-secondary-dark"
-                      >Send a message →</a
+                    <a
+                      href="{{BOOKING_URL}}"
+                      target="_blank"
+                      rel="noopener"
+                      data-cta="book-consult"
+                      class="btn-secondary-dark"
+                      >Book this consultation<span class="sr-only">
+                        (opens in a new tab)</span
+                      >
+                      →</a
                     >
                   </div>
                 </div>
@@ -348,14 +336,28 @@
         <div class="container">
           <h2 id="next-steps-heading" class="next-steps-title">Next steps</h2>
           <p class="next-steps-intro">
-            Review services and common questions, or reach out to schedule your
-            free consultation.
+            Review services and common questions, see how to prepare, book a
+            free consultation, or send a message.
           </p>
           <div class="next-steps-actions">
             <a href="services.html" class="btn-secondary">Explore services</a>
             <a href="faq.html" class="btn-secondary">Read the FAQ</a>
-            <a href="contact.html#contact" class="btn-primary"
-              >Send a message →</a
+            <a href="what-to-expect.html" class="btn-secondary"
+              >How to prepare</a
+            >
+            <a href="contact.html#contact" class="btn-secondary"
+              >Send a message</a
+            >
+            <a
+              href="{{BOOKING_URL}}"
+              target="_blank"
+              rel="noopener"
+              data-cta="book-consult"
+              class="btn-primary"
+              >Book a Free Consultation<span class="sr-only">
+                (opens in a new tab)</span
+              >
+              →</a
             >
           </div>
         </div>
@@ -369,13 +371,26 @@
               Your Legacy Deserves<br /><em>Expert Protection</em>
             </h2>
             <p class="animate delay-1">
-              Book a free consult—send a message first; then you can meet by
-              phone, Zoom, Google Meet, or at the office. Michael usually
-              replies within 24 hours.
+              Book a free consultation online—meet by phone, Zoom, Google Meet,
+              or at the office. Prefer to write first? Send a message and
+              Michael usually replies within 24 hours.
             </p>
-            <a href="contact.html#contact" class="btn-primary animate delay-2"
-              >Send a message →</a
-            >
+            <div class="cta-actions animate delay-2">
+              <a
+                href="{{BOOKING_URL}}"
+                target="_blank"
+                rel="noopener"
+                data-cta="book-consult"
+                class="btn-primary"
+                >Book a Free Consultation<span class="sr-only">
+                  (opens in a new tab)</span
+                >
+                →</a
+              >
+              <a href="contact.html#contact" class="btn-secondary"
+                >Send a message</a
+              >
+            </div>
           </div>
         </div>
       </section>

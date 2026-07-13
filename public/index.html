@@ -121,27 +121,7 @@
     <a class="skip-link" href="#main">Skip to main content</a>
 
     <!-- STICKY CTA BUTTON -->
-    <a
-      href="contact.html#contact"
-      class="sticky-cta"
-      id="stickyCta"
-      aria-label="Send a message"
-    >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path
-          d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-        />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-      <span>Send a message</span>
-    </a>
+    <!--#include:partials/sticky-cta.html-->
 
     <!-- NAVIGATION -->
     <!--#include:partials/nav.html?NAV_CLASS_ATTR=-->
@@ -165,13 +145,24 @@
               and uncertainty take over.
             </p>
             <div class="hero-btns">
-              <a href="contact.html#contact" class="btn-primary"
-                >Schedule a Free Consultation →</a
+              <a
+                href="{{BOOKING_URL}}"
+                target="_blank"
+                rel="noopener"
+                data-cta="book-consult"
+                class="btn-primary"
+                >Book a Free Consultation<span class="sr-only">
+                  (opens in a new tab)</span
+                >
+                →</a
               >
-              <a href="results.html" class="btn-secondary"
-                >See Probate Savings Examples</a
+              <a href="contact.html#contact" class="btn-secondary"
+                >Send a message</a
               >
             </div>
+            <a href="results.html" class="hero-text-link"
+              >See probate savings examples</a
+            >
           </header>
         </div>
       </section>
@@ -489,8 +480,16 @@
                   <span>Guidance on asset transfers</span>
                 </div>
               </div>
-              <a href="contact.html#contact" class="btn-primary"
-                >Get Started →</a
+              <a
+                href="{{BOOKING_URL}}"
+                target="_blank"
+                rel="noopener"
+                data-cta="book-consult"
+                class="btn-primary"
+                >Get Started<span class="sr-only">
+                  — book a free consultation (opens in a new tab)</span
+                >
+                →</a
               >
             </div>
 
@@ -506,7 +505,7 @@
                   <span class="pricing-value">$350+</span>
                 </div>
                 <div class="pricing-item">
-                  <span>Healthcare Directive</span>
+                  <span>Advance Health Care Directive</span>
                   <span class="pricing-value">$250+</span>
                 </div>
                 <div class="pricing-item">
@@ -518,7 +517,7 @@
                   <span class="pricing-value">Consultation Required</span>
                 </div>
                 <div class="pricing-item">
-                  <span>Trust Amendments</span>
+                  <span>Trust Amendment</span>
                   <span class="pricing-value">$500+</span>
                 </div>
               </div>
@@ -620,8 +619,19 @@
                 different. These figures are estimates only and do not
                 constitute legal advice.
               </p>
-              <a href="contact.html#contact" class="btn-primary" id="calcCta"
-                >Protect Your Estate Before Probate Costs Start →</a
+              <a
+                href="{{BOOKING_URL}}"
+                target="_blank"
+                rel="noopener"
+                data-cta="book-consult"
+                class="btn-primary"
+                id="calcCta"
+                >Protect Your Estate Before Probate Costs Start<span
+                  class="sr-only"
+                >
+                  — book a free consultation (opens in a new tab)</span
+                >
+                →</a
               >
             </div>
           </div>
@@ -740,13 +750,26 @@
               Your Legacy Deserves<br /><em>Expert Protection</em>
             </h2>
             <p class="animate delay-1">
-              Book a free consult—send a message first; then you can meet by
-              Zoom, Google Meet, or at the office. Michael usually replies
-              within 24 hours.
+              Book a free consultation online—meet by Zoom, Google Meet, or at
+              the office. Prefer to write first? Send a message and Michael
+              usually replies within 24 hours.
             </p>
-            <a href="contact.html#contact" class="btn-primary animate delay-2"
-              >Send a message →</a
-            >
+            <div class="cta-actions animate delay-2">
+              <a
+                href="{{BOOKING_URL}}"
+                target="_blank"
+                rel="noopener"
+                data-cta="book-consult"
+                class="btn-primary"
+                >Book a Free Consultation<span class="sr-only">
+                  (opens in a new tab)</span
+                >
+                →</a
+              >
+              <a href="contact.html#contact" class="btn-secondary"
+                >Send a message</a
+              >
+            </div>
           </div>
         </div>
       </section>

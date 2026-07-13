@@ -1,7 +1,24 @@
 /* === CONTACT === */
+.contact-booking {
+  padding: 7rem 0 0;
+  background: var(--cream-light);
+}
 .contact {
   padding: 7rem 0;
   background: var(--cream-light);
+}
+.form-intro-heading {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-bottom: 1.25rem;
+}
+.form-note {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--stone);
+  font-weight: 300;
 }
 .contact-grid {
   display: grid;

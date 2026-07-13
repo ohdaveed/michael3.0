@@ -40,6 +40,7 @@
 @import "components/driver-theme.css";
 @import "base/utilities-extra.css";
 @import "sections/legal-page.css";
+@import "sections/what-to-expect.css";
 @import "components/thank-you-hero.css";
 @import "base/prefers-contrast.css";
 @import "base/reduced-transparency.css";

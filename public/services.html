@@ -88,27 +88,7 @@
     <a class="skip-link" href="#main">Skip to main content</a>
 
     <!-- STICKY CTA BUTTON -->
-    <a
-      href="contact.html#contact"
-      class="sticky-cta"
-      id="stickyCta"
-      aria-label="Send a message"
-    >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path
-          d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-        />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-      <span>Send a message</span>
-    </a>
+    <!--#include:partials/sticky-cta.html-->
 
     <!-- NAVIGATION -->
     <!--#include:partials/nav.html?NAV_CLASS_ATTR=%20class%3D%22scrolled%22-->
@@ -209,7 +189,17 @@
                 household.
               </p>
             </div>
-            <a href="contact.html#contact" class="btn-primary">Get Started →</a>
+            <a
+              href="{{BOOKING_URL}}"
+              target="_blank"
+              rel="noopener"
+              data-cta="book-consult"
+              class="btn-primary"
+              >Get Started<span class="sr-only">
+                — book a free consultation (opens in a new tab)</span
+              >
+              →</a
+            >
           </div>
         </div>
       </section>
@@ -529,16 +519,27 @@
         <div class="container">
           <h2 id="next-steps-heading" class="next-steps-title">Next steps</h2>
           <p class="next-steps-intro">
-            See how a plan comes together, read common questions, or send a
-            message to book a free consult.
+            See how a plan comes together, read common questions, book a free
+            consultation, or send a message.
           </p>
           <div class="next-steps-actions">
             <a href="process.html" class="btn-secondary"
               >How the process works</a
             >
             <a href="faq.html" class="btn-secondary">Read the FAQ</a>
-            <a href="contact.html#contact" class="btn-primary"
-              >Send a message →</a
+            <a href="contact.html#contact" class="btn-secondary"
+              >Send a message</a
+            >
+            <a
+              href="{{BOOKING_URL}}"
+              target="_blank"
+              rel="noopener"
+              data-cta="book-consult"
+              class="btn-primary"
+              >Book a Free Consultation<span class="sr-only">
+                (opens in a new tab)</span
+              >
+              →</a
             >
           </div>
         </div>
@@ -553,9 +554,22 @@
               Free consult: map the right documents in one
               conversation—evenings, weekends, or remote by Zoom or Google Meet.
             </p>
-            <a href="contact.html#contact" class="btn-primary animate delay-2"
-              >Send a message →</a
-            >
+            <div class="cta-actions animate delay-2">
+              <a
+                href="{{BOOKING_URL}}"
+                target="_blank"
+                rel="noopener"
+                data-cta="book-consult"
+                class="btn-primary"
+                >Book a Free Consultation<span class="sr-only">
+                  (opens in a new tab)</span
+                >
+                →</a
+              >
+              <a href="contact.html#contact" class="btn-secondary"
+                >Send a message</a
+              >
+            </div>
           </div>
         </div>
       </section>

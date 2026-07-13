@@ -1,0 +1,18 @@
+{
+  "contract_version": 1,
+  "description": "Canonical product taxonomy shared by the contact form, the Web3Forms notification email, the Power Automate email parser, and the SharePoint 'Client Pipeline' list (DesiredProductCode / DesiredProductLabel columns). Codes are stable keys and must never change meaning; labels are display text and may be reworded. Any change to codes or the field contract requires bumping contract_version and updating docs/client-pipeline.md.",
+  "products": [
+    { "code": "TRUST_PACKAGE", "label": "Complete Living Trust Package" },
+    { "code": "WILL_ONLY", "label": "Will Only" },
+    { "code": "POWER_OF_ATTORNEY", "label": "Power of Attorney" },
+    {
+      "code": "ADVANCE_HEALTH_CARE_DIRECTIVE",
+      "label": "Advance Health Care Directive"
+    },
+    { "code": "PROBATE_ADMINISTRATION", "label": "Probate Administration" },
+    { "code": "TRUST_ADMINISTRATION", "label": "Trust Administration" },
+    { "code": "TRUST_AMENDMENT", "label": "Trust Amendment" },
+    { "code": "ELDER_LAW", "label": "Elder Law" },
+    { "code": "NOT_SURE_OTHER", "label": "Not sure yet / another need" }
+  ]
+}

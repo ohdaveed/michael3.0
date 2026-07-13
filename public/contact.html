@@ -88,27 +88,7 @@
     <a class="skip-link" href="#main">Skip to main content</a>
 
     <!-- STICKY CTA BUTTON -->
-    <a
-      href="contact.html#contact"
-      class="sticky-cta"
-      id="stickyCta"
-      aria-label="Send a message"
-    >
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path
-          d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-        />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-      <span>Send a message</span>
-    </a>
+    <!--#include:partials/sticky-cta.html-->
 
     <!-- NAVIGATION -->
     <!--#include:partials/nav.html?NAV_CLASS_ATTR=%20class%3D%22scrolled%22-->
@@ -120,9 +100,39 @@
           <div class="section-label animate">Get in Touch</div>
           <h1 class="animate delay-1">Let's Plan <em>Your Next Step</em></h1>
           <p class="animate delay-2">
-            Free consult—tell Michael what changed (birth, home purchase, aging
-            parent) and you'll hear back within 24 hours.
+            Book a free consultation online, or send a message—tell Michael what
+            changed (birth, home purchase, aging parent) and you'll hear back
+            within 24 hours.
           </p>
+        </div>
+      </section>
+
+      <!-- BOOK A CONSULTATION -->
+      <section class="contact-booking" id="book">
+        <div class="container">
+          <div class="booking-section">
+            <div class="booking-header">
+              <h2>Book a free consultation</h2>
+              <p>
+                Pick a time that works for you directly in Michael's
+                calendar—evenings, weekends, and remote meetings available at no
+                extra charge.
+              </p>
+            </div>
+            <div class="booking-widget">
+              <a
+                href="{{BOOKING_URL}}"
+                target="_blank"
+                rel="noopener"
+                data-cta="book-consult"
+                class="btn-booking"
+                >Book a Free Consultation<span class="sr-only">
+                  (opens in a new tab)</span
+                >
+                →</a
+              >
+            </div>
+          </div>
         </div>
       </section>
 
@@ -163,12 +173,33 @@
               </div>
             </div>
             <div class="animate delay-2">
+              <h3 class="form-intro-heading">Prefer to write first?</h3>
+              <!--
+                INTAKE PARSING CONTRACT (contract_version 1) — do not rename
+                fields or reorder them without updating the Power Automate
+                email-parsing flow and js/product-contract.json. The flow
+                filters on the "[INTAKE]" subject prefix plus the form_source
+                value, and parses the Web3Forms notification body by FIELD
+                NAME (order is stable but must not be the only key). Custom
+                fields appear in the body in this DOM order:
+                first_name, last_name, email, phone, product_code, service,
+                message, form_source, contract_version.
+                product_code is authoritative; service (the display label)
+                is filled by JS and may be BLANK on no-JS fallback
+                submissions — the parser derives the label from the code
+                via js/product-contract.json when service is empty.
+                Web3Forms-reserved control fields (access_key, redirect,
+                subject, from_name, botcheck) are consumed by Web3Forms and
+                do not appear as body lines.
+              -->
+              <!-- novalidate is set by contact-form.js when JustValidate
+                   takes over, so no-JS fallback submissions still get
+                   native browser validation of the required fields. -->
               <form
                 id="contactForm"
                 class="contact-form"
                 action="https://api.web3forms.com/submit"
                 method="POST"
-                novalidate
               >
                 <!-- Key is public in HTML; restrict allowed domains in the Web3Forms dashboard. -->
                 <input
@@ -184,7 +215,7 @@
                 <input
                   type="hidden"
                   name="subject"
-                  value="New Contact Form Submission from Estate Planning Website"
+                  value="[INTAKE] Website inquiry"
                 />
                 <input
                   type="hidden"
@@ -243,27 +274,31 @@
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="service">Service Needed</label>
-                  <select id="service" name="service">
+                  <label for="service">Service Needed *</label>
+                  <!-- Option values/labels must match js/product-contract.json. -->
+                  <select id="service" name="product_code" required>
                     <option value="">Select a service…</option>
-                    <option value="Living Trust">Living Trust</option>
-                    <option value="Estate Planning">Estate Planning</option>
-                    <option value="Wills and Pour Over Wills">
-                      Wills &amp; Pour Over Wills
+                    <option value="TRUST_PACKAGE">
+                      Complete Living Trust Package
                     </option>
-                    <option value="Probate Administration">
-                      Probate Administration
-                    </option>
-                    <option value="Trust Administration">
-                      Trust Administration
-                    </option>
-                    <option value="Power of Attorney">Power of Attorney</option>
-                    <option value="Advance Health Care Directive">
+                    <option value="WILL_ONLY">Will Only</option>
+                    <option value="POWER_OF_ATTORNEY">Power of Attorney</option>
+                    <option value="ADVANCE_HEALTH_CARE_DIRECTIVE">
                       Advance Health Care Directive
                     </option>
-                    <option value="Elder Law">Elder Law</option>
-                    <option value="Other">Other</option>
+                    <option value="PROBATE_ADMINISTRATION">
+                      Probate Administration
+                    </option>
+                    <option value="TRUST_ADMINISTRATION">
+                      Trust Administration
+                    </option>
+                    <option value="TRUST_AMENDMENT">Trust Amendment</option>
+                    <option value="ELDER_LAW">Elder Law</option>
+                    <option value="NOT_SURE_OTHER">
+                      Not sure yet / another need
+                    </option>
                   </select>
+                  <input type="hidden" name="service" value="" />
                 </div>
                 <div class="form-group">
                   <label for="message">Message *</label>
@@ -273,7 +308,18 @@
                     placeholder="Briefly describe your situation…"
                     required
                   ></textarea>
+                  <p class="form-note">
+                    Please don't include confidential or time-sensitive details
+                    in this form. Sending a message does not create an
+                    attorney-client relationship.
+                  </p>
                 </div>
+                <input
+                  type="hidden"
+                  name="form_source"
+                  value="lehr-law-contact"
+                />
+                <input type="hidden" name="contract_version" value="1" />
                 <div
                   id="formMessage"
                   class="form-message"
@@ -294,11 +340,12 @@
       <section class="cta-banner">
         <div class="container">
           <div class="cta-content">
-            <h2 class="animate">After You Send<br /><em>Your Message</em></h2>
+            <h2 class="animate">After You<br /><em>Reach Out</em></h2>
             <p class="animate delay-1">
-              Michael reviews every message personally and replies within 24
-              hours—often the same day. Evening and weekend scheduling available
-              by Zoom or Google Meet at no extra charge.
+              Book a consultation and you'll get a calendar confirmation right
+              away. Send a message and Michael reviews it personally and replies
+              within 24 hours—often the same day. Evening and weekend scheduling
+              available by Zoom or Google Meet at no extra charge.
             </p>
           </div>
         </div>

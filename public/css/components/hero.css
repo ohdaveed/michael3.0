@@ -117,3 +117,15 @@
   gap: 1rem;
   flex-wrap: wrap;
 }
+.hero-text-link {
+  display: inline-block;
+  margin-top: 1.25rem;
+  color: var(--white-a65);
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.35s ease;
+}
+.hero-text-link:hover {
+  color: var(--gold-light);
+}
