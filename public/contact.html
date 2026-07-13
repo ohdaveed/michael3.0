@@ -192,12 +192,14 @@
                 subject, from_name, botcheck) are consumed by Web3Forms and
                 do not appear as body lines.
               -->
+              <!-- novalidate is set by contact-form.js when JustValidate
+                   takes over, so no-JS fallback submissions still get
+                   native browser validation of the required fields. -->
               <form
                 id="contactForm"
                 class="contact-form"
                 action="https://api.web3forms.com/submit"
                 method="POST"
-                novalidate
               >
                 <!-- Key is public in HTML; restrict allowed domains in the Web3Forms dashboard. -->
                 <input

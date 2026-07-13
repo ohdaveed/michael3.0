@@ -11,6 +11,11 @@ function productLabelFor(code) {
 }
 
 if (contactForm && formMessage) {
+  // JustValidate owns validation from here on; without JS the form keeps
+  // native browser validation of its required fields (no novalidate in
+  // the markup).
+  contactForm.setAttribute("novalidate", "novalidate");
+
   // Mirror the selected product's display label into the hidden `service`
   // field as soon as it changes, so submissions that bypass onSuccess
   // (e.g. the native form action when fetch fails) still carry the label.
