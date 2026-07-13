@@ -74,24 +74,24 @@
 .nav-links a:focus-visible::after {
   transform: scaleX(1);
 }
-.nav-cta {
-  background: transparent !important;
-  border: 1px solid var(--gold) !important;
-  color: var(--gold) !important;
-  padding: 0.55rem 1.4rem !important;
-  font-family: var(--sans) !important;
-  font-size: 0.8rem !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase !important;
+#nav .nav-cta {
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 0.55rem 1.4rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.3s !important;
+  transition: all 0.3s;
 }
-.nav-cta:hover {
-  background: var(--gold) !important;
-  color: var(--navy) !important;
+#nav .nav-cta:hover {
+  background: var(--gold);
+  color: var(--navy);
 }
-.nav-cta::after {
-  display: none !important;
+#nav .nav-cta::after {
+  display: none;
 }
 
 .mobile-toggle {

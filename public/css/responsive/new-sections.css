@@ -28,9 +28,6 @@
     width: 100%;
     justify-content: center;
   }
-  .results-grid {
-    grid-template-columns: 1fr;
-  }
   .quiz-options {
     flex-direction: column;
   }

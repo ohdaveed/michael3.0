@@ -41,6 +41,10 @@
     order: -1;
     max-width: 400px;
   }
+  .about-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
   .practices-grid {
     grid-template-columns: 1fr;
   }
