@@ -10,7 +10,7 @@ tenant by an administrator.
 Status of this spec: reviewed against an independent plan review
 (July 2026). Items marked **[Decision D#]** require Michael's approval
 before that piece goes live — the full checklist is in
-[Decisions for Michael](#decisions-for-michael).
+[Decisions for Michael](#14-decisions-for-michael).
 
 Nothing in this document is legal advice; sections touching signing
 formalities, client funds, and conflict checks exist to be _reviewed and
@@ -20,7 +20,7 @@ corrected by Michael_, not to define legal procedure.
 
 ## 1. Pipeline at a glance
 
-```
+```text
 Website visitor
    ├── PRIMARY: "Book a Free Consultation"  → Microsoft Bookings (shared page)
    └── SECONDARY: "Send a message"          → Web3Forms → email to michael@lehr-law.com
