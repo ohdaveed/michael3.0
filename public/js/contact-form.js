@@ -5,7 +5,30 @@ import productContract from "./product-contract.json";
 const contactForm = document.getElementById("contactForm");
 const formMessage = document.getElementById("formMessage");
 
+function productLabelFor(code) {
+  const product = productContract.products.find((p) => p.code === code);
+  return product ? product.label : code;
+}
+
 if (contactForm && formMessage) {
+  // Mirror the selected product's display label into the hidden `service`
+  // field as soon as it changes, so submissions that bypass onSuccess
+  // (e.g. the native form action when fetch fails) still carry the label.
+  // No-JS submissions can't populate it at all — the parsing flow treats
+  // product_code as authoritative and derives the label when `service`
+  // is blank.
+  const productSelect = contactForm.querySelector(
+    'select[name="product_code"]',
+  );
+  const serviceLabelInput = contactForm.querySelector('input[name="service"]');
+  if (productSelect && serviceLabelInput) {
+    productSelect.addEventListener("change", () => {
+      serviceLabelInput.value = productSelect.value
+        ? productLabelFor(productSelect.value)
+        : "";
+    });
+  }
+
   const validator = new JustValidate(contactForm, {
     errorFieldCssClass: "is-invalid",
     errorLabelCssClass: "just-validate-error-label",
@@ -71,10 +94,7 @@ if (contactForm && formMessage) {
       const productCode = contactForm.querySelector(
         'select[name="product_code"]',
       ).value;
-      const product = productContract.products.find(
-        (p) => p.code === productCode,
-      );
-      const productLabel = product ? product.label : productCode;
+      const productLabel = productLabelFor(productCode);
       contactForm.querySelector('input[name="service"]').value = productLabel;
       const firstName = contactForm.querySelector("#fname").value.trim();
       const lastName = contactForm.querySelector("#lname").value.trim();
@@ -93,16 +113,28 @@ if (contactForm && formMessage) {
 
         if (data.success) {
           leavePage = true;
+          const thankYou = new URL("thank-you.html", window.location.href);
+          let navigated = false;
+          const navigate = () => {
+            if (navigated) return;
+            navigated = true;
+            window.location.assign(thankYou.href);
+          };
           // Codes only — never send names, emails, phones, or message
-          // content to analytics.
+          // content to analytics. Navigation waits for the event callback
+          // (or the timeout, if gtag is blocked and never calls back) so
+          // the lead event isn't lost to the redirect.
           if (typeof window.gtag === "function") {
             window.gtag("event", "generate_lead", {
               method: "contact_form",
               product_code: productCode,
+              event_callback: navigate,
+              event_timeout: 800,
             });
+            setTimeout(navigate, 1000);
+          } else {
+            navigate();
           }
-          const thankYou = new URL("thank-you.html", window.location.href);
-          window.location.assign(thankYou.href);
           return;
         } else {
           throw new Error(data.message || "Form submission failed");

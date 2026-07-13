@@ -184,6 +184,10 @@
                 fields appear in the body in this DOM order:
                 first_name, last_name, email, phone, product_code, service,
                 message, form_source, contract_version.
+                product_code is authoritative; service (the display label)
+                is filled by JS and may be BLANK on no-JS fallback
+                submissions — the parser derives the label from the code
+                via js/product-contract.json when service is empty.
                 Web3Forms-reserved control fields (access_key, redirect,
                 subject, from_name, botcheck) are consumed by Web3Forms and
                 do not appear as body lines.

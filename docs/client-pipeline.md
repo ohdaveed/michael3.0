@@ -114,8 +114,12 @@ Web3Forms-reserved control fields (`access_key`, `redirect`, `subject`,
 `from_name`, `botcheck`) are consumed by Web3Forms and do not appear as
 body lines. **The Flow D parser must key on field names**, treating order
 as a stable expectation rather than the lookup mechanism, and must ignore
-any unrecognized field names. Do not rename or reorder without a
-contract-version bump.
+any unrecognized field names. **`product_code` is authoritative;
+`service` (the display label) is populated by JavaScript and may be blank
+on no-JS fallback submissions** (which also arrive with the generic
+subject `[INTAKE] Website inquiry`) — the parser derives the label from
+the code using the contract table whenever `service` is empty. Do not
+rename or reorder without a contract-version bump.
 
 ## 4. SharePoint structure
 
