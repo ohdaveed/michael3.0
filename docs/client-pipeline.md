@@ -107,10 +107,15 @@ Bookings custom question, and the Flow D parser.
 
 **Website form contract (v1, already implemented).** The Web3Forms
 notification email arrives with subject
-`[INTAKE] <label> — <first> <last>` and body fields in this order:
+`[INTAKE] <label> — <first> <last>` and custom body fields in this order:
 `first_name, last_name, email, phone, product_code, service, message,
 form_source, contract_version`, where `form_source = lehr-law-contact`.
-Do not rename or reorder without a contract-version bump.
+Web3Forms-reserved control fields (`access_key`, `redirect`, `subject`,
+`from_name`, `botcheck`) are consumed by Web3Forms and do not appear as
+body lines. **The Flow D parser must key on field names**, treating order
+as a stable expectation rather than the lookup mechanism, and must ignore
+any unrecognized field names. Do not rename or reorder without a
+contract-version bump.
 
 ## 4. SharePoint structure
 

@@ -19,7 +19,9 @@ const GLOBAL_TOKENS = { BOOKING_URL };
 function substituteGlobalTokens(html) {
   let out = html;
   for (const [key, value] of Object.entries(GLOBAL_TOKENS)) {
-    out = out.replaceAll(`{{${key}}}`, value);
+    // Tokens land inside HTML attribute values (href), so escape "&" to
+    // keep the emitted markup valid; browsers decode &amp; back to &.
+    out = out.replaceAll(`{{${key}}}`, value.replaceAll("&", "&amp;"));
   }
   return out;
 }

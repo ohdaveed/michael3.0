@@ -179,10 +179,14 @@
                 fields or reorder them without updating the Power Automate
                 email-parsing flow and js/product-contract.json. The flow
                 filters on the "[INTAKE]" subject prefix plus the form_source
-                value, and parses the Web3Forms notification body line by
-                line in this field order:
+                value, and parses the Web3Forms notification body by FIELD
+                NAME (order is stable but must not be the only key). Custom
+                fields appear in the body in this DOM order:
                 first_name, last_name, email, phone, product_code, service,
                 message, form_source, contract_version.
+                Web3Forms-reserved control fields (access_key, redirect,
+                subject, from_name, botcheck) are consumed by Web3Forms and
+                do not appear as body lines.
               -->
               <form
                 id="contactForm"
