@@ -1,6 +1,12 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
-import { readFileSync, mkdirSync, copyFileSync } from "fs";
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  copyFileSync,
+} from "fs";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import Sitemap from "vite-plugin-sitemap";
 import { BOOKING_URL } from "./public/js/booking-url.js";
@@ -77,6 +83,33 @@ function staticImagesPlugin() {
   };
 }
 
+// vite-plugin-sitemap derives each route from path.parse(file).name, which
+// always drops the file extension — there's no option to keep it. The site
+// has no rewrite rule for extensionless URLs, so every sitemap entry would
+// 404 against the real `.html` pages (which is what every canonical/OG tag
+// and internal link uses). Patch the generated file back to `.html` once
+// vite-plugin-sitemap has written it; the bare "/" root entry (index.html)
+// is left alone since that's the correct URL for it.
+function sitemapHtmlSuffixPlugin() {
+  return {
+    name: "sitemap-html-suffix",
+    apply: "build",
+    closeBundle() {
+      const sitemapPath = resolve(__dirname, "dist/sitemap.xml");
+      if (!existsSync(sitemapPath)) return;
+      const xml = readFileSync(sitemapPath, "utf-8");
+      const patched = xml.replace(
+        /<loc>(https?:\/\/[^<]+?)<\/loc>/g,
+        (match, url) =>
+          url.endsWith("/") || url.endsWith(".html")
+            ? match
+            : `<loc>${url}.html</loc>`,
+      );
+      writeFileSync(sitemapPath, patched);
+    },
+  };
+}
+
 export default defineConfig({
   root: "public",
   plugins: [
@@ -104,6 +137,7 @@ export default defineConfig({
       exclude: ["/thank-you", "/thank-you.html"],
       outDir: "dist",
     }),
+    sitemapHtmlSuffixPlugin(),
   ],
   build: {
     outDir: "../dist",
