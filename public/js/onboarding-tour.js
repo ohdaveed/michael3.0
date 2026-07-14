@@ -1,14 +1,18 @@
-import { driver } from "driver.js";
-import "driver.js/dist/driver.css";
-
 // Interactive Onboarding Tour using driver.js
 // Walks a visitor through the six #step-* cards on process.html; gated on
 // #start-tour-btn existing so this is a no-op on every other page.
+// driver.js and its stylesheet are imported dynamically on first click so
+// the library never loads on pages without the tour (i.e. everything but
+// process.html) and costs nothing until the visitor starts the tour.
 (function () {
   const startBtn = document.getElementById("start-tour-btn");
   if (!startBtn) return;
 
-  startBtn.addEventListener("click", () => {
+  startBtn.addEventListener("click", async () => {
+    const [{ driver }] = await Promise.all([
+      import("driver.js"),
+      import("driver.js/dist/driver.css"),
+    ]);
     const driverObj = driver({
       showProgress: true,
       allowClose: true,
