@@ -1,6 +1,6 @@
 # External Webhooks & CI/CD Status Notifications
 
-This document provides setup instructions for configuring deployment status notifications via GitHub Actions and integrating contact form submissions with external services (such as Zapier, Clio, Slack, and Discord) using Web3Forms.
+This document provides setup instructions for configuring deployment status notifications via GitHub Actions and integrating Tally contact form submissions with external services (such as Relay.app, Zapier, Clio, and Slack).
 
 ---
 
@@ -10,12 +10,13 @@ This document provides setup instructions for configuring deployment status noti
    - [Workflow Details](#workflow-details)
    - [Payload Structure](#payload-structure)
    - [Configuring the DEPLOY_WEBHOOK_URL Secret](#configuring-the-deploy_webhook_url-secret)
-2. [Web3Forms Contact Form Webhook Integration](#2-web3forms-contact-form-webhook-integration)
+2. [Tally Contact Form Webhook Integration](#2-tally-contact-form-webhook-integration)
    - [Form Implementation](#form-implementation)
-   - [Configuring Web3Forms Webhooks](#configuring-web3forms-webhooks)
+   - [Configuring Tally Webhooks](#configuring-tally-webhooks)
+   - [Integrating with Relay.app (preferred)](#integrating-with-relayapp-preferred)
    - [Integrating with Zapier](#integrating-with-zapier)
    - [Connecting to Clio (Legal CRM)](#connecting-to-clio-legal-crm)
-   - [Setting up Slack / Discord Notifications](#setting-up-slack--discord-notifications)
+   - [Setting up Slack Notifications](#setting-up-slack-notifications)
 
 ---
 
