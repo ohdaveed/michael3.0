@@ -181,7 +181,11 @@
                 as structured JSON; the "Service needed" label maps to a
                 stable product code via js/product-contract.json. The hidden
                 fields form_source, contract_version, and page are populated
-                from this embed URL's query string. See
+                from this embed URL's query string. js/tally-embed.js also
+                appends a "service" hidden field (translated from
+                ?service=<code> on this page's own URL) that the form's
+                Service needed dropdown uses as its Default answer — a UI
+                convenience, not part of this contract. See
                 docs/client-pipeline.md §3 before changing anything here.
               -->
               <iframe

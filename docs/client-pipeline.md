@@ -113,7 +113,15 @@ trigger** — no email parsing. Contact-form fields: `First name`,
 `Last name`, `Email`, `Phone` (optional), `Service needed` (dropdown of
 the product **labels** above), `Message`, plus hidden fields
 `form_source=lehr-law-contact`, `contract_version=2`, and `page`,
-populated from the embed URL's query string. **The intake flow maps the
+populated from the embed URL's query string. An additional hidden field,
+`service`, is only present when a `services.html` practice-card link adds
+`?service=<product_code>` to the embed URL; `js/tally-embed.js` translates
+the code to its label via the contract table before appending it, and the
+form's `Service needed` dropdown is configured with a Default answer
+sourced from that field (Tally requires the incoming value to match an
+option's label text exactly) so the dropdown arrives pre-selected. This is
+a UI convenience only — it doesn't change the submission schema, so it
+doesn't bump `contract_version`. **The intake flow maps the
 `Service needed` label to its stable `product_code` using the contract
 table** and must reject payloads whose `form_source` is missing or
 unrecognized. CAPTCHA is enforced by Tally; the questionnaire
