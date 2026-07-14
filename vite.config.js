@@ -1,9 +1,18 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
-import { readFileSync, mkdirSync, copyFileSync } from "fs";
+import {
+  readFileSync,
+  writeFileSync,
+  readdirSync,
+  mkdirSync,
+  copyFileSync,
+} from "fs";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
-import Sitemap from "vite-plugin-sitemap";
 import { BOOKING_URL } from "./public/js/booking-url.js";
+
+// Base URL of the live site. Must match the canonical/og:url tags in every
+// public/*.html page — see CLAUDE.md if the hostname ever changes.
+const SITE_URL = "https://www.lehr-law.com/";
 
 // Matches `<!--#include:partials/foo.html?KEY=value-->` in the page HTML and
 // inlines the referenced partial, substituting any `{{KEY}}` placeholders it
@@ -77,6 +86,39 @@ function staticImagesPlugin() {
   };
 }
 
+// Emits sitemap.xml and robots.txt into the build output. Replaces
+// vite-plugin-sitemap, which strips the ".html" extension from every URL —
+// the Bluehost host serves the pages only at their ".html" paths (no
+// rewrites), so extension-less sitemap entries 404 and contradict each
+// page's canonical tag. URLs here must stay in the same form as the
+// <link rel="canonical"> tags.
+function seoFilesPlugin() {
+  return {
+    name: "seo-files",
+    writeBundle() {
+      const outDir = resolve(__dirname, "dist");
+      const pages = readdirSync(outDir)
+        .filter((f) => f.endsWith(".html"))
+        .filter((f) => f !== "thank-you.html") // noindex — keep out of the sitemap
+        .map((f) => (f === "index.html" ? SITE_URL : `${SITE_URL}${f}`))
+        .sort();
+      const urlset = pages
+        .map((loc) => `  <url>\n    <loc>${loc}</loc>\n  </url>`)
+        .join("\n");
+      writeFileSync(
+        resolve(outDir, "sitemap.xml"),
+        `<?xml version="1.0" encoding="UTF-8"?>\n` +
+          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+          `${urlset}\n</urlset>\n`,
+      );
+      writeFileSync(
+        resolve(outDir, "robots.txt"),
+        `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}sitemap.xml\n`,
+      );
+    },
+  };
+}
+
 export default defineConfig({
   root: "public",
   plugins: [
@@ -99,11 +141,7 @@ export default defineConfig({
         multipass: true,
       },
     }),
-    Sitemap({
-      hostname: "https://www.lehr-law.com/",
-      exclude: ["/thank-you", "/thank-you.html"],
-      outDir: "dist",
-    }),
+    seoFilesPlugin(),
   ],
   build: {
     outDir: "../dist",
