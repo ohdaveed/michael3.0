@@ -36,8 +36,7 @@
   },
   "dependencies": {
     "driver.js": "^1.6.0",
-    "fuse.js": "^7.4.2",
-    "just-validate": "^4.3.0"
+    "fuse.js": "^7.4.2"
   },
   "lint-staged": {
     "**/*.{html,css,js,json,md}": "prettier --write",

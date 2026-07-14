@@ -74,97 +74,49 @@ To activate these notifications, follow these steps to add the secret to your Gi
 
 ---
 
-## 2. Web3Forms Contact Form Webhook Integration
+## 2. Tally Contact Form Webhook Integration
 
-The contact page uses Web3Forms to capture client inquiries without requiring a backend server. Web3Forms is highly extensible and allows you to forward form submissions to third-party APIs, CRMs, and messaging apps.
+The contact page embeds a [Tally](https://tally.so) form to capture client inquiries without requiring a backend server. Tally delivers each submission as structured JSON to any webhook endpoint — webhooks are included on Tally's free plan.
 
 ### Form Implementation
 
-The frontend form is defined in [public/contact.html](../public/contact.html). It submits data directly to the Web3Forms endpoint:
+The frontend embeds Tally form **`ob17lb`** as an iframe in [public/contact.html](../public/contact.html), loaded by [public/js/tally-embed.js](../public/js/tally-embed.js). The standalone intake questionnaire is Tally form **`q4MKYO`**. The canonical field contract (field names, hidden fields, and the service-label-to-product-code mapping) lives in [docs/client-pipeline.md §3](./client-pipeline.md) and [public/js/product-contract.json](../public/js/product-contract.json) — read it before changing form fields or building consumers.
 
-```html
-<form
-  id="contactForm"
-  class="contact-form"
-  action="https://api.web3forms.com/submit"
-  method="POST"
-  novalidate
->
-  <input type="hidden" name="access_key" value="YOUR_ACCESS_KEY" />
-  <!-- Form fields (first_name, last_name, email, phone, message) -->
-</form>
-```
+### Configuring Tally Webhooks
 
-### Configuring Web3Forms Webhooks
+1. Log in to the [Tally dashboard](https://tally.so/) and open the form (`ob17lb` for the contact form, `q4MKYO` for the questionnaire).
+2. Go to **Integrations → Webhooks** and click **Connect**.
+3. Paste the destination URL (a Relay.app webhook trigger, Power Automate endpoint, or Zapier catch hook) and save.
+4. Submit a test entry; the endpoint receives a JSON payload with a `data.fields` array (one entry per question, keyed by label) plus `submissionId` — use `submissionId` for idempotency, and validate the hidden `form_source` field before processing.
 
-> [!IMPORTANT]
-> Webhooks and native integrations (such as Slack/Discord routing) within Web3Forms typically require a **Web3Forms Pro** subscription.
+### Integrating with Relay.app (preferred)
 
-To configure webhooks in Web3Forms:
+Relay.app has a **native Tally trigger**, so no webhook plumbing is needed:
 
-1. Log in to your [Web3Forms Dashboard](https://web3forms.com/).
-2. Locate the form matching your `access_key` (configured in [public/contact.html](../public/contact.html)).
-3. Click on the **Integrations** tab or the form settings page.
-4. Locate the **Webhook** card, toggle it **ON**, and input the destination URL (e.g., your Zapier webhook endpoint).
-
----
+1. In Relay.app, create a workflow with the trigger **Tally → New form submission** and connect the Tally account.
+2. Select the form (`ob17lb`), then map fields per the intake flow spec (Flow D) in [docs/client-pipeline.md](./client-pipeline.md): validate `form_source`, map `Service needed` → `product_code` via the contract table, and create/update the SharePoint pipeline row.
 
 ### Integrating with Zapier
 
-To connect Web3Forms to thousands of third-party applications, use Zapier's webhook integration:
-
-1. **Create a Zap:**
-   - Log in to your [Zapier Dashboard](https://zapier.com/) and click **Create Zap**.
-2. **Set up the Trigger:**
-   - Search for and select **Webhooks by Zapier**.
-   - Choose **Catch Hook** as the Event. Click **Continue**.
-   - Copy the custom **Webhook URL** provided by Zapier.
-3. **Connect to Web3Forms:**
-   - Paste this URL into the **Webhook** integration input field on your Web3Forms dashboard and click save.
-4. **Test the Trigger:**
-   - Go to the contact page of your live site (or submit a test locally), fill out the form, and submit it.
-   - In Zapier, click **Test trigger**. You should see the form fields (`first_name`, `last_name`, `email`, `phone`, `message`) in the test data payload.
-
----
+1. Create a Zap with **Webhooks by Zapier → Catch Hook** and copy the webhook URL, or use Zapier's native **Tally** trigger.
+2. If using the catch hook, paste the URL into the form's **Integrations → Webhooks** in Tally.
+3. Test by submitting the form; the payload contains the fields `First name`, `Last name`, `Email`, `Phone`, `Service needed`, `Message`, plus the hidden `form_source`, `contract_version`, and `page` fields.
 
 ### Connecting to Clio (Legal CRM)
 
-Clio is a leading legal practice management CRM. Connecting your web form submissions directly to Clio helps automate client intake.
+1. **Prerequisites:** a Clio account and a Zapier or Relay.app workflow triggered by the Tally form (above).
+2. Add a **Clio** (or **Clio Grow**) action — e.g., **Create Person Contact** or **Create Lead** — and authenticate.
+3. Map the Tally fields to Clio:
+   - `First Name` → `First name`
+   - `Last Name` → `Last name`
+   - `Email Address` → `Email`
+   - `Phone Number` → `Phone`
+   - `Description / Details` → `Message` (and `Service needed` for the matter type)
+4. Test, then enable. Note the system-of-record split in [docs/client-pipeline.md §9](./client-pipeline.md): the SharePoint list is the operational pipeline; Clio is billing and trust accounting.
 
-1. **Prerequisites:**
-   - A Clio account.
-   - A Zapier account (using the webhook trigger set up in the section above).
-2. **Add an Action in Zapier:**
-   - Inside your Zap, click the **Action** step.
-   - Search for **Clio** (or **Clio Grow** depending on which module you use for client intake).
-3. **Authenticate Clio:**
-   - Choose the Action Event (e.g., **Create Person Contact** or **Create Lead**).
-   - Log in and authorize Zapier to access your Clio account.
-4. **Map Form Fields:**
-   - Map the fields from the Web3Forms webhook payload to the Clio fields:
-     - `First Name` &rarr; `first_name`
-     - `Last Name` &rarr; `last_name`
-     - `Email Address` &rarr; `email`
-     - `Phone Number` &rarr; `phone`
-     - `Description / Details` &rarr; `message`
-5. **Test and Enable:**
-   - Test the step to verify that a contact/lead is successfully created in Clio.
-   - Turn on the Zap to automate lead ingestion from that point forward.
+### Setting up Slack Notifications
 
----
+Tally has a native Slack integration: in the form's **Integrations** tab, connect **Slack**, choose the channel, and each submission posts a summary. For Discord or richer formatting, route through the Relay.app/Zapier workflow instead.
 
-### Setting up Slack / Discord Notifications
-
-If you want direct team notifications when a contact form is submitted, Web3Forms provides native Slack and Discord integrations:
-
-#### Native Slack Integration
-
-1. Configure an **Incoming Webhook** in your Slack Workspace settings.
-2. Select the target channel and copy the webhook URL.
-3. Go to the Web3Forms dashboard for your access key, click **Integrations**, toggle **Slack** to ON, and paste the URL.
-
-#### Native Discord Integration
-
-1. In your Discord server, open channel settings for the desired channel, click **Integrations**, then select **Create Webhook**.
-2. Copy the webhook URL.
-3. In the Web3Forms dashboard, click **Integrations**, toggle **Discord** to ON, and paste the URL.
+> [!NOTE]
+> The previous Web3Forms integration is retired. If the old Web3Forms access key is still active in its dashboard, revoke it — the form no longer references it, but the key itself remains usable server-side until revoked.

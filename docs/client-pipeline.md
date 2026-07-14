@@ -23,10 +23,10 @@ corrected by Michael_, not to define legal procedure.
 ```text
 Website visitor
    ├── PRIMARY: "Book a Free Consultation"  → Microsoft Bookings (shared page)
-   └── SECONDARY: "Send a message"          → Web3Forms → email to michael@lehr-law.com
+   └── SECONDARY: "Send a message"          → embedded Tally form → webhook (JSON)
                      │                                        │
                      ▼                                        ▼
-              Flow A/B/C (booking created/updated/cancelled)  Flow D (email parse)
+              Flow A/B/C (booking created/updated/cancelled)  Flow D (webhook)
                      └──────────────┬─────────────────────────┘
                                     ▼
                     SharePoint list: CLIENT PIPELINE  (one row per prospective matter)
@@ -83,7 +83,7 @@ line) — every CTA on the site follows it.
 
 Canonical taxonomy lives in
 [`public/js/product-contract.json`](../public/js/product-contract.json)
-(`contract_version: 1`). Codes are stable database keys; labels are display
+(`contract_version: 2`). Codes are stable database keys; labels are display
 text. The same values must be used everywhere:
 
 | `product_code`                  | Label                         |
@@ -101,25 +101,27 @@ text. The same values must be used everywhere:
 Open taxonomy decisions: final inventory and whether Trust Funding becomes
 a selectable product **[D3]**; whether Elder Law stays **[D4]**; whether
 "Not sure" and "Other" remain combined **[D5]**. Any change bumps
-`contract_version` and updates: the form options in
-`public/contact.html`, the JSON file, the SharePoint choice column, the
-Bookings custom question, and the Flow D parser.
+`contract_version` and updates: the Tally forms, the JSON file, the
+SharePoint choice column, the booking-page custom question, and the
+intake flow's label-to-code mapping.
 
-**Website form contract (v1, already implemented).** The Web3Forms
-notification email arrives with subject
-`[INTAKE] <label> — <first> <last>` and custom body fields in this order:
-`first_name, last_name, email, phone, product_code, service, message,
-form_source, contract_version`, where `form_source = lehr-law-contact`.
-Web3Forms-reserved control fields (`access_key`, `redirect`, `subject`,
-`from_name`, `botcheck`) are consumed by Web3Forms and do not appear as
-body lines. **The Flow D parser must key on field names**, treating order
-as a stable expectation rather than the lookup mechanism, and must ignore
-any unrecognized field names. **`product_code` is authoritative;
-`service` (the display label) is populated by JavaScript and may be blank
-on no-JS fallback submissions** (which also arrive with the generic
-subject `[INTAKE] Website inquiry`) — the parser derives the label from
-the code using the contract table whenever `service` is empty. Do not
-rename or reorder without a contract-version bump.
+**Website form contract (v2, Tally — implemented).** The contact page
+embeds the Tally form **tally.so/r/ob17lb** inline; the standalone intake
+questionnaire is **tally.so/r/q4MKYO**. Submissions are delivered as
+structured JSON via a **Tally webhook or the native Relay.app Tally
+trigger** — no email parsing. Contact-form fields: `First name`,
+`Last name`, `Email`, `Phone` (optional), `Service needed` (dropdown of
+the product **labels** above), `Message`, plus hidden fields
+`form_source=lehr-law-contact`, `contract_version=2`, and `page`,
+populated from the embed URL's query string. **The intake flow maps the
+`Service needed` label to its stable `product_code` using the contract
+table** and must reject payloads whose `form_source` is missing or
+unrecognized. CAPTCHA is enforced by Tally; the questionnaire
+additionally carries hidden `lead_id` and `matter` fields so submissions
+match their SharePoint row (send clients personalized links, e.g.
+`tally.so/r/q4MKYO?lead_id=...&matter=...`). Superseded v1 (Web3Forms
+email parsing) is retired; the Web3Forms access key should be revoked in
+its dashboard once this ships.
 
 ## 4. SharePoint structure
 
@@ -138,7 +140,7 @@ instead of overwriting.
 | Group               | Columns                                                                                                                                                                                                                                        |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Identity            | `Title` ("Last, First — Product"), `LeadID` (GUID at first contact), `MatterID` (assigned at engagement), `FirstName`, `LastName`, `JointClientFirstName`, `JointClientLastName`, `Email`, `AlternateEmail`, `Phone`, `PreferredContactMethod` |
-| Intake/origin       | `Source` (Booking / Website Message / Phone / Referral), `DesiredProductCode`, `DesiredProductLabel`, `Web3FormsMessageID`, `InternetMessageID`, `BookingAppointmentID`, `BookingServiceID`, `ReferralSource`, `InquiryReceivedAt`             |
+| Intake/origin       | `Source` (Booking / Website Message / Phone / Referral), `DesiredProductCode`, `DesiredProductLabel`, `TallySubmissionID`, `InternetMessageID`, `BookingAppointmentID`, `BookingServiceID`, `ReferralSource`, `InquiryReceivedAt`              |
 | Status/control      | `Stage` (below), `StageChangedAt`, `PreviousStage`, `LastProcessedEventKey`, `LastActivityAt`, `ClosedReason`                                                                                                                                  |
 | Consult/engagement  | `ConsultStart`, `ConsultEnd`, `ConsultTimeZone`, `ConsultLocationType`, `ConflictCheckStatus`, `ConflictCheckCompletedAt`, `EngagementDate`, `AgreementStatus` (Not sent / Sent / Signed), `ESignAgreementID`, `FeeQuoted`                     |
 | Payment (manual v1) | `ClioMatterID`, `DepositStatus`, `DepositRequestedAt`, `DepositPaidAt`, `FinalPaymentStatus`, `FinalPaymentRequestedAt`, `FinalPaymentPaidAt`, `PaymentStatusConfirmedBy`, `PaymentStatusConfirmedAt`                                          |
@@ -258,34 +260,41 @@ lead row; send a rebooking link only if Michael approves that policy
 
 ### Flow D — Website message intake
 
-Trigger: Outlook "When a new email arrives (V2)" in michael@lehr-law.com.
+Trigger: **Tally webhook or the native Relay.app "new Tally submission"
+trigger** on form `ob17lb` (the embedded contact form). Structured JSON —
+no email parsing.
 
-1. **Authenticity — never trust the subject alone.** Require all of:
-   arrival in the dedicated mailbox folder (set up an Outlook rule for
-   Web3Forms sender characteristics), exact `[INTAKE]` subject prefix,
-   `form_source: lehr-law-contact` present in the body, and all required
-   fields present.
-2. Idempotency: skip if this `InternetMessageID` was already processed.
-3. Parse the body's `Field: value` lines per the §3 contract; tolerate
-   both HTML and plain-text renderings. Store the raw message ID and a
-   link to the email; do not copy raw HTML into SharePoint.
+1. **Validate the payload:** `form_source = lehr-law-contact` and a known
+   `contract_version`, all required fields present, and `Service needed`
+   maps to a code in the §3 contract table. Reject anything else into the
+   error path — never silently drop.
+2. Idempotency: skip if this Tally `submissionId` (stored as
+   `TallySubmissionID`) was already processed.
+3. Map the `Service needed` label → `DesiredProductCode` via the contract
+   table; keep the label as `DesiredProductLabel`.
 4. Same match/create logic as Flow A → Stage `New Inquiry`,
    Source `Website Message`.
-5. Acknowledgment to the client — **only if the client email parsed
-   confidently**: "received, here's what happens next" + link to
-   what-to-expect.html + **the booking link** (converting message-senders
-   into booked consults is the single biggest service win).
-6. Notify Michael (Teams/mobile) with the parsed summary — no need to read
-   raw form emails.
-7. **Error path:** log a Pipeline Activity error, categorize the email
+5. Acknowledgment to the client from michael@lehr-law.com: "received,
+   here's what happens next" + link to what-to-expect.html + **the booking
+   link** (converting message-senders into booked consults is the single
+   biggest service win).
+6. Notify Michael (Teams/mobile) with a summary — no need to read raw
+   form notifications.
+7. **Error path:** log a Pipeline Activity error, flag the submission
    `[NEEDS MANUAL ENTRY]`, notify Michael with minimal detail, send no
-   acknowledgment. Nothing is silently dropped.
+   acknowledgment. (Submissions also remain visible in the Tally
+   dashboard as a backstop.)
 
-Before building, submit the real form once and keep a **sanitized fixture**
-of the actual Web3Forms email. Test the parser against: all fields present;
-blank phone; multiline message; special characters and non-ASCII names;
-long message; HTML vs plain-text; duplicate delivery; spoofed subject with
-missing `form_source` (must be rejected).
+The companion **questionnaire flow** triggers the same way on form
+`q4MKYO`: match the row by the hidden `lead_id`/`matter` fields (fall
+back to email), set `IntakeReceived`, and file the submission (and any
+uploaded documents) into the matter's `01 Intake` folder.
+
+Before building, submit the real form once and keep a **sanitized
+fixture** of the actual webhook payload. Test against: all fields
+present; blank phone; multiline message; special characters and
+non-ASCII names; long message; duplicate delivery; payload with missing
+`form_source` (must be rejected).
 
 ### Flow E — Stage engine
 
@@ -340,7 +349,7 @@ Scheduled, weekday mornings. One email/Teams message with:
 
 1. Due today, 2. Overdue, 3. Consultations in the next two business days,
 2. Waiting on client, 5. Waiting on Michael, 6. Unprocessed flow errors,
-3. Stale matters (no activity in N days), 8. Unmatched booking/Web3Forms
+3. Stale matters (no activity in N days), 8. Unmatched booking/Tally
    records.
 
 Keep confidential detail out of push notifications — link to the secured
@@ -357,7 +366,7 @@ entry per nudge.
 
 ### Operational dashboard (SharePoint views)
 
-Automation errors · unmatched booking events · unparsed Web3Forms messages
+Automation errors · unmatched booking events · unprocessed Tally submissions
 · stage-not-processed · timeline generation incomplete · missing client
 folder · missing next action · file request still open after intake ·
 engagement gate failures.
