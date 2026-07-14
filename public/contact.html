@@ -175,162 +175,37 @@
             <div class="animate delay-2">
               <h3 class="form-intro-heading">Prefer to write first?</h3>
               <!--
-                INTAKE PARSING CONTRACT (contract_version 1) — do not rename
-                fields or reorder them without updating the Power Automate
-                email-parsing flow and js/product-contract.json. The flow
-                filters on the "[INTAKE]" subject prefix plus the form_source
-                value, and parses the Web3Forms notification body by FIELD
-                NAME (order is stable but must not be the only key). Custom
-                fields appear in the body in this DOM order:
-                first_name, last_name, email, phone, product_code, service,
-                message, form_source, contract_version.
-                product_code is authoritative; service (the display label)
-                is filled by JS and may be BLANK on no-JS fallback
-                submissions — the parser derives the label from the code
-                via js/product-contract.json when service is empty.
-                Web3Forms-reserved control fields (access_key, redirect,
-                subject, from_name, botcheck) are consumed by Web3Forms and
-                do not appear as body lines.
+                INTAKE CONTRACT (contract_version 2) — the message form is a
+                Tally form (tally.so/r/ob17lb) embedded inline. Submissions
+                are delivered by Tally webhook / the Relay.app Tally trigger
+                as structured JSON; the "Service needed" label maps to a
+                stable product code via js/product-contract.json. The hidden
+                fields form_source, contract_version, and page are populated
+                from this embed URL's query string. See
+                docs/client-pipeline.md §3 before changing anything here.
               -->
-              <!-- novalidate is set by contact-form.js when JustValidate
-                   takes over, so no-JS fallback submissions still get
-                   native browser validation of the required fields. -->
-              <form
-                id="contactForm"
-                class="contact-form"
-                action="https://api.web3forms.com/submit"
-                method="POST"
-              >
-                <!-- Key is public in HTML; restrict allowed domains in the Web3Forms dashboard. -->
-                <input
-                  type="hidden"
-                  name="access_key"
-                  value="34e395a5-720a-4007-8331-30a861ccd670"
-                />
-                <input
-                  type="hidden"
-                  name="redirect"
-                  value="https://www.lehr-law.com/thank-you.html"
-                />
-                <input
-                  type="hidden"
-                  name="subject"
-                  value="[INTAKE] Website inquiry"
-                />
-                <input
-                  type="hidden"
-                  name="from_name"
-                  value="Michael Lehr Law Website"
-                />
-                <input
-                  type="checkbox"
-                  name="botcheck"
-                  class="hidden"
-                  aria-hidden="true"
-                  tabindex="-1"
-                />
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="fname">First Name *</label>
-                    <input
-                      type="text"
-                      id="fname"
-                      name="first_name"
-                      autocomplete="given-name"
-                      required
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label for="lname">Last Name *</label>
-                    <input
-                      type="text"
-                      id="lname"
-                      name="last_name"
-                      autocomplete="family-name"
-                      required
-                    />
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="email">Email *</label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      autocomplete="email"
-                      required
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label for="phone">Phone</label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      autocomplete="tel"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="service">Service Needed *</label>
-                  <!-- Option values/labels must match js/product-contract.json. -->
-                  <select id="service" name="product_code" required>
-                    <option value="">Select a service…</option>
-                    <option value="TRUST_PACKAGE">
-                      Complete Living Trust Package
-                    </option>
-                    <option value="WILL_ONLY">Will Only</option>
-                    <option value="POWER_OF_ATTORNEY">Power of Attorney</option>
-                    <option value="ADVANCE_HEALTH_CARE_DIRECTIVE">
-                      Advance Health Care Directive
-                    </option>
-                    <option value="PROBATE_ADMINISTRATION">
-                      Probate Administration
-                    </option>
-                    <option value="TRUST_ADMINISTRATION">
-                      Trust Administration
-                    </option>
-                    <option value="TRUST_AMENDMENT">Trust Amendment</option>
-                    <option value="ELDER_LAW">Elder Law</option>
-                    <option value="NOT_SURE_OTHER">
-                      Not sure yet / another need
-                    </option>
-                  </select>
-                  <input type="hidden" name="service" value="" />
-                </div>
-                <div class="form-group">
-                  <label for="message">Message *</label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    placeholder="Briefly describe your situation…"
-                    required
-                  ></textarea>
-                  <p class="form-note">
-                    Please don't include confidential or time-sensitive details
-                    in this form. Sending a message does not create an
-                    attorney-client relationship.
-                  </p>
-                </div>
-                <input
-                  type="hidden"
-                  name="form_source"
-                  value="lehr-law-contact"
-                />
-                <input type="hidden" name="contract_version" value="1" />
-                <div
-                  id="formMessage"
-                  class="form-message"
-                  role="status"
-                  aria-live="polite"
-                  aria-atomic="true"
-                ></div>
-                <button type="submit" class="btn-primary self-start">
-                  Send Message →
-                </button>
-              </form>
+              <iframe
+                data-tally-src="https://tally.so/embed/ob17lb?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&form_source=lehr-law-contact&contract_version=2&page=contact"
+                loading="lazy"
+                width="100%"
+                height="640"
+                frameborder="0"
+                marginheight="0"
+                marginwidth="0"
+                title="Send a message to Michael Lehr"
+              ></iframe>
+              <noscript>
+                <p class="form-note">
+                  The message form needs JavaScript.
+                  <a
+                    href="https://tally.so/r/ob17lb?form_source=lehr-law-contact&contract_version=2&page=contact-noscript"
+                    >Open the form in a new page</a
+                  >
+                  or email
+                  <a href="mailto:michael@lehr-law.com">michael@lehr-law.com</a
+                  >.
+                </p>
+              </noscript>
             </div>
           </div>
         </div>

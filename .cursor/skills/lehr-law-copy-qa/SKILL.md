@@ -48,7 +48,7 @@ When asked for a review only:
 When asked to edit files:
 
 - Prefer minimal diffs; preserve HTML structure and classes.
-- Do not change Web3Forms keys or tracking IDs unless the user asks.
+- Do not change the embedded Tally form IDs/URLs or tracking IDs unless the user asks.
 
 ## Inventory notes (maintenance)
 
