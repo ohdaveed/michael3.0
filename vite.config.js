@@ -95,8 +95,8 @@ function staticImagesPlugin() {
 function seoFilesPlugin() {
   return {
     name: "seo-files",
-    writeBundle() {
-      const outDir = resolve(__dirname, "dist");
+    writeBundle(outputOptions) {
+      const outDir = outputOptions.dir ?? resolve(__dirname, "dist");
       const pages = readdirSync(outDir)
         .filter((f) => f.endsWith(".html"))
         .filter((f) => f !== "thank-you.html") // noindex — keep out of the sitemap

@@ -9,7 +9,8 @@
     "build": "vite build",
     "format": "prettier --write \"*.{html,css,js,json,md}\" \"docs/**/*.{md,json}\" \"public/**/*.{html,css,js,json}\"",
     "format:check": "prettier --check \"*.{html,css,js,json,md}\" \"docs/**/*.{md,json}\" \"public/**/*.{html,css,js,json}\"",
-    "html:check": "htmlhint \"public/*.html\"",
+    "html:check": "htmlhint \"public/*.html\" && npm run html:check:partials",
+    "html:check:partials": "htmlhint --rules tagname-lowercase,attr-value-double-quotes,tag-pair,spec-char-escape,id-unique,src-not-empty,attr-no-duplication \"public/partials/*.html\"",
     "links:check": "linkinator http://localhost:5173 --recurse --skip \"mailto:*\"",
     "a11y:check": "pa11y http://localhost:5173",
     "lighthouse": "lighthouse http://localhost:5173 --output=html --output-path=./lighthouse-report.html --chrome-flags=\"--headless=new --no-sandbox\"",
@@ -37,7 +38,8 @@
   },
   "lint-staged": {
     "**/*.{html,css,js,json,md}": "prettier --write",
-    "public/*.html": "htmlhint"
+    "public/*.html": "htmlhint",
+    "public/partials/*.html": "htmlhint --rules tagname-lowercase,attr-value-double-quotes,tag-pair,spec-char-escape,id-unique,src-not-empty,attr-no-duplication"
   },
   "packageManager": "npm@12.0.1"
 }
