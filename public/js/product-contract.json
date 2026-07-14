@@ -1,6 +1,6 @@
 {
-  "contract_version": 1,
-  "description": "Canonical product taxonomy shared by the contact form, the Web3Forms notification email, the Power Automate email parser, and the SharePoint 'Client Pipeline' list (DesiredProductCode / DesiredProductLabel columns). Codes are stable keys and must never change meaning; labels are display text and may be reworded. Any change to codes or the field contract requires bumping contract_version and updating docs/client-pipeline.md.",
+  "contract_version": 2,
+  "description": "Canonical product taxonomy shared by the embedded Tally contact form (tally.so/r/ob17lb), the Tally intake questionnaire (tally.so/r/q4MKYO), the Tally webhook / Relay.app intake flow, and the SharePoint 'Client Pipeline' list (DesiredProductCode / DesiredProductLabel columns). The form's 'Service needed' dropdown uses the labels; the intake flow maps label to code with this table. Codes are stable keys and must never change meaning; labels here, in the Tally forms, and in the SharePoint choice column must stay identical. Any change requires bumping contract_version and updating docs/client-pipeline.md.",
   "products": [
     { "code": "TRUST_PACKAGE", "label": "Complete Living Trust Package" },
     { "code": "WILL_ONLY", "label": "Will Only" },

@@ -7,7 +7,7 @@ import "./sticky-cta.js";
 import "./decorative-icons.js";
 import "./smooth-scroll.js";
 import "./faq.js";
-import "./contact-form.js";
+import "./tally-embed.js";
 import "./quiz.js";
 import "./stat-counters.js";
 import "./probate-calculator.js";
