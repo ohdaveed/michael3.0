@@ -182,10 +182,13 @@
                 stable product code via js/product-contract.json. The hidden
                 fields form_source, contract_version, and page are populated
                 from this embed URL's query string. js/tally-embed.js also
-                appends a "service" hidden field (translated from
+                appends a "service_label" hidden field (translated from
                 ?service=<code> on this page's own URL) that the form's
                 Service needed dropdown uses as its Default answer — a UI
-                convenience, not part of this contract. See
+                convenience, not part of this contract. Named
+                "service_label" and not "service" because Tally's widget
+                separately auto-forwards this page's own query string onto
+                the iframe verbatim, which would otherwise collide. See
                 docs/client-pipeline.md §3 before changing anything here.
               -->
               <iframe

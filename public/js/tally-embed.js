@@ -8,9 +8,13 @@ const embeds = document.querySelectorAll("iframe[data-tally-src]:not([src])");
 if (embeds.length > 0) {
   // Practice-area cards on services.html link here with ?service=<code> so
   // the embedded form arrives with "Service needed" already selected. Tally
-  // prefill needs the option's *label* text via a hidden field named
-  // "service" that the dropdown's Default answer is configured from — not
-  // our stable code — so translate before it ever reaches the iframe src.
+  // prefill needs the option's *label* text via a hidden field the
+  // dropdown's Default answer is configured from — not our stable code —
+  // so translate before it ever reaches the iframe src. The hidden field
+  // is named "service_label", not "service": Tally's widget separately
+  // auto-forwards this page's own query string onto the iframe verbatim,
+  // so reusing "service" would append a second, colliding `service=<code>`
+  // that clobbers the translated label.
   const requestedCode = new URLSearchParams(window.location.search).get(
     "service",
   );
@@ -20,7 +24,7 @@ if (embeds.length > 0) {
   if (requestedProduct) {
     embeds.forEach((iframe) => {
       const src = new URL(iframe.dataset.tallySrc);
-      src.searchParams.set("service", requestedProduct.label);
+      src.searchParams.set("service_label", requestedProduct.label);
       iframe.dataset.tallySrc = src.toString();
     });
   }
