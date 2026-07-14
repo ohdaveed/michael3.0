@@ -9,10 +9,19 @@
   if (!startBtn) return;
 
   startBtn.addEventListener("click", async () => {
-    const [{ driver }] = await Promise.all([
-      import("driver.js"),
-      import("driver.js/dist/driver.css"),
-    ]);
+    let driver;
+    try {
+      const [mod] = await Promise.all([
+        import("driver.js"),
+        import("driver.js/dist/driver.css"),
+      ]);
+      driver = mod.driver;
+    } catch {
+      // Chunk failed to load (transient network failure) — bail quietly;
+      // the import lives inside the click handler, so the next click
+      // retries it.
+      return;
+    }
     const driverObj = driver({
       showProgress: true,
       allowClose: true,

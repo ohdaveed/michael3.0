@@ -15,7 +15,16 @@ useAccordion(".faq-item", ".faq-question", ".faq-answer", "active");
 
   if (!searchInput || faqItems.length === 0) return;
 
-  const { default: Fuse } = await import("fuse.js");
+  let Fuse;
+  try {
+    ({ default: Fuse } = await import("fuse.js"));
+  } catch {
+    // Chunk failed to load (transient network failure) — hide the search
+    // UI rather than leave a dead input; the accordion still works.
+    const container = searchInput.closest(".faq-search-container");
+    if (container) container.hidden = true;
+    return;
+  }
 
   // 1. Index the DOM elements
   const faqData = faqItems.map((item, index) => {
