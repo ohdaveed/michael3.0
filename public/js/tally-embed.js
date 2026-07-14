@@ -46,17 +46,28 @@ if (embeds.length > 0) {
     }
     if (!data || data.event !== "Tally.FormSubmitted") return;
 
-    // Codes only — never send names, emails, phones, or message content
-    // to analytics.
-    if (typeof window.gtag === "function") {
-      window.gtag("event", "generate_lead", { method: "contact_form" });
-    }
     // Tally's redirect-on-completion applies inside the iframe; navigate
-    // the page itself so the visitor lands on the thank-you page.
-    setTimeout(() => {
-      window.location.assign(
-        new URL("thank-you.html", window.location.href).href,
-      );
-    }, 400);
+    // the page itself so the visitor lands on the thank-you page. Wait
+    // for the analytics event callback (or the timeout, if gtag is
+    // blocked and never calls back) so the lead event isn't lost to the
+    // redirect. Codes only — never send names, emails, phones, or
+    // message content to analytics.
+    const thankYou = new URL("thank-you.html", window.location.href);
+    let navigated = false;
+    const navigate = () => {
+      if (navigated) return;
+      navigated = true;
+      window.location.assign(thankYou.href);
+    };
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "generate_lead", {
+        method: "contact_form",
+        event_callback: navigate,
+        event_timeout: 800,
+      });
+      setTimeout(navigate, 1000);
+    } else {
+      navigate();
+    }
   });
 }
