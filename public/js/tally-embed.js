@@ -1,9 +1,34 @@
+import productContract from "./product-contract.json";
+
 // Loads Tally's embed widget for the contact form iframe and handles
 // submission events. Only contact.html has a [data-tally-src] iframe, so
 // this is a no-op on every other page.
 const embeds = document.querySelectorAll("iframe[data-tally-src]:not([src])");
 
 if (embeds.length > 0) {
+  // Practice-area cards on services.html link here with ?service=<code> so
+  // the embedded form arrives with "Service needed" already selected. Tally
+  // prefill needs the option's *label* text via a hidden field the
+  // dropdown's Default answer is configured from — not our stable code —
+  // so translate before it ever reaches the iframe src. The hidden field
+  // is named "service_label", not "service": Tally's widget separately
+  // auto-forwards this page's own query string onto the iframe verbatim,
+  // so reusing "service" would append a second, colliding `service=<code>`
+  // that clobbers the translated label.
+  const requestedCode = new URLSearchParams(window.location.search).get(
+    "service",
+  );
+  const requestedProduct = productContract.products.find(
+    (p) => p.code === requestedCode,
+  );
+  if (requestedProduct) {
+    embeds.forEach((iframe) => {
+      const src = new URL(iframe.dataset.tallySrc);
+      src.searchParams.set("service_label", requestedProduct.label);
+      iframe.dataset.tallySrc = src.toString();
+    });
+  }
+
   const WIDGET_SRC = "https://tally.so/widgets/embed.js";
 
   const loadEmbeds = () => {

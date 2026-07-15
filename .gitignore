@@ -35,3 +35,6 @@ coverage/
 
 # Cursor local project artifacts
 .cursor/
+
+# Playwright MCP debug artifacts (console logs, page snapshots)
+.playwright-mcp/
