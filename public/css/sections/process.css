@@ -3,16 +3,6 @@
   padding: 7rem 0;
   background: var(--cream);
 }
-.process-header {
-  max-width: 800px;
-  margin-bottom: 4rem;
-}
-.process-intro {
-  font-size: 1.05rem;
-  line-height: 1.8;
-  color: var(--text-body);
-  font-weight: 300;
-}
 .process-steps {
   display: flex;
   flex-direction: column;

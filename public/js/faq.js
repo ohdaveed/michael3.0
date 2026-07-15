@@ -1,11 +1,12 @@
-import Fuse from "fuse.js";
 import { useAccordion } from "./hooks.js";
 
 // FAQ Accordion
 useAccordion(".faq-item", ".faq-question", ".faq-answer", "active");
 
-// FAQ Search with Fuse.js
-(function () {
+// FAQ Search with Fuse.js — imported dynamically so the library is only
+// fetched on the page that actually has the search box (faq.html), instead
+// of riding along in the shared bundle on every page.
+(async function () {
   const searchInput = document.getElementById("faqSearchInput");
   const clearBtn = document.getElementById("faqSearchClear");
   const noResults = document.getElementById("faqNoResults");
@@ -13,6 +14,17 @@ useAccordion(".faq-item", ".faq-question", ".faq-answer", "active");
   const faqItems = Array.from(document.querySelectorAll(".faq-item"));
 
   if (!searchInput || faqItems.length === 0) return;
+
+  let Fuse;
+  try {
+    ({ default: Fuse } = await import("fuse.js"));
+  } catch {
+    // Chunk failed to load (transient network failure) — hide the search
+    // UI rather than leave a dead input; the accordion still works.
+    const container = searchInput.closest(".faq-search-container");
+    if (container) container.hidden = true;
+    return;
+  }
 
   // 1. Index the DOM elements
   const faqData = faqItems.map((item, index) => {
