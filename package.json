@@ -15,10 +15,12 @@
     "a11y:check": "pa11y http://localhost:5173",
     "lighthouse": "lighthouse http://localhost:5173 --output=html --output-path=./lighthouse-report.html --chrome-flags=\"--headless=new --no-sandbox\"",
     "browser:check": "agent-browser open http://localhost:5173 && agent-browser wait --load networkidle && agent-browser snapshot -i",
+    "test:e2e": "playwright test",
     "check": "npm run format:check && npm run html:check",
     "prepare": "husky"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "agent-browser": "^0.26.0",
     "htmlhint": "^1.9.2",
     "husky": "^9.1.7",

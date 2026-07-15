@@ -38,3 +38,15 @@ coverage/
 
 # Playwright MCP debug artifacts (console logs, page snapshots)
 .playwright-mcp/
+
+# Playwright test runner output
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Personal billing/timesheet CSVs (not site content, not for public repo)
+/hours-worked-*.csv
+/quo-hours-*.csv
+/sharepoint-lists-*.csv
+/business-tools-*.csv
