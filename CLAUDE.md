@@ -26,3 +26,17 @@ There is no test suite; `npm run check` (formatting + HTML lint) is the closest 
 ## Content/copy QA
 
 For any content or copy edits to the marketing/legal pages, the `.cursor/skills/lehr-law-copy-qa/SKILL.md` skill defines this site's voice/tone rules, attorney-advertising constraints, and a review checklist (placeholders, link validity, cross-page consistency of phone/address/price/hours, HTML entity escaping). Read it before editing visible copy — it documents things like: don't add testimonials or `aggregateRating` schema without substantiation, keep results-page case studies anonymized, and get lawyer approval before substantive edits to the privacy/disclaimer/attorney-advertising trio.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues (`ohdaveed/michael3.0`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
