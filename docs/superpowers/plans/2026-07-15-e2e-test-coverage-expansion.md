@@ -254,7 +254,7 @@ git commit -m "test: add E2E coverage for mobile nav, focus trap, and active lin
 
 **Reference:**
 
-- `public/js/faq.js` (accordion via `useAccordion` in `public/js/hooks.js` — exclusive, one open at a time; search via Fuse.js, no debounce).
+- `public/js/faq.js` (accordion via `useAccordion` in `public/js/hooks.js` — exclusive, one open at a time; search via Fuse.js, no debounce). Fuse.js searches both `question` (weight 0.7) and `answer` (weight 0.3) with `threshold: 0.35`, and only hides non-matches via inline `style.display = "none"` — they stay in the DOM, so `.locator(".faq-item")` always counts all 10 regardless of the search; use the `:visible` pseudo-class to count only the currently-shown items. A short query like `"probate take"` fuzzy-matches 4 of the 10 items (verified by running the installed `fuse.js` against the actual FAQ content: `probate` appears loosely across several answers) — the full literal question text is the only query confirmed (same verification) to match exactly 1 item.
 - `public/faq.html` — 10 `.faq-item` elements; the second one's question is "How long does probate take in California?" (unique among the 10 questions).
 
 - [ ] **Step 1: Write the spec file**
@@ -302,10 +302,12 @@ test.describe("FAQ search", () => {
 
     await expect(page.locator(".faq-item")).toHaveCount(10);
 
-    await page.locator("#faqSearchInput").fill("probate take");
+    await page
+      .locator("#faqSearchInput")
+      .fill("How long does probate take in California");
 
     await expect(page.locator("#faqSearchStatus")).toHaveText(
-      '1 question found matching "probate take".',
+      '1 question found matching "How long does probate take in California".',
     );
     await expect(
       page.locator(".faq-item", {
@@ -337,13 +339,15 @@ test.describe("FAQ search", () => {
   }) => {
     await page.goto("/faq.html");
 
-    await page.locator("#faqSearchInput").fill("probate take");
-    await expect(page.locator(".faq-item")).not.toHaveCount(10);
+    await page
+      .locator("#faqSearchInput")
+      .fill("How long does probate take in California");
+    await expect(page.locator(".faq-item:visible")).toHaveCount(1);
 
     await page.locator("#faqSearchClear").click();
 
     await expect(page.locator("#faqSearchInput")).toHaveValue("");
-    await expect(page.locator(".faq-item")).toHaveCount(10);
+    await expect(page.locator(".faq-item:visible")).toHaveCount(10);
     await expect(page.locator("#faqSearchInput")).toBeFocused();
   });
 });
