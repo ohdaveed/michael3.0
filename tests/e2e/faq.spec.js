@@ -39,13 +39,17 @@ test.describe("FAQ search", () => {
 
     await expect(page.locator(".faq-item")).toHaveCount(10);
 
-    await page
-      .locator("#faqSearchInput")
-      .fill("How long does probate take in California");
+    await expect(async () => {
+      await page
+        .locator("#faqSearchInput")
+        .fill("How long does probate take in California");
 
-    await expect(page.locator("#faqSearchStatus")).toHaveText(
-      '1 question found matching "How long does probate take in California".',
-    );
+      await expect(page.locator("#faqSearchStatus")).toHaveText(
+        '1 question found matching "How long does probate take in California".',
+        { timeout: 1000 },
+      );
+    }).toPass();
+
     await expect(
       page.locator(".faq-item", {
         hasText: "How long does probate take in California?",
@@ -63,12 +67,16 @@ test.describe("FAQ search", () => {
   }) => {
     await page.goto("/faq.html");
 
-    await page.locator("#faqSearchInput").fill("zzzznomatchzzzz");
+    await expect(async () => {
+      await page.locator("#faqSearchInput").fill("zzzznomatchzzzz");
+
+      await expect(page.locator("#faqSearchStatus")).toHaveText(
+        '0 questions found matching "zzzznomatchzzzz".',
+        { timeout: 1000 },
+      );
+    }).toPass();
 
     await expect(page.locator("#faqNoResults")).toBeVisible();
-    await expect(page.locator("#faqSearchStatus")).toHaveText(
-      '0 questions found matching "zzzznomatchzzzz".',
-    );
   });
 
   test("clear button resets the search and re-shows all items", async ({
@@ -76,10 +84,15 @@ test.describe("FAQ search", () => {
   }) => {
     await page.goto("/faq.html");
 
-    await page
-      .locator("#faqSearchInput")
-      .fill("How long does probate take in California");
-    await expect(page.locator(".faq-item:visible")).toHaveCount(1);
+    await expect(async () => {
+      await page
+        .locator("#faqSearchInput")
+        .fill("How long does probate take in California");
+
+      await expect(page.locator(".faq-item:visible")).toHaveCount(1, {
+        timeout: 1000,
+      });
+    }).toPass();
 
     await page.locator("#faqSearchClear").click();
 
