@@ -36,6 +36,12 @@ coverage/
 # Cursor local project artifacts
 .cursor/
 
+# Agent tooling (Desktop Commander / gstack / Claude skills)
+.agents/
+.claude/
+bun.lock
+skills-lock.json
+
 # Playwright MCP debug artifacts (console logs, page snapshots)
 .playwright-mcp/
 
