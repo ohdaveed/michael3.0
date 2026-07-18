@@ -1,0 +1,19 @@
+{
+  "name": "lehr-law-webhook-server",
+  "version": "1.0.0",
+  "description": "Webhook receiver for Tally contact form and Calendly booking events — lehr-law.com",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "nodemailer": "^6.9.14"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

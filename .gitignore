@@ -42,6 +42,10 @@ coverage/
 bun.lock
 skills-lock.json
 
+# Webhook server local artifacts
+webhook-server/node_modules/
+webhook-server/.env
+
 # Playwright MCP debug artifacts (console logs, page snapshots)
 .playwright-mcp/
 
@@ -56,3 +60,4 @@ skills-lock.json
 /quo-hours-*.csv
 /sharepoint-lists-*.csv
 /business-tools-*.csv
+.gstack/
