@@ -22,6 +22,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 3rem;
 }
 .nav-logo {
   display: flex;
@@ -33,6 +34,7 @@
   color: var(--white);
   text-decoration: none;
   letter-spacing: 0.02em;
+  flex-shrink: 0;
 }
 .nav-logo span {
   color: var(--gold);
@@ -44,6 +46,14 @@
   display: flex;
   gap: 2.25rem;
   align-items: center;
+  flex: 1;
+  justify-content: center;
+}
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-shrink: 0;
 }
 .nav-links a {
   color: rgba(255, 255, 255, 0.8);
@@ -92,6 +102,19 @@
 }
 #nav .nav-cta::after {
   display: none;
+}
+.nav-tel {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em !important;
+  opacity: 0.6;
+  font-size: 0.78rem !important;
+  white-space: nowrap;
+}
+.nav-tel:hover {
+  opacity: 1;
+}
+.nav-tel::after {
+  display: none !important;
 }
 
 .mobile-toggle {

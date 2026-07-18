@@ -38,7 +38,7 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   cursor: pointer;
   transition: all 0.35s ease;
 }

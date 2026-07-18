@@ -1,4 +1,7 @@
 /* === RESPONSIVE === */
+/* Three-zone nav: logo | 5 page links | phone + CTA.
+   Page links collapse to hamburger at 1024px;
+   action area (phone + CTA) hides below 768px. */
 @media (max-width: 1024px) {
   .practices-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -20,11 +23,6 @@
   .process-step-number {
     justify-content: flex-start;
   }
-}
-/* The full nav row (7 links + phone + booking CTA) needs ~1150px before
-   it clips the CTA off the right edge, so the hamburger takes over well
-   above the usual 768px cutoff. */
-@media (max-width: 1150px) {
   .nav-links {
     display: none;
   }
@@ -33,6 +31,9 @@
   }
 }
 @media (max-width: 768px) {
+  .nav-actions {
+    display: none;
+  }
   .about-grid {
     grid-template-columns: 1fr;
     gap: 3rem;

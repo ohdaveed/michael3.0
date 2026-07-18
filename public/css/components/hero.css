@@ -119,11 +119,13 @@
 }
 .hero-text-link {
   display: inline-block;
-  margin-top: 1.25rem;
-  color: var(--white-a65);
+  margin-top: 2rem;
+  padding: 0.5rem 0;
+  color: var(--white-a70);
   font-size: 0.9rem;
   text-decoration: underline;
   text-underline-offset: 4px;
+  text-shadow: 0 1px 8px rgba(6, 18, 33, 0.6);
   transition: color 0.35s ease;
 }
 .hero-text-link:hover {

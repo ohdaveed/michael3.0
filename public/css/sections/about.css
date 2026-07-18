@@ -54,10 +54,15 @@
 .about-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 2rem 2.5rem;
+  gap: 1.5rem 2rem;
   margin-top: 2.5rem;
   padding-top: 2.5rem;
   border-top: 1px solid var(--gold-a20);
+}
+.about-stats > div {
+  padding: 0.75rem 1.25rem;
+  border-left: 2px solid var(--gold-a40);
+  background: var(--gold-a05);
 }
 .stat-number {
   font-family: var(--serif);
