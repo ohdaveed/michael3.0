@@ -101,3 +101,17 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(197, 165, 90, 0.3);
 }
+.booking-trust {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.5rem;
+  margin-top: 1.5rem;
+  padding: 0;
+}
+.booking-trust li {
+  font-size: 0.78rem;
+  color: var(--stone);
+  letter-spacing: 0.03em;
+}
