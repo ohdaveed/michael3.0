@@ -102,14 +102,25 @@ def parse_dt(d, t):
     return datetime.datetime.strptime(f"{d} {t}", "%Y-%m-%d %H:%M:%S")
 
 
+def parse_span(date_str, start_str, end_str):
+    """Parse a (date, start_time, end_time) row back into real datetimes,
+    rolling end onto the next day if the session crossed midnight (stored
+    end_time < start_time on the same date string)."""
+    start = parse_dt(date_str, start_str)
+    end = parse_dt(date_str, end_str)
+    if end < start:
+        end += datetime.timedelta(days=1)
+    return start, end
+
+
 def last_site_cutoff(rows):
     if not rows:
         return None
     last = rows[-1]
+    start, end = parse_span(last["date"], last["start_time"], last["end_time"])
     # single-commit sessions pad end_time by 30min; the real cutoff is the
-    # commit itself (start_time). Multi-commit sessions are unpadded.
-    t = last["start_time"] if last["commit_count"] == "1" else last["end_time"]
-    return parse_dt(last["date"], t)
+    # commit itself (start). Multi-commit sessions are unpadded.
+    return start if last["commit_count"] == "1" else end
 
 
 def update_site_hours(dry_run):
@@ -236,9 +247,9 @@ def last_category_cutoff(rows, category):
     cat_rows = [r for r in rows if r["category"] == category]
     if not cat_rows:
         return None
-    latest = max(cat_rows, key=lambda r: parse_dt(r["date"], r["end_time_utc"]))
+    spans = [parse_span(r["date"], r["start_time_utc"], r["end_time_utc"]) for r in cat_rows]
+    _, end = max(spans, key=lambda s: s[1])
     # end_time_utc is always padded by END_PAD_SEC; the real cutoff is 5 min earlier.
-    end = parse_dt(latest["date"], latest["end_time_utc"])
     return end - datetime.timedelta(seconds=END_PAD_SEC)
 
 
@@ -302,7 +313,7 @@ def update_business_tools(dry_run):
 
     # cross-category merge (union of overlapping intervals across all categories)
     intervals = sorted(
-        [(parse_dt(r["date"], r["start_time_utc"]), parse_dt(r["date"], r["end_time_utc"]),
+        [(*parse_span(r["date"], r["start_time_utc"], r["end_time_utc"]),
           CAT_LABEL.get(r["category"], r["category"]), int(r["pageviews"])) for r in all_rows],
         key=lambda x: x[0],
     )
@@ -345,7 +356,7 @@ def update_quo_hours(visits, dry_run):
     cutoff = None
     if existing:
         last = existing[-1]
-        end = parse_dt(last["date"], last["end_time"])
+        _, end = parse_span(last["date"], last["start_time"], last["end_time"])
         cutoff = end - datetime.timedelta(seconds=END_PAD_SEC)
 
     filtered = []
@@ -395,7 +406,7 @@ def update_ai_hours(dry_run):
     cutoff = None
     if existing:
         last = existing[-1]
-        end = parse_dt(last["date"], last["end_time"])
+        _, end = parse_span(last["date"], last["start_time"], last["end_time"])
         cutoff = end - datetime.timedelta(seconds=END_PAD_SEC)
 
     events = []
@@ -450,15 +461,61 @@ def update_ai_hours(dry_run):
     print(f"[ai] wrote {detailed_path}, {summary_path}")
 
 
+# --- summary report ------------------------------------------------------
+
+def load_daily(path):
+    """date -> summed hours, from a CSV with date,hours[,...] columns."""
+    out = defaultdict(float)
+    for r in csv_rows(path):
+        out[r["date"]] += float(r["hours"])
+    return out
+
+
+def print_summary(days):
+    """Site (includes AI-assisted work -- not billed as a separate service
+    since AI credits are paid for directly) vs. Business Tools, per day."""
+    end = datetime.date.today()
+    start = (end - datetime.timedelta(days=days - 1)).isoformat()
+    end = end.isoformat()
+
+    site = load_daily(os.path.join(REPO_ROOT, "hours-worked-summary.csv"))
+    ai = load_daily(os.path.join(REPO_ROOT, "ai-hours-summary.csv"))
+    biz = load_daily(os.path.join(REPO_ROOT, "business-tools-merged-daily.csv"))
+
+    combined_site = defaultdict(float)
+    for d, h in site.items():
+        combined_site[d] += h
+    for d, h in ai.items():
+        combined_site[d] += h
+
+    all_dates = sorted(d for d in set(combined_site) | set(biz) if start <= d <= end)
+
+    print(f"\n=== billable hours: {start} to {end} ===")
+    print(f"{'date':12}{'site':>8}{'business':>10}{'total':>8}")
+    grand_site, grand_biz = 0.0, 0.0
+    for d in all_dates:
+        s, b = round(combined_site.get(d, 0.0), 2), round(biz.get(d, 0.0), 2)
+        grand_site += s
+        grand_biz += b
+        print(f"{d:12}{s:8.2f}{b:10.2f}{s + b:8.2f}")
+    print("-" * 38)
+    print(f"{'TOTAL':12}{grand_site:8.2f}{grand_biz:10.2f}{grand_site + grand_biz:8.2f}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true",
                          help="print what would change without writing any CSVs")
+    parser.add_argument("--days", type=int, default=30,
+                         help="how many trailing days the summary report covers (default 30)")
     args = parser.parse_args()
 
     update_site_hours(args.dry_run)
     update_business_tools(args.dry_run)
     update_ai_hours(args.dry_run)
+
+    if not args.dry_run:
+        print_summary(args.days)
 
 
 if __name__ == "__main__":
