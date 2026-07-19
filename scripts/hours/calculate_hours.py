@@ -204,6 +204,9 @@ CATEGORIES = {
     "Clio (legal practice mgmt)": (["clio.com"], []),
     "Hosting/cPanel admin": (["webpros.com", "cpanel.net", "cpanel.zendesk.com", "bluehost.com"], []),
     "Railway": (["railway.com", "railway.app"], []),
+    "Microsoft Learn/Graph/Azure AI docs": (
+        ["learn.microsoft.com", "developer.microsoft.com", "ai.azure.com"], []
+    ),
 }
 
 CAT_LABEL = {
@@ -217,6 +220,7 @@ CAT_LABEL = {
     "Fillout/Zite (client onboarding forms)": "Fillout/Zite",
     "SharePoint/Outlook (Lehr Law tenant)": "SharePoint/Outlook",
     "Railway": "Railway",
+    "Microsoft Learn/Graph/Azure AI docs": "MS Docs/Graph",
 }
 
 

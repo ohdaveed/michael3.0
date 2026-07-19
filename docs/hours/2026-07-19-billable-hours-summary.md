@@ -13,18 +13,25 @@ for directly). Business hours cover browser-tracked business-tools time.
 | 2026-06-25 |      0.00 |      2.48 |      2.48 |
 | 2026-06-26 |      0.00 |      1.05 |      1.05 |
 | 2026-06-27 |      0.00 |      1.62 |      1.62 |
+| 2026-07-02 |      0.00 |      0.08 |      0.08 |
 | 2026-07-05 |      0.00 |      0.09 |      0.09 |
 | 2026-07-06 |      0.00 |      0.13 |      0.13 |
 | 2026-07-07 |      0.00 |      0.08 |      0.08 |
 | 2026-07-08 |      0.00 |      5.04 |      5.04 |
 | 2026-07-09 |      0.00 |      3.74 |      3.74 |
-| 2026-07-11 |     13.33 |      3.10 |     16.43 |
-| 2026-07-12 |      0.50 |      1.69 |      2.19 |
+| 2026-07-11 |     13.33 |      3.45 |     16.78 |
+| 2026-07-12 |      0.50 |      5.00 |      5.50 |
 | 2026-07-13 |      3.63 |      6.73 |     10.36 |
 | 2026-07-14 |      4.38 |      0.00 |      4.38 |
 | 2026-07-15 |      7.89 |      0.10 |      7.99 |
-| 2026-07-16 |      0.47 |      0.48 |      0.95 |
+| 2026-07-16 |      0.47 |      0.56 |      1.03 |
 | 2026-07-17 |      1.01 |      0.08 |      1.09 |
 | 2026-07-18 |      3.77 |      7.61 |     11.38 |
-| 2026-07-19 |      4.62 |      2.86 |      7.48 |
-| **TOTAL**  | **39.60** | **39.36** | **78.96** |
+| 2026-07-19 |      5.13 |      2.86 |      7.99 |
+| **TOTAL**  | **40.11** | **43.18** | **83.29** |
+
+Revised 2026-07-19 4:30pm: added a "Microsoft Learn/Graph/Azure AI docs" browser
+category (`learn.microsoft.com`, `developer.microsoft.com`, `ai.azure.com`) that
+had been invisible to the tracker — see `docs/hours/2026-07-19-detailed-hours-report.md`
+for what it recovered. 07-19's site figure also picked up two small commits/AI
+sessions made while building these reports.
