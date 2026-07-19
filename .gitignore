@@ -3,6 +3,10 @@
 Thumbs.db
 desktop.ini
 
+# Python cache (scripts/hours/calculate_hours.py)
+__pycache__/
+*.pyc
+
 # Logs
 *.log
 npm-debug.log*
