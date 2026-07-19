@@ -3,8 +3,9 @@
 Session-level detail from `scripts/hours/calculate_hours.py`'s three CSVs
 (`hours-worked-detailed.csv`, `ai-hours-detailed.csv`,
 `business-tools-merged-detailed.csv`), plus a one-line summary of what the
-work was, per day. AI hours are billed as part of Site hours (not a separate
-category), but are broken out below for visibility into where the time went.
+work was, per day. AI-assisted sessions are folded into Site hours throughout
+(not shown as a separate category), since AI credits are paid for directly
+and aren't a distinct billed service.
 
 Totals match `docs/hours/2026-07-19-billable-hours-summary.md`.
 
@@ -109,41 +110,41 @@ Totals match `docs/hours/2026-07-19-billable-hours-summary.md`.
 
 **Summary:** New services-page content cards, plus hosting/SharePoint research.
 
-## 2026-07-13 — 10.36h (site 1.59h + ai 2.04h + business 6.73h)
+## 2026-07-13 — 10.36h (site 3.63h + business 6.73h)
 
 - 10:03–10:33 site (0.50h, 1 commit): client-pipeline redesign — two-path intake (Book a Consult + Send a Message) + M365 build spec (#11)
 - 13:55–14:30 site (0.59h, 3 commits): CSS bug fixes, npm pin, switched booking destination to Calendly
 - 22:09–22:39 site (0.50h, 1 commit): replaced Web3Forms contact form with embedded Tally form (#13)
-- AI: 5 sessions, 0.09–1.53h, heaviest at 20:08–21:40 (3,906 events)
+- 04:20–21:40 site, AI-assisted (2.04h across 5 sessions, heaviest 20:08–21:40 with 3,906 events)
 - Business (0.11–1.88h sessions): Calendly, MS Bookings, SharePoint/Outlook, Fillout/Zite, Clio, Web3Forms, Tally.so, Automation research
 
 **Summary:** Client-intake pipeline redesign day — moved booking to Calendly, swapped in the Tally contact form, plus heavy Calendly/Tally/MS Bookings/Clio research.
 
-## 2026-07-14 — 4.38h (site 1.51h + ai 2.87h)
+## 2026-07-14 — 4.38h (site 4.38h)
 
 - 14:21–15:22 site (1.01h, 7 commits): site-audit fixes (sitemap URLs, FAQ schema, deep links), Tally practice-card service prefill wiring
 - 21:31–22:01 site (0.50h, 1 commit): tech debt — fixed live sitemap 404s, repaired lint/CI gates, trimmed bundle, refreshed docs (#14)
-- AI: 21:12–00:05 (2.87h, 4,611 events)
+- 21:12–00:05 site, AI-assisted (2.87h, 4,611 events)
 
 **Summary:** SEO/audit fixes, service-prefill wiring for the contact form, and a tech-debt cleanup pass.
 
-## 2026-07-15 — 7.99h (site 2.42h + ai 5.47h + business 0.10h)
+## 2026-07-15 — 7.99h (site 7.89h + business 0.10h)
 
 - 16:12–16:42 site (0.50h, 1 commit): Playwright E2E tests for the send-a-message contact flow
 - 16:45–17:19 site (0.55h, 3 commits): E2E test coverage design spec + implementation plan
 - 17:52–18:44 site (0.87h, 12 commits): E2E coverage for nav, FAQ, quiz, calculator, funding checklist, onboarding tour, sticky CTA, GA4 event
 - 21:22–21:52 site (0.50h, 1 commit): agent-skills config scaffold (issue tracker, triage labels, domain docs)
-- AI: 3 sessions, heaviest 22:59–02:02 (3.05h, 4,269 events)
+- 04:03–02:02 site, AI-assisted (5.47h across 3 sessions, heaviest 22:59–02:02 with 4,269 events)
 - Business: 23:38–23:44 (0.10h): Calendly
 
 **Summary:** Built out the full Playwright E2E test suite plus its design spec, and scaffolded agent-skills config — the heaviest AI-assisted day in the window.
 
-## 2026-07-16 — 0.95h (ai 0.47h + business 0.48h)
+## 2026-07-16 — 0.95h (site 0.47h + business 0.48h)
 
-- AI: 2 short sessions (0.21h, 0.26h)
+- 04:16–06:13 site, AI-assisted (0.47h across 2 sessions)
 - Business: SharePoint/Outlook, Calendly, Tally.so browsing
 
-**Summary:** Light day, no commits — brief AI sessions and cross-tool research.
+**Summary:** Light day, no commits — brief AI-assisted work and cross-tool research.
 
 ## 2026-07-17 — 1.09h (site 1.01h + business 0.08h)
 
@@ -153,21 +154,21 @@ Totals match `docs/hours/2026-07-19-billable-hours-summary.md`.
 
 **Summary:** Nav/CTA polish and the first commit of the Tally + Calendly webhook receiver.
 
-## 2026-07-18 — 11.38h (site 1.00h + ai 2.77h + business 7.61h)
+## 2026-07-18 — 11.38h (site 3.77h + business 7.61h)
 
 - 04:38–05:08 site (0.50h, 1 commit): design spec for Calendly/Tally intake to SharePoint pipeline
 - 18:33–19:03 site (0.50h, 1 commit): webhook-server docs (SharePoint Client Pipeline setup) + test script
-- AI: 4 sessions, heaviest 08:08–09:10 (1.04h, 946 events)
+- 05:38–23:52 site, AI-assisted (2.77h across 4 sessions, heaviest 08:08–09:10 with 946 events)
 - Business (0.08–2.61h sessions): heavy Railway/Calendly/SharePoint/Outlook research, plus Clio
 
 **Summary:** Designed and documented the Calendly/Tally → SharePoint pipeline, with substantial Railway deployment research alongside it.
 
-## 2026-07-19 — 7.48h (site 0.56h + ai 4.06h + business 2.86h)
+## 2026-07-19 — 7.48h (site 4.62h + business 2.86h)
 
 - 13:13–13:14 site (0.02h, 2 commits): gitignore consolidation for hours-tracking; Calendly/Tally intake-to-SharePoint implementation plan
 - 13:23–13:53 site (0.50h, 1 commit): idempotent billable-hours calculator script
 - 13:39–13:41 site (0.04h, 2 commits): midnight-crossing session fix + default summary report; Python bytecode cache gitignore
-- AI: 10 sessions across the day, heaviest 19:29–20:27 (0.98h, 1,660 events)
+- 00:52–23:15 site, AI-assisted (4.06h across 10 sessions, heaviest 19:29–20:27 with 1,660 events)
 - Business (0.09–1.25h sessions): Fillout/Zite, SharePoint/Outlook, Calendly, Railway, Tally.so
 
 **Summary:** Built and hardened the billable-hours tracking pipeline itself (idempotency, midnight-crossing bug, summary report), on top of the ongoing SharePoint pipeline plan.
