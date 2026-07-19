@@ -11,6 +11,9 @@ function fakePipelineSync(overrides = {}) {
     syncTallyMessage: async (input) => {
       calls.tally.push(input);
       if (overrides.tallyThrows) throw new Error("sync failed");
+      if (overrides.tallyFlagsMultiple) {
+        return { ok: true, action: "flagged-multiple", itemId: "x" };
+      }
       return { ok: true, action: "created", itemId: "1" };
     },
     syncCalendlyBooking: async (input) => {
@@ -79,6 +82,21 @@ test("POST /webhooks/tally still returns 200 when the SharePoint sync throws", a
     });
     assert.equal(res.status, 200);
     assert.equal(sync.calls.tally.length, 1);
+  });
+});
+
+test("POST /webhooks/tally still returns 200 and calls pipelineSync normally when the sync flags multiple matches", async () => {
+  const sync = fakePipelineSync({ tallyFlagsMultiple: true });
+  await withServer(sync, async (base) => {
+    const res = await fetch(`${base}/webhooks/tally`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(TALLY_BODY),
+    });
+    assert.equal(res.status, 200);
+    assert.equal(sync.calls.tally.length, 1);
+    assert.equal(sync.calls.tally[0].email, "jane@example.com");
+    assert.equal(sync.calls.tally[0].service, "Will Only");
   });
 });
 

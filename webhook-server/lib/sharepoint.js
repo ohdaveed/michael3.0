@@ -18,6 +18,9 @@ function createSharepointClient({ graphClient = createGraphClient() } = {}) {
       (s) => `fields/Stage ne '${s}'`,
     ).join(" and ");
     const filterValue = `fields/Email eq '${escapedEmail}' and ${closedFilter}`;
+    // encodeURIComponent (not URLSearchParams) — URLSearchParams encodes
+    // spaces as `+`, which callers' decodeURIComponent-based path
+    // inspection cannot reverse (only %20 round-trips correctly).
     const encodedFilter = encodeURIComponent(filterValue);
     const path = `/sites/${SITE_ID}/lists/${LIST_ID}/items?expand=fields&$filter=${encodedFilter}`;
     const data = await graphClient.graphFetch(path, {
@@ -30,6 +33,9 @@ function createSharepointClient({ graphClient = createGraphClient() } = {}) {
   async function findItemByCalendlyEventUri(uri) {
     const escapedUri = uri.replace(/'/g, "''");
     const filterValue = `fields/CalendlyEventURI eq '${escapedUri}'`;
+    // encodeURIComponent (not URLSearchParams) — URLSearchParams encodes
+    // spaces as `+`, which callers' decodeURIComponent-based path
+    // inspection cannot reverse (only %20 round-trips correctly).
     const encodedFilter = encodeURIComponent(filterValue);
     const path = `/sites/${SITE_ID}/lists/${LIST_ID}/items?expand=fields&$filter=${encodedFilter}`;
     const data = await graphClient.graphFetch(path, {

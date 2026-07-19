@@ -215,7 +215,22 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
         `[tally] Submission ${submissionId} from ${firstName} ${lastName} <${email}>`,
       );
 
-      const subject = `New message from ${firstName} ${lastName} — ${service}`;
+      const syncResult = await syncPipelineSafely(
+        () =>
+          pipelineSync.syncTallyMessage({
+            submissionId,
+            firstName,
+            lastName,
+            email,
+            phone,
+            service,
+          }),
+        `Tally submission ${submissionId} <${email}>`,
+      );
+
+      const subjectPrefix =
+        syncResult.action === "flagged-multiple" ? "[NEEDS REVIEW] " : "";
+      const subject = `${subjectPrefix}New message from ${firstName} ${lastName} — ${service}`;
       const text = [
         `New contact form submission via lehr-law.com`,
         ``,
@@ -274,19 +289,6 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
           receivedAt: new Date().toISOString(),
         }),
       ]);
-
-      await syncPipelineSafely(
-        () =>
-          pipelineSync.syncTallyMessage({
-            submissionId,
-            firstName,
-            lastName,
-            email,
-            phone,
-            service,
-          }),
-        `Tally submission ${submissionId} <${email}>`,
-      );
 
       res.json({ ok: true, submissionId });
     } catch (err) {
@@ -348,7 +350,24 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
       );
 
       if (eventType === "invitee.created") {
-        const subject = `New booking: ${name} — ${startTime}`;
+        const syncResult = await syncPipelineSafely(
+          () =>
+            pipelineSync.syncCalendlyBooking({
+              eventUri,
+              name,
+              email,
+              startTime: event.start_time,
+              endTime: event.end_time,
+              timeZone: "America/Los_Angeles",
+              cancelUrl,
+              rescheduleUrl,
+            }),
+          `Calendly booking ${eventUri} <${email}>`,
+        );
+
+        const subjectPrefix =
+          syncResult.action === "flagged-multiple" ? "[NEEDS REVIEW] " : "";
+        const subject = `${subjectPrefix}New booking: ${name} — ${startTime}`;
         const text = [
           `New consultation booked via Calendly`,
           ``,
@@ -412,21 +431,6 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
             receivedAt: new Date().toISOString(),
           }),
         ]);
-
-        await syncPipelineSafely(
-          () =>
-            pipelineSync.syncCalendlyBooking({
-              eventUri,
-              name,
-              email,
-              startTime: event.start_time,
-              endTime: event.end_time,
-              timeZone: "America/Los_Angeles",
-              cancelUrl,
-              rescheduleUrl,
-            }),
-          `Calendly booking ${eventUri} <${email}>`,
-        );
       } else if (eventType === "invitee.canceled") {
         const reason = invitee?.cancellation?.reason || "(no reason given)";
         const subject = `Booking canceled: ${name}`;
