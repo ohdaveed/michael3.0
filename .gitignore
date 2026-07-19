@@ -60,4 +60,5 @@ webhook-server/.env
 /quo-hours-*.csv
 /sharepoint-lists-*.csv
 /business-tools-*.csv
+/ai-hours-*.csv
 .gstack/
