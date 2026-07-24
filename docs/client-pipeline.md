@@ -16,17 +16,40 @@ Nothing in this document is legal advice; sections touching signing
 formalities, client funds, and conflict checks exist to be _reviewed and
 corrected by Michael_, not to define legal procedure.
 
+> **Reality check (2026-07-24):** the live site uses **Calendly**
+> (`calendly.com/lehrlaw/estate-planning-consultation`), not Microsoft
+> Bookings — personal booking pages can't trigger Power Automate flows,
+> and a shared Bookings page was never set up. §2's Bookings prerequisite
+> and Flows A–C below do not reflect what's built. The intake → SharePoint
+> `Client Pipeline` sync (Tally messages + Calendly bookings/cancellations,
+> the equivalent of Flows A–D here) is **implemented and live**, but as
+> **direct Microsoft Graph calls from `webhook-server`** (Railway),
+> not Power Automate flows — see
+> [`docs/superpowers/specs/2026-07-18-calendly-intake-to-sharepoint-design.md`](superpowers/specs/2026-07-18-calendly-intake-to-sharepoint-design.md)
+> and [`webhook-server/README.md`](../webhook-server/README.md) for what
+> actually exists. That pass also intentionally built only the `Client
+> Pipeline` list with a trimmed column set (§4.1 below is still the fuller,
+> not-yet-built future schema) and left email notifications on **Microsoft
+> Graph's `/sendMail`**, not SMTP — this tenant's Security Defaults policy
+> blocks Basic Auth SMTP outright, which Power Automate's Outlook connector
+> would also be subject to. Sections 3 onward (product contract) and
+> everything from §4.2 on (Pipeline Activity/Matter Tasks/Product
+> Playbooks lists, Flow E stage engine, e-signature, document generation,
+> Clio boundary) remain a **future plan, not yet built**.
+
 ---
 
 ## 1. Pipeline at a glance
 
 ```text
 Website visitor
-   ├── PRIMARY: "Book a Free Consultation"  → Microsoft Bookings (shared page)
+   ├── PRIMARY: "Book a Free Consultation"  → Calendly (as actually built —
+   │                                          not Microsoft Bookings; see
+   │                                          the "Reality check" note above)
    └── SECONDARY: "Send a message"          → embedded Tally form → webhook (JSON)
                      │                                        │
                      ▼                                        ▼
-              Flow A/B/C (booking created/updated/cancelled)  Flow D (webhook)
+      (as-built: webhook-server → Graph, not a Power Automate Flow A/B/C)   Flow D (webhook)
                      └──────────────┬─────────────────────────┘
                                     ▼
                     SharePoint list: CLIENT PIPELINE  (one row per prospective matter)
@@ -47,6 +70,11 @@ proactive reminders, nothing dropped).
 ---
 
 ## 2. Prerequisite: shared Bookings page
+
+> **Superseded** — the site uses Calendly instead (see the "Reality check"
+> note at the top of this document). Kept for historical context on why
+> a personal Bookings page wouldn't have worked, in case Bookings is ever
+> reconsidered.
 
 The site currently links to Michael's personal "Bookings with me" page.
 Personal booking pages **cannot trigger Power Automate flows and cannot ask

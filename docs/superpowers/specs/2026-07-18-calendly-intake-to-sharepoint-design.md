@@ -1,7 +1,12 @@
 # Calendly/Tally Intake → SharePoint `Client Pipeline` List
 
 **Date:** 2026-07-18
-**Status:** Approved design, not yet implemented
+**Status:** Implemented and live (2026-07-24) — see `webhook-server/README.md`
+for setup/operation details. Email notifications ended up going through
+Microsoft Graph's `/sendMail` rather than SMTP (not anticipated in this
+design) because this tenant's Security Defaults policy blocks Basic Auth
+SMTP outright; the same app registration's `Sites.Selected` grant was
+extended with `Mail.Send` for that purpose.
 **Scope:** Intake → CMS list only. Invoicing, document creation, and onboarding
 automation are explicitly deferred to follow-up specs (see "Out of scope").
 
