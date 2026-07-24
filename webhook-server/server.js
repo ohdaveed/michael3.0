@@ -66,6 +66,22 @@ function buildDefaultMailer() {
 }
 
 // ---------------------------------------------------------------------------
+// Tally field value resolution
+// Choice-type fields (dropdowns, multi-select, etc.) send `value` as the
+// selected option's internal ID(s), with a sibling `options` array mapping
+// those IDs to display text — unlike plain text fields, where `value` is
+// the literal answer. Resolve IDs to text here so downstream code (product
+// taxonomy mapping, email/SharePoint content) never sees a raw UUID.
+// ---------------------------------------------------------------------------
+function resolveTallyFieldValue(f) {
+  if (Array.isArray(f.value) && Array.isArray(f.options)) {
+    const idToText = new Map(f.options.map((o) => [o.id, o.text]));
+    return f.value.map((v) => idToText.get(v) ?? v).join(", ");
+  }
+  return Array.isArray(f.value) ? f.value.join(", ") : f.value;
+}
+
+// ---------------------------------------------------------------------------
 // Calendly HMAC-SHA256 signature validation
 // Calendly sends: t=<timestamp>,v1=<sig> in the
 // Calendly-Webhook-Signature header.
@@ -169,7 +185,7 @@ function createApp({
 
       const fields = {};
       for (const f of body?.data?.fields || []) {
-        fields[f.label] = Array.isArray(f.value) ? f.value.join(", ") : f.value;
+        fields[f.label] = resolveTallyFieldValue(f);
       }
 
       if (fields["form_source"] !== "lehr-law-contact") {

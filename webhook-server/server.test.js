@@ -125,6 +125,45 @@ test("POST /webhooks/tally rejects an unknown formId before calling pipelineSync
   });
 });
 
+const TALLY_BODY_DROPDOWN_SHAPE = {
+  data: {
+    submissionId: "test-002",
+    formId: "ob17lb",
+    fields: [
+      { label: "First name", value: "Jane" },
+      { label: "Last name", value: "Doe" },
+      { label: "Email", value: "jane@example.com" },
+      { label: "Phone", value: "415-555-0100" },
+      {
+        label: "Service needed",
+        value: ["b57cf5ca-38a1-4741-8820-eb125dafc31f"],
+        options: [
+          { id: "b57cf5ca-38a1-4741-8820-eb125dafc31f", text: "Complete Living Trust Package" },
+          { id: "other-option-id", text: "Will Only" },
+        ],
+      },
+      { label: "Message", value: "Test message." },
+      { label: "form_source", value: "lehr-law-contact" },
+      { label: "contract_version", value: "2" },
+      { label: "page", value: "contact" },
+    ],
+  },
+};
+
+test("POST /webhooks/tally resolves a dropdown field's option ID to its display text", async () => {
+  const sync = fakePipelineSync();
+  await withServer(sync, async (base) => {
+    const res = await fetch(`${base}/webhooks/tally`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(TALLY_BODY_DROPDOWN_SHAPE),
+    });
+    assert.equal(res.status, 200);
+    assert.equal(sync.calls.tally.length, 1);
+    assert.equal(sync.calls.tally[0].service, "Complete Living Trust Package");
+  });
+});
+
 const CALENDLY_CREATED_BODY = {
   event: "invitee.created",
   payload: {
