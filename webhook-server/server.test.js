@@ -27,8 +27,18 @@ function fakePipelineSync(overrides = {}) {
   };
 }
 
+function fakeMailer() {
+  const calls = [];
+  return {
+    calls,
+    sendEmail: async (input) => {
+      calls.push(input);
+    },
+  };
+}
+
 async function withServer(pipelineSync, fn) {
-  const app = createApp({ pipelineSync });
+  const app = createApp({ pipelineSync, mailer: fakeMailer() });
   const server = app.listen(0);
   await new Promise((resolve) => server.once("listening", resolve));
   const { port } = server.address();

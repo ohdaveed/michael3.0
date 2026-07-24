@@ -10,58 +10,21 @@
 
 const crypto = require("crypto");
 const express = require("express");
-const nodemailer = require("nodemailer");
 const { createGraphClient } = require("./lib/graph-client");
 const { createSharepointClient } = require("./lib/sharepoint");
 const { createPipelineSync } = require("./lib/pipeline-sync");
+const { createMailer } = require("./lib/mailer");
 
 // ---------------------------------------------------------------------------
 // Config — all values come from environment variables (set in Railway)
 // ---------------------------------------------------------------------------
 const PORT = process.env.PORT || 3000;
 const MICHAEL_EMAIL = process.env.MICHAEL_EMAIL || "michael@lehr-law.com";
-const SMTP_HOST = process.env.SMTP_HOST; // e.g. smtp.office365.com
-const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
-const SMTP_USER = process.env.SMTP_USER; // sending address
-const SMTP_PASS = process.env.SMTP_PASS; // app password / OAuth token
-const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
 const CALENDLY_SIGNING_KEY = process.env.CALENDLY_WEBHOOK_SIGNING_KEY || "";
 // Optional: POST a structured JSON summary to a second destination
 // (Power Automate HTTP trigger, Relay.app, Zapier catch-hook, etc.)
 const DOWNSTREAM_URL = process.env.DOWNSTREAM_URL || "";
 const TALLY_FORM_ID = process.env.TALLY_FORM_ID || "ob17lb";
-
-// ---------------------------------------------------------------------------
-// Mailer
-// ---------------------------------------------------------------------------
-let mailer = null;
-if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-  mailer = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-  });
-}
-
-async function sendEmail({ subject, text, html }) {
-  if (!mailer) {
-    console.warn("[email] SMTP not configured — skipping email send");
-    return;
-  }
-  try {
-    await mailer.sendMail({
-      from: `"Lehr Law Site" <${SMTP_FROM}>`,
-      to: MICHAEL_EMAIL,
-      subject,
-      text,
-      html,
-    });
-    console.log(`[email] Sent: ${subject}`);
-  } catch (err) {
-    console.error("[email] Send failed:", err.message);
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Downstream forwarding (optional)
@@ -93,28 +56,13 @@ function buildDefaultPipelineSync() {
   return createPipelineSync({ sharepointClient });
 }
 
-async function syncPipelineSafely(fn, contextLabel) {
-  try {
-    const result = await fn();
-    console.log(
-      `[pipeline] ${contextLabel}: ${result.action} (item ${result.itemId || "n/a"})`,
-    );
-    return result;
-  } catch (err) {
-    console.error(`[pipeline] ${contextLabel} failed:`, err.message);
-    await sendEmail({
-      subject: `[ALERT] SharePoint sync failed — ${contextLabel}`,
-      text: [
-        `SharePoint sync failed for: ${contextLabel}`,
-        ``,
-        `Error: ${err.message}`,
-        ``,
-        `Check Railway logs. No data was lost — the email notification for`,
-        `this event already sent.`,
-      ].join("\n"),
-    });
-    return { ok: false, error: err.message };
-  }
+// Mail is sent via Microsoft Graph (/users/{mailbox}/sendMail) rather than
+// SMTP AUTH — this tenant's Security Defaults blocks Basic Auth for SMTP
+// outright, and Graph's app-only OAuth2 flow isn't subject to that policy.
+// Uses the same Graph app registration as the SharePoint sync (Mail.Send
+// application permission).
+function buildDefaultMailer() {
+  return createMailer({ fromMailbox: MICHAEL_EMAIL });
 }
 
 // ---------------------------------------------------------------------------
@@ -148,10 +96,38 @@ function validateCalendlySignature(req) {
 
 // ---------------------------------------------------------------------------
 // App factory — accepts injectable deps so tests can pass a fake
-// pipelineSync instead of hitting real Graph/SharePoint.
+// pipelineSync/mailer instead of hitting real Graph/SharePoint/Mail.
 // ---------------------------------------------------------------------------
-function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
+function createApp({
+  pipelineSync = buildDefaultPipelineSync(),
+  mailer = buildDefaultMailer(),
+} = {}) {
   const app = express();
+
+  async function syncPipelineSafely(fn, contextLabel) {
+    try {
+      const result = await fn();
+      console.log(
+        `[pipeline] ${contextLabel}: ${result.action} (item ${result.itemId || "n/a"})`,
+      );
+      return result;
+    } catch (err) {
+      console.error(`[pipeline] ${contextLabel} failed:`, err.message);
+      await mailer.sendEmail({
+        to: MICHAEL_EMAIL,
+        subject: `[ALERT] SharePoint sync failed — ${contextLabel}`,
+        text: [
+          `SharePoint sync failed for: ${contextLabel}`,
+          ``,
+          `Error: ${err.message}`,
+          ``,
+          `Check Railway logs. No data was lost — the email notification for`,
+          `this event already sent.`,
+        ].join("\n"),
+      });
+      return { ok: false, error: err.message };
+    }
+  }
 
   // Capture rawBody for Calendly HMAC validation before JSON parsing
   app.use((req, res, next) => {
@@ -217,10 +193,10 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
       );
 
       // Respond immediately — Tally closes the connection ~10s after sending
-      // the webhook, well before a SharePoint sync or a slow SMTP send could
+      // the webhook, well before a SharePoint sync or an email send could
       // complete. Everything below continues in the background; failures
-      // there are caught internally (syncPipelineSafely, sendEmail) and can
-      // never turn into an HTTP error after this point.
+      // there are caught internally (syncPipelineSafely, mailer.sendEmail)
+      // and can never turn into an HTTP error after this point.
       res.json({ ok: true, submissionId });
 
       (async () => {
@@ -282,7 +258,7 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
 </div>`;
 
         await Promise.all([
-          sendEmail({ subject, text, html }),
+          mailer.sendEmail({ to: MICHAEL_EMAIL, subject, text, html }),
           forwardDownstream({
             source: "tally",
             submissionId,
@@ -370,41 +346,41 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
       res.json({ ok: true, event: eventType });
 
       (async () => {
-      if (eventType === "invitee.created") {
-        const syncResult = await syncPipelineSafely(
-          () =>
-            pipelineSync.syncCalendlyBooking({
-              eventUri,
-              name,
-              email,
-              startTime: event.start_time,
-              endTime: event.end_time,
-              timeZone: "America/Los_Angeles",
-              cancelUrl,
-              rescheduleUrl,
-            }),
-          `Calendly booking ${eventUri} <${email}>`,
-        );
+        if (eventType === "invitee.created") {
+          const syncResult = await syncPipelineSafely(
+            () =>
+              pipelineSync.syncCalendlyBooking({
+                eventUri,
+                name,
+                email,
+                startTime: event.start_time,
+                endTime: event.end_time,
+                timeZone: "America/Los_Angeles",
+                cancelUrl,
+                rescheduleUrl,
+              }),
+            `Calendly booking ${eventUri} <${email}>`,
+          );
 
-        const subjectPrefix =
-          syncResult.action === "flagged-multiple" ? "[NEEDS REVIEW] " : "";
-        const subject = `${subjectPrefix}New booking: ${name} — ${startTime}`;
-        const text = [
-          `New consultation booked via Calendly`,
-          ``,
-          `Name:    ${name}`,
-          `Email:   ${email}`,
-          `Event:   ${eventName}`,
-          `Time:    ${startTime}`,
-          qas ? `\nResponses:\n${qas}` : "",
-          ``,
-          `Reschedule: ${rescheduleUrl}`,
-          `Cancel:     ${cancelUrl}`,
-          ``,
-          `Received: ${new Date().toISOString()}`,
-        ].join("\n");
+          const subjectPrefix =
+            syncResult.action === "flagged-multiple" ? "[NEEDS REVIEW] " : "";
+          const subject = `${subjectPrefix}New booking: ${name} — ${startTime}`;
+          const text = [
+            `New consultation booked via Calendly`,
+            ``,
+            `Name:    ${name}`,
+            `Email:   ${email}`,
+            `Event:   ${eventName}`,
+            `Time:    ${startTime}`,
+            qas ? `\nResponses:\n${qas}` : "",
+            ``,
+            `Reschedule: ${rescheduleUrl}`,
+            `Cancel:     ${cancelUrl}`,
+            ``,
+            `Received: ${new Date().toISOString()}`,
+          ].join("\n");
 
-        const html = `
+          const html = `
 <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
   <h2 style="color:#0b1d33">New consultation booked</h2>
   <table style="width:100%;border-collapse:collapse">
@@ -436,38 +412,38 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
   </p>
 </div>`;
 
-        await Promise.all([
-          sendEmail({ subject, text, html }),
-          forwardDownstream({
-            source: "calendly",
-            eventType: "booking.created",
-            name,
-            email,
-            eventName,
-            startTime: event.start_time,
-            endTime: event.end_time,
-            questionsAndAnswers: payload?.questions_and_answers || [],
-            cancelUrl,
-            rescheduleUrl,
-            receivedAt: new Date().toISOString(),
-          }),
-        ]);
-      } else if (eventType === "invitee.canceled") {
-        const reason = invitee?.cancellation?.reason || "(no reason given)";
-        const subject = `Booking canceled: ${name}`;
-        const text = [
-          `Consultation canceled`,
-          ``,
-          `Name:   ${name}`,
-          `Email:  ${email}`,
-          `Event:  ${eventName}`,
-          `Time:   ${startTime}`,
-          `Reason: ${reason}`,
-          ``,
-          `Received: ${new Date().toISOString()}`,
-        ].join("\n");
+          await Promise.all([
+            mailer.sendEmail({ to: MICHAEL_EMAIL, subject, text, html }),
+            forwardDownstream({
+              source: "calendly",
+              eventType: "booking.created",
+              name,
+              email,
+              eventName,
+              startTime: event.start_time,
+              endTime: event.end_time,
+              questionsAndAnswers: payload?.questions_and_answers || [],
+              cancelUrl,
+              rescheduleUrl,
+              receivedAt: new Date().toISOString(),
+            }),
+          ]);
+        } else if (eventType === "invitee.canceled") {
+          const reason = invitee?.cancellation?.reason || "(no reason given)";
+          const subject = `Booking canceled: ${name}`;
+          const text = [
+            `Consultation canceled`,
+            ``,
+            `Name:   ${name}`,
+            `Email:  ${email}`,
+            `Event:  ${eventName}`,
+            `Time:   ${startTime}`,
+            `Reason: ${reason}`,
+            ``,
+            `Received: ${new Date().toISOString()}`,
+          ].join("\n");
 
-        const html = `
+          const html = `
 <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
   <h2 style="color:#c62828">Consultation canceled</h2>
   <table style="width:100%;border-collapse:collapse">
@@ -487,27 +463,27 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
   </p>
 </div>`;
 
-        await Promise.all([
-          sendEmail({ subject, text, html }),
-          forwardDownstream({
-            source: "calendly",
-            eventType: "booking.canceled",
-            name,
-            email,
-            eventName,
-            startTime: event.start_time,
-            cancellationReason: reason,
-            receivedAt: new Date().toISOString(),
-          }),
-        ]);
+          await Promise.all([
+            mailer.sendEmail({ to: MICHAEL_EMAIL, subject, text, html }),
+            forwardDownstream({
+              source: "calendly",
+              eventType: "booking.canceled",
+              name,
+              email,
+              eventName,
+              startTime: event.start_time,
+              cancellationReason: reason,
+              receivedAt: new Date().toISOString(),
+            }),
+          ]);
 
-        await syncPipelineSafely(
-          () => pipelineSync.syncCalendlyCancellation({ eventUri }),
-          `Calendly cancellation ${eventUri} <${email}>`,
-        );
-      } else {
-        console.log(`[calendly] Unhandled event type: ${eventType}`);
-      }
+          await syncPipelineSafely(
+            () => pipelineSync.syncCalendlyCancellation({ eventUri }),
+            `Calendly cancellation ${eventUri} <${email}>`,
+          );
+        } else {
+          console.log(`[calendly] Unhandled event type: ${eventType}`);
+        }
       })().catch((err) => {
         console.error(
           `[calendly] Background processing failed for ${eventType}:`,
@@ -533,8 +509,7 @@ if (require.main === module) {
   const app = createApp();
   app.listen(PORT, () => {
     console.log(`[server] Listening on port ${PORT}`);
-    console.log(`[server] Email notifications → ${MICHAEL_EMAIL}`);
-    console.log(`[server] SMTP configured: ${Boolean(mailer)}`);
+    console.log(`[server] Email notifications → ${MICHAEL_EMAIL} (via Microsoft Graph)`);
     console.log(`[server] Calendly signing: ${Boolean(CALENDLY_SIGNING_KEY)}`);
     console.log(`[server] Downstream URL: ${DOWNSTREAM_URL || "(none)"}`);
   });

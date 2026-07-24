@@ -160,3 +160,30 @@ test("graphFetch returns null for a 204 No Content response", async () => {
 
   assert.equal(result, null);
 });
+
+test("graphFetch returns null for a 202 Accepted response", async () => {
+  const fetchImpl = async (url) => {
+    if (url.includes("/token")) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ access_token: "abc123", expires_in: 3600 }),
+      };
+    }
+    return { ok: true, status: 202 };
+  };
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl,
+    now: () => 0,
+  });
+
+  const result = await client.graphFetch("/users/x/sendMail", {
+    method: "POST",
+    body: "{}",
+  });
+
+  assert.equal(result, null);
+});

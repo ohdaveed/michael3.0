@@ -57,7 +57,9 @@ function createGraphClient({
         `[graph] ${options.method || "GET"} ${path} failed: ${res.status} ${body}`,
       );
     }
-    return res.status === 204 ? null : res.json();
+    // 204 (No Content) and 202 (Accepted, e.g. /sendMail) never carry a
+    // JSON body — attempting to parse either would throw.
+    return res.status === 204 || res.status === 202 ? null : res.json();
   }
 
   return { getAccessToken, graphFetch };

@@ -45,15 +45,14 @@ In the Railway dashboard → your project → **Variables**, add:
 
 ```
 MICHAEL_EMAIL         michael@lehr-law.com
-SMTP_HOST             smtp.office365.com
-SMTP_PORT             587
-SMTP_USER             michael@lehr-law.com
-SMTP_PASS             <Outlook app password>
-SMTP_FROM             michael@lehr-law.com
 CALENDLY_WEBHOOK_SIGNING_KEY   <from Calendly — see below>
 TALLY_FORM_ID         ob17lb
 DOWNSTREAM_URL        (leave blank for now, or paste a Power Automate URL)
 ```
+
+(The `GRAPH_*`/`SHAREPOINT_*` variables that power both the SharePoint sync
+and email sending are set up in the "SharePoint Client Pipeline sync"
+section below.)
 
 Railway automatically sets `PORT`. Do not override it.
 
@@ -90,11 +89,14 @@ curl https://<your-railway-url>/
 
 ---
 
-## SharePoint Client Pipeline sync
+## SharePoint Client Pipeline sync + email notifications
 
 Every Tally message and Calendly booking/cancellation is upserted into a
-SharePoint list called `Client Pipeline`, via Microsoft Graph, using an
-Azure AD app registration scoped to that one site only.
+SharePoint list called `Client Pipeline`, and email notifications to Michael
+are sent, both via Microsoft Graph, using a single Azure AD app registration.
+Email goes through Graph's `/sendMail` API rather than SMTP because this
+tenant's Security Defaults policy blocks Basic Auth SMTP outright — Graph's
+app-only OAuth2 flow isn't subject to that restriction.
 
 ### 1. Create the SharePoint site and list
 
@@ -125,12 +127,19 @@ Azure AD app registration scoped to that one site only.
 1. In the Entra admin center → **App registrations** → **New registration**.
    Name it something identifiable, e.g. "Lehr Law Webhook Server".
 2. Under **API permissions** → **Add a permission** → **Microsoft Graph** →
-   **Application permissions** → search for and add `Sites.Selected`. An
-   admin must grant consent.
-3. Under **Certificates & secrets** → **New client secret**. **Set an
+   **Application permissions** → search for and add both `Sites.Selected`
+   and `Mail.Send`. An admin must grant consent for both.
+3. `Mail.Send` allows the app to send mail as *any* mailbox in the tenant
+   by default — restrict it to `michael@lehr-law.com` only via an Exchange
+   **application access policy** (Exchange Online PowerShell:
+   `New-ApplicationAccessPolicy -AppId <client-id> -PolicyScopeGroupId
+   michael@lehr-law.com -AccessRight RestrictAccess -Description "Webhook
+   server — Michael's mailbox only"`). Without this, the app's blast radius
+   if the client secret ever leaks extends to every mailbox in the tenant.
+4. Under **Certificates & secrets** → **New client secret**. **Set an
    expiration of 12 months or less** — do not create a secret with no
    expiration. Record the secret value immediately; it's shown only once.
-4. Record the **Application (client) ID** and **Directory (tenant) ID**
+5. Record the **Application (client) ID** and **Directory (tenant) ID**
    from the app's Overview page.
 
 ### 3. Grant the app access to only the new site (Sites.Selected)
@@ -185,22 +194,6 @@ registration).
    an email arrive at Michael's inbox.
 
 Tally webhooks are available on the free plan.
-
----
-
-## Outlook SMTP — App Password setup
-
-Microsoft 365 / Outlook.com require an **App Password** (not your account
-password) when basic SMTP auth is used without OAuth.
-
-1. Go to [account.microsoft.com/security](https://account.microsoft.com/security).
-2. Under **Advanced security options**, click **App passwords**.
-3. Click **Create a new app password** and copy the generated password.
-4. Set `SMTP_PASS` to that value in Railway.
-
-If the Microsoft 365 tenant has **basic auth disabled** (common in business
-tenants), ask the M365 administrator to enable SMTP AUTH for `michael@lehr-law.com`
-or switch `SMTP_HOST` to a transactional sender (SendGrid, Resend, etc.).
 
 ---
 
