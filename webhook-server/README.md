@@ -90,6 +90,88 @@ curl https://<your-railway-url>/
 
 ---
 
+## SharePoint Client Pipeline sync
+
+Every Tally message and Calendly booking/cancellation is upserted into a
+SharePoint list called `Client Pipeline`, via Microsoft Graph, using an
+Azure AD app registration scoped to that one site only.
+
+### 1. Create the SharePoint site and list
+
+1. In the Microsoft 365 admin center, create a new **private** SharePoint
+   site named "Lehr Law Practice". Restrict membership to Michael (and any
+   future admin); enforce MFA for all members; enable audit logging.
+2. In that site, create a list named `Client Pipeline` with these columns
+   (all single line of text unless noted):
+   - `Title` (built in)
+   - `LeadID`, `FirstName`, `LastName`, `Email`, `Phone`
+   - `Source` (choice: Website Message / Booking)
+   - `DesiredProductCode`, `DesiredProductLabel`
+   - `TallySubmissionID`, `CalendlyEventURI`
+   - `InquiryReceivedAt` (date and time)
+   - `Stage` (single line of text — values used by the sync: `New Inquiry`,
+     `Consult Scheduled`, `Consult Cancelled`)
+   - `ConsultStart`, `ConsultEnd` (date and time), `ConsultTimeZone`
+   - `Notes` (multiple lines of text)
+3. **Index the `Email` and `CalendlyEventURI` columns** (List settings →
+   Indexed columns) — Graph's `$filter` on these fields requires it for
+   reliable results at scale.
+4. Enable list **versioning** (List settings → Versioning settings) — this
+   is the audit trail for this phase (no separate `Pipeline Activity` list
+   yet).
+
+### 2. Register the Azure AD app
+
+1. In the Entra admin center → **App registrations** → **New registration**.
+   Name it something identifiable, e.g. "Lehr Law Webhook Server".
+2. Under **API permissions** → **Add a permission** → **Microsoft Graph** →
+   **Application permissions** → search for and add `Sites.Selected`. An
+   admin must grant consent.
+3. Under **Certificates & secrets** → **New client secret**. **Set an
+   expiration of 12 months or less** — do not create a secret with no
+   expiration. Record the secret value immediately; it's shown only once.
+4. Record the **Application (client) ID** and **Directory (tenant) ID**
+   from the app's Overview page.
+
+### 3. Grant the app access to only the new site (Sites.Selected)
+
+`Sites.Selected` grants zero site access by default — you must explicitly
+grant this app permission to the one site it needs, using Graph Explorer or
+a one-off authenticated request as a tenant admin:
+
+```http
+POST https://graph.microsoft.com/v1.0/sites/{site-id}/permissions
+Content-Type: application/json
+
+{
+  "roles": ["write"],
+  "grantedToIdentities": [{
+    "application": {
+      "id": "{app-client-id}",
+      "displayName": "Lehr Law Webhook Server"
+    }
+  }]
+}
+```
+
+Find `{site-id}` via `GET https://graph.microsoft.com/v1.0/sites/{tenant}.sharepoint.com:/sites/{site-name}`.
+Find `{list-id}` via `GET https://graph.microsoft.com/v1.0/sites/{site-id}/lists`.
+
+### 4. Set the Railway environment variables
+
+In the Railway dashboard → your project → **Variables**, add the five
+`GRAPH_*`/`SHAREPOINT_*` values from `.env.example` above, using the
+tenant ID, client ID, client secret, site ID, and list ID from steps 2–3.
+
+### 5. Rotation reminder
+
+Set a calendar reminder for one month before the client secret's expiration
+to generate a new one (Certificates & secrets → New client secret → update
+`GRAPH_CLIENT_SECRET` in Railway → delete the old secret from the app
+registration).
+
+---
+
 ## Configure Tally webhooks
 
 1. Log in to [tally.so](https://tally.so) and open form **ob17lb**

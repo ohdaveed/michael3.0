@@ -1,0 +1,18 @@
+{
+  "contract_version": 2,
+  "description": "Canonical product taxonomy shared by the embedded Tally contact form (tally.so/r/ob17lb), the Tally intake questionnaire (tally.so/r/q4MKYO), the Tally webhook / Relay.app intake flow, and the SharePoint 'Client Pipeline' list (DesiredProductCode / DesiredProductLabel columns). The form's 'Service needed' dropdown uses the labels; the intake flow maps label to code with this table. Codes are stable keys and must never change meaning; labels here, in the Tally forms, and in the SharePoint choice column must stay identical. Any change requires bumping contract_version and updating docs/client-pipeline.md.",
+  "products": [
+    { "code": "TRUST_PACKAGE", "label": "Complete Living Trust Package" },
+    { "code": "WILL_ONLY", "label": "Will Only" },
+    { "code": "POWER_OF_ATTORNEY", "label": "Power of Attorney" },
+    {
+      "code": "ADVANCE_HEALTH_CARE_DIRECTIVE",
+      "label": "Advance Health Care Directive"
+    },
+    { "code": "PROBATE_ADMINISTRATION", "label": "Probate Administration" },
+    { "code": "TRUST_ADMINISTRATION", "label": "Trust Administration" },
+    { "code": "TRUST_AMENDMENT", "label": "Trust Amendment" },
+    { "code": "ELDER_LAW", "label": "Elder Law" },
+    { "code": "NOT_SURE_OTHER", "label": "Not sure yet / another need" }
+  ]
+}
