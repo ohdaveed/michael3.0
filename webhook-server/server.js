@@ -179,10 +179,11 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
   // POST /webhooks/tally
   // Tally sends: { eventId, createdAt, data: { submissionId, formId, fields[] } }
   // -------------------------------------------------------------------------
-  app.post("/webhooks/tally", async (req, res) => {
+  app.post("/webhooks/tally", (req, res) => {
+    let submissionId;
     try {
       const body = req.body;
-      const submissionId = body?.data?.submissionId;
+      submissionId = body?.data?.submissionId;
       const formId = body?.data?.formId;
 
       if (formId !== TALLY_FORM_ID) {
@@ -215,40 +216,48 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
         `[tally] Submission ${submissionId} from ${firstName} ${lastName} <${email}>`,
       );
 
-      const syncResult = await syncPipelineSafely(
-        () =>
-          pipelineSync.syncTallyMessage({
-            submissionId,
-            firstName,
-            lastName,
-            email,
-            phone,
-            service,
-          }),
-        `Tally submission ${submissionId} <${email}>`,
-      );
+      // Respond immediately — Tally closes the connection ~10s after sending
+      // the webhook, well before a SharePoint sync or a slow SMTP send could
+      // complete. Everything below continues in the background; failures
+      // there are caught internally (syncPipelineSafely, sendEmail) and can
+      // never turn into an HTTP error after this point.
+      res.json({ ok: true, submissionId });
 
-      const subjectPrefix =
-        syncResult.action === "flagged-multiple" ? "[NEEDS REVIEW] " : "";
-      const subject = `${subjectPrefix}New message from ${firstName} ${lastName} — ${service}`;
-      const text = [
-        `New contact form submission via lehr-law.com`,
-        ``,
-        `Name:    ${firstName} ${lastName}`,
-        `Email:   ${email}`,
-        `Phone:   ${phone}`,
-        `Service: ${service}`,
-        ``,
-        `Message:`,
-        message,
-        ``,
-        `---`,
-        `Submission ID: ${submissionId}`,
-        `Form: ${formId} (contract v${contractVersion}, page: ${page})`,
-        `Received: ${new Date().toISOString()}`,
-      ].join("\n");
+      (async () => {
+        const syncResult = await syncPipelineSafely(
+          () =>
+            pipelineSync.syncTallyMessage({
+              submissionId,
+              firstName,
+              lastName,
+              email,
+              phone,
+              service,
+            }),
+          `Tally submission ${submissionId} <${email}>`,
+        );
 
-      const html = `
+        const subjectPrefix =
+          syncResult.action === "flagged-multiple" ? "[NEEDS REVIEW] " : "";
+        const subject = `${subjectPrefix}New message from ${firstName} ${lastName} — ${service}`;
+        const text = [
+          `New contact form submission via lehr-law.com`,
+          ``,
+          `Name:    ${firstName} ${lastName}`,
+          `Email:   ${email}`,
+          `Phone:   ${phone}`,
+          `Service: ${service}`,
+          ``,
+          `Message:`,
+          message,
+          ``,
+          `---`,
+          `Submission ID: ${submissionId}`,
+          `Form: ${formId} (contract v${contractVersion}, page: ${page})`,
+          `Received: ${new Date().toISOString()}`,
+        ].join("\n");
+
+        const html = `
 <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
   <h2 style="color:#0b1d33">New contact form submission</h2>
   <table style="width:100%;border-collapse:collapse">
@@ -272,28 +281,34 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
   </p>
 </div>`;
 
-      await Promise.all([
-        sendEmail({ subject, text, html }),
-        forwardDownstream({
-          source: "tally",
-          submissionId,
-          formId,
-          contractVersion,
-          firstName,
-          lastName,
-          email,
-          phone,
-          service,
-          message,
-          page,
-          receivedAt: new Date().toISOString(),
-        }),
-      ]);
-
-      res.json({ ok: true, submissionId });
+        await Promise.all([
+          sendEmail({ subject, text, html }),
+          forwardDownstream({
+            source: "tally",
+            submissionId,
+            formId,
+            contractVersion,
+            firstName,
+            lastName,
+            email,
+            phone,
+            service,
+            message,
+            page,
+            receivedAt: new Date().toISOString(),
+          }),
+        ]);
+      })().catch((err) => {
+        console.error(
+          `[tally] Background processing failed for ${submissionId}:`,
+          err,
+        );
+      });
     } catch (err) {
       console.error("[tally] Handler error:", err);
-      res.status(500).json({ error: "Internal server error" });
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Internal server error" });
+      }
     }
   });
 
@@ -302,7 +317,8 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
   // Calendly sends: { event, created_at, created_by, payload: { uri, event, invitee } }
   // Supported events: invitee.created, invitee.canceled
   // -------------------------------------------------------------------------
-  app.post("/webhooks/calendly", async (req, res) => {
+  app.post("/webhooks/calendly", (req, res) => {
+    let eventType;
     try {
       // Validate HMAC signature
       if (!validateCalendlySignature(req)) {
@@ -311,7 +327,7 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
       }
 
       const body = req.body;
-      const eventType = body?.event;
+      eventType = body?.event;
       const payload = body?.payload || {};
       const invitee = payload?.invitee || {};
       const event = payload?.event || {};
@@ -349,6 +365,11 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
         `[calendly] ${eventType} — ${name} <${email}> @ ${startTime}`,
       );
 
+      // Respond immediately — the SharePoint sync and email send continue
+      // in the background below (see the /webhooks/tally handler for why).
+      res.json({ ok: true, event: eventType });
+
+      (async () => {
       if (eventType === "invitee.created") {
         const syncResult = await syncPipelineSafely(
           () =>
@@ -487,11 +508,17 @@ function createApp({ pipelineSync = buildDefaultPipelineSync() } = {}) {
       } else {
         console.log(`[calendly] Unhandled event type: ${eventType}`);
       }
-
-      res.json({ ok: true, event: eventType });
+      })().catch((err) => {
+        console.error(
+          `[calendly] Background processing failed for ${eventType}:`,
+          err,
+        );
+      });
     } catch (err) {
       console.error("[calendly] Handler error:", err);
-      res.status(500).json({ error: "Internal server error" });
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Internal server error" });
+      }
     }
   });
 
