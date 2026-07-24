@@ -86,22 +86,87 @@ function staticImagesPlugin() {
   };
 }
 
-// Emits sitemap.xml and robots.txt into the build output. Replaces
-// vite-plugin-sitemap, which strips the ".html" extension from every URL —
-// the Bluehost host serves the pages only at their ".html" paths (no
-// rewrites), so extension-less sitemap entries 404 and contradict each
-// page's canonical tag. URLs here must stay in the same form as the
-// <link rel="canonical"> tags.
+// llms.txt (see https://llmstxt.org) tells AI agents/LLM crawlers what the
+// site is and which pages matter, in the same spirit as sitemap.xml for
+// search engines. Per-page entries are pulled from each page's own <title>
+// and <meta name="description"> at build time rather than hand-duplicated
+// here, so they can't drift out of sync the way the CLAUDE.md canonical-URL
+// warning describes for other generated artifacts.
+const LLMS_INTRO = `# Michael Lehr, Attorney at Law
+
+> Estate planning attorney in San Francisco's Financial District — Living Trusts, Wills, Probate Administration, and Powers of Attorney for individuals and families, with free consultations and evening/weekend remote meetings.
+
+Michael Lehr (State Bar of California #235888) provides direct, personal estate planning counsel — clients work with Michael himself, not a rotating associate. Office: One Sansome Street, Suite 1400, San Francisco, CA 94104. Phone: +1-415-800-1795.
+`;
+
+// Curated reading order for the primary pages; anything else indexed
+// (present but not listed here) still gets appended automatically further
+// down so a future new page is never silently dropped from llms.txt.
+const LLMS_PAGE_ORDER = [
+  "index.html",
+  "services.html",
+  "process.html",
+  "results.html",
+  "faq.html",
+  "what-to-expect.html",
+  "contact.html",
+];
+const LLMS_OPTIONAL_PAGES = [
+  "privacy-policy.html",
+  "disclaimer.html",
+  "attorney-advertising.html",
+];
+const LLMS_LABEL_OVERRIDES = { "index.html": "Home" };
+
+// llms.txt is Markdown, not HTML, so entities like "&amp;" from a page's
+// <title> must be decoded rather than passed through literally.
+const HTML_ENTITIES = {
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+};
+
+function decodeEntities(text) {
+  return text.replace(/&(amp|lt|gt|quot|#39);/g, (m) => HTML_ENTITIES[m]);
+}
+
+function extractTag(html, regex) {
+  const match = html.match(regex);
+  return match ? decodeEntities(match[1].replace(/\s+/g, " ").trim()) : "";
+}
+
+function llmsPageEntry(file, outDir) {
+  const html = readFileSync(resolve(outDir, file), "utf-8");
+  const title = extractTag(html, /<title>([\s\S]*?)<\/title>/);
+  const description = extractTag(
+    html,
+    /<meta\s+name="description"\s+content="([^"]*)"/,
+  );
+  const label = LLMS_LABEL_OVERRIDES[file] ?? title.split("|")[0].trim();
+  const loc = file === "index.html" ? SITE_URL : `${SITE_URL}${file}`;
+  return `- [${label}](${loc}): ${description}`;
+}
+
+// Emits sitemap.xml, robots.txt, and llms.txt into the build output.
+// Replaces vite-plugin-sitemap, which strips the ".html" extension from
+// every URL — the Bluehost host serves the pages only at their ".html"
+// paths (no rewrites), so extension-less sitemap entries 404 and
+// contradict each page's canonical tag. URLs here must stay in the same
+// form as the <link rel="canonical"> tags.
 function seoFilesPlugin() {
   return {
     name: "seo-files",
     writeBundle(outputOptions) {
       const outDir = outputOptions.dir ?? resolve(__dirname, "dist");
-      const pages = readdirSync(outDir)
+      const htmlFiles = readdirSync(outDir)
         .filter((f) => f.endsWith(".html"))
-        .filter((f) => f !== "thank-you.html") // noindex — keep out of the sitemap
-        .map((f) => (f === "index.html" ? SITE_URL : `${SITE_URL}${f}`))
+        .filter((f) => f !== "thank-you.html") // noindex — keep out of the sitemap/llms.txt
         .sort();
+      const pages = htmlFiles.map((f) =>
+        f === "index.html" ? SITE_URL : `${SITE_URL}${f}`,
+      );
       const urlset = pages
         .map((loc) => `  <url>\n    <loc>${loc}</loc>\n  </url>`)
         .join("\n");
@@ -114,6 +179,26 @@ function seoFilesPlugin() {
       writeFileSync(
         resolve(outDir, "robots.txt"),
         `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}sitemap.xml\n`,
+      );
+
+      const optionalFiles = LLMS_OPTIONAL_PAGES.filter((f) =>
+        htmlFiles.includes(f),
+      );
+      const mainFiles = [
+        ...LLMS_PAGE_ORDER.filter((f) => htmlFiles.includes(f)),
+        ...htmlFiles.filter(
+          (f) => !LLMS_PAGE_ORDER.includes(f) && !optionalFiles.includes(f),
+        ),
+      ];
+      const mainSection = mainFiles
+        .map((f) => llmsPageEntry(f, outDir))
+        .join("\n");
+      const optionalSection = optionalFiles
+        .map((f) => llmsPageEntry(f, outDir))
+        .join("\n");
+      writeFileSync(
+        resolve(outDir, "llms.txt"),
+        `${LLMS_INTRO}\n## Pages\n\n${mainSection}\n\n## Optional\n\n${optionalSection}\n`,
       );
     },
   };
