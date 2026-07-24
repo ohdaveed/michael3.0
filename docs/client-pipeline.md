@@ -28,7 +28,7 @@ corrected by Michael_, not to define legal procedure.
 > [`docs/superpowers/specs/2026-07-18-calendly-intake-to-sharepoint-design.md`](superpowers/specs/2026-07-18-calendly-intake-to-sharepoint-design.md)
 > and [`webhook-server/README.md`](../webhook-server/README.md) for what
 > actually exists. That pass also intentionally built only the `Client
-> Pipeline` list with a trimmed column set (§4.1 below is still the fuller,
+Pipeline` list with a trimmed column set (§4.1 below is still the fuller,
 > not-yet-built future schema) and left email notifications on **Microsoft
 > Graph's `/sendMail`**, not SMTP — this tenant's Security Defaults policy
 > blocks Basic Auth SMTP outright, which Power Automate's Outlook connector
