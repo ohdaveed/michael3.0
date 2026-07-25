@@ -55,12 +55,13 @@ if (embeds.length > 0) {
     setTimeout(loadEmbeds, 3000);
   }
 
+  // Tracks which form pages have already sent a contact_form_page_view, so
+  // a respondent going back and forth between pages (e.g. to fix an answer)
+  // doesn't inflate early-funnel step counts.
+  const seenFormPages = new Set();
+
   window.addEventListener("message", (event) => {
-    if (
-      event.origin !== "https://tally.so" ||
-      typeof event.data !== "string" ||
-      !event.data.includes("Tally.FormSubmitted")
-    ) {
+    if (event.origin !== "https://tally.so" || typeof event.data !== "string") {
       return;
     }
     let data;
@@ -69,7 +70,26 @@ if (embeds.length > 0) {
     } catch {
       return;
     }
-    if (!data || data.event !== "Tally.FormSubmitted") return;
+    if (!data) return;
+
+    // Step-level funnel data for the contact form: Tally fires this once per
+    // form page a respondent views, so drop-off inside a multi-page form is
+    // visible in GA4 instead of only "opened the page vs. submitted".
+    if (data.event === "Tally.FormPageView") {
+      const page = data.payload?.page;
+      if (page != null && !seenFormPages.has(page)) {
+        seenFormPages.add(page);
+        if (typeof window.gtag === "function") {
+          window.gtag("event", "contact_form_page_view", {
+            method: "contact_form",
+            form_page: page,
+          });
+        }
+      }
+      return;
+    }
+
+    if (data.event !== "Tally.FormSubmitted") return;
 
     // Tally's redirect-on-completion applies inside the iframe; navigate
     // the page itself so the visitor lands on the thank-you page. Wait
