@@ -108,3 +108,91 @@ test("updatePipelineItem PATCHes fields flat, not wrapped", async () => {
     Stage: "Consult Scheduled",
   });
 });
+
+test("fetchListDelta without a link starts a fresh delta with fields expanded", async () => {
+  const graphClient = fakeGraphClient(() => ({
+    value: [{ id: "1", fields: { Stage: "Consult Held" } }],
+    "@odata.deltaLink":
+      "https://graph.microsoft.com/v1.0/sites/s/lists/l/items/delta?token=abc",
+  }));
+  const sp = createSharepointClient({ graphClient });
+
+  const result = await sp.fetchListDelta(null);
+
+  assert.equal(result.reset, false);
+  assert.equal(result.items.length, 1);
+  assert.match(result.deltaLink, /items\/delta\?token=abc/);
+  assert.match(graphClient.calls[0].path, /\/items\/delta\?expand=fields/);
+});
+
+test("fetchListDelta follows nextLink pages and accumulates items", async () => {
+  let call = 0;
+  const graphClient = fakeGraphClient(() => {
+    call += 1;
+    if (call === 1) {
+      return {
+        value: [{ id: "1" }],
+        "@odata.nextLink":
+          "https://graph.microsoft.com/v1.0/sites/s/lists/l/items/delta?$skiptoken=page2",
+      };
+    }
+    return {
+      value: [{ id: "2" }],
+      "@odata.deltaLink":
+        "https://graph.microsoft.com/v1.0/sites/s/lists/l/items/delta?token=final",
+    };
+  });
+  const sp = createSharepointClient({ graphClient });
+
+  const result = await sp.fetchListDelta(null);
+
+  assert.deepEqual(
+    result.items.map((i) => i.id),
+    ["1", "2"],
+  );
+  assert.match(result.deltaLink, /token=final/);
+  assert.match(graphClient.calls[1].path, /skiptoken=page2/);
+  assert.ok(!graphClient.calls[1].path.startsWith("https://"));
+});
+
+test("fetchListDelta resumes from a stored deltaLink, stripping the Graph origin", async () => {
+  const graphClient = fakeGraphClient(() => ({
+    value: [],
+    "@odata.deltaLink":
+      "https://graph.microsoft.com/v1.0/sites/s/lists/l/items/delta?token=next",
+  }));
+  const sp = createSharepointClient({ graphClient });
+
+  await sp.fetchListDelta(
+    "https://graph.microsoft.com/v1.0/sites/s/lists/l/items/delta?token=prev",
+  );
+
+  assert.equal(
+    graphClient.calls[0].path,
+    "/sites/s/lists/l/items/delta?token=prev",
+  );
+});
+
+test("fetchListDelta reports reset on 410 Gone instead of throwing", async () => {
+  const graphClient = fakeGraphClient(() => {
+    throw new Error(
+      "[graph] GET /sites/s/lists/l/items/delta?token=stale failed: 410 resyncRequired",
+    );
+  });
+  const sp = createSharepointClient({ graphClient });
+
+  const result = await sp.fetchListDelta(
+    "https://graph.microsoft.com/v1.0/sites/s/lists/l/items/delta?token=stale",
+  );
+
+  assert.deepEqual(result, { reset: true, items: [], deltaLink: null });
+});
+
+test("fetchListDelta rethrows non-410 errors", async () => {
+  const graphClient = fakeGraphClient(() => {
+    throw new Error("[graph] GET /x failed: 503 unavailable");
+  });
+  const sp = createSharepointClient({ graphClient });
+
+  await assert.rejects(() => sp.fetchListDelta(null), /503/);
+});

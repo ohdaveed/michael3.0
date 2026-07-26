@@ -59,11 +59,50 @@ function createSharepointClient({ graphClient = createGraphClient() } = {}) {
     );
   }
 
+  // Delta query over the Client Pipeline list. Graph list-change
+  // notifications never include the changed data itself (resourceData is
+  // empty for list resources), so every notification triggers a delta
+  // fetch to learn what actually changed. Pass the deltaLink returned by
+  // the previous call to get only changes since then; pass null for a
+  // full baseline sync. `reset: true` signals a 410 Gone (expired delta
+  // token, a documented delta behavior) — the caller must restart from
+  // null.
+  const GRAPH_ORIGIN = "https://graph.microsoft.com/v1.0";
+
+  async function fetchListDelta(deltaLink) {
+    const items = [];
+    let path = deltaLink
+      ? deltaLink.replace(GRAPH_ORIGIN, "")
+      : `/sites/${SITE_ID}/lists/${LIST_ID}/items/delta?expand=fields`;
+    for (;;) {
+      let data;
+      try {
+        data = await graphClient.graphFetch(path, { method: "GET" });
+      } catch (err) {
+        if (/failed: 410\b/.test(String(err.message))) {
+          return { reset: true, items: [], deltaLink: null };
+        }
+        throw err;
+      }
+      items.push(...(data.value || []));
+      if (data["@odata.nextLink"]) {
+        path = data["@odata.nextLink"].replace(GRAPH_ORIGIN, "");
+      } else {
+        return {
+          reset: false,
+          items,
+          deltaLink: data["@odata.deltaLink"] || null,
+        };
+      }
+    }
+  }
+
   return {
     findOpenItemByEmail,
     findItemByCalendlyEventUri,
     createPipelineItem,
     updatePipelineItem,
+    fetchListDelta,
   };
 }
 
