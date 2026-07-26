@@ -6,16 +6,15 @@ const { createGraphClient } = require("./graph-client");
 // §4.2) — the append-only audit trail and idempotency ledger. The stage
 // engine checks EventKey here before acting and records every outcome.
 //
-// FIELDS maps our names to the list's internal column names. The live
-// list was built to match §4.2, but internal names must be confirmed
-// against GET /sites/{site}/lists/{list}/columns before first deploy
-// (see webhook-server/README.md) — correct them here if they differ.
-// The pipeline-item reference is written as plain text (PipelineItemID),
-// not the §4.2 lookup column, until the lookup's internal name is
-// confirmed (Graph lookups require the `<Field>LookupId` form).
+// FIELDS maps our names to the list's internal column names, verified
+// against the live list's GET /sites/{site}/lists/{list}/columns on
+// 2026-07-26 — correct them here if the list ever changes. The
+// pipeline-item reference is the §4.2 lookup column (internal name
+// `PipelineItem`), written via Graph's `<Field>LookupId` form, which
+// takes the referenced item's numeric list-item id.
 const FIELDS = {
   title: "Title",
-  pipelineItemId: "PipelineItemID",
+  pipelineItemId: "PipelineItemLookupId",
   eventType: "EventType",
   eventSource: "EventSource",
   eventTimestamp: "EventTimestamp",
@@ -58,7 +57,7 @@ function createPipelineActivityClient({
       body: JSON.stringify({
         fields: {
           [FIELDS.title]: summary,
-          [FIELDS.pipelineItemId]: String(pipelineItemId),
+          [FIELDS.pipelineItemId]: Number(pipelineItemId),
           [FIELDS.eventType]: eventType,
           [FIELDS.eventSource]: "webhook-server",
           [FIELDS.eventTimestamp]: new Date().toISOString(),

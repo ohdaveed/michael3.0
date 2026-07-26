@@ -84,7 +84,7 @@ test("recordActivity POSTs a wrapped fields object with the audit columns", asyn
   assert.equal(call.options.method, "POST");
   const body = JSON.parse(call.options.body);
   assert.equal(body.fields.Title, 'Stage "Consult Held" processed');
-  assert.equal(body.fields.PipelineItemID, "42");
+  assert.equal(body.fields.PipelineItemLookupId, 42);
   assert.equal(body.fields.EventType, "stage:Consult Held");
   assert.equal(body.fields.EventSource, "webhook-server");
   assert.equal(body.fields.ActorOrFlow, "stage-engine");

@@ -222,10 +222,12 @@ registration).
 1. Confirm the `Pipeline Activity` list's internal column names match
    `lib/pipeline-activity.js` `FIELDS` (`EventKey`, `EventType`,
    `EventSource`, `EventTimestamp`, `ActorOrFlow`, `Summary`, `Outcome`,
-   `ErrorDetails`, `PipelineItemID`):
+   `ErrorDetails`, plus the `PipelineItem` lookup written as
+   `PipelineItemLookupId`):
    `GET https://graph.microsoft.com/v1.0/sites/{site-id}/lists/{activity-list-id}/columns`
-   — fix `FIELDS` (one place) if any differ, and add any missing columns
-   (e.g. `PipelineItemID` as a single-line-of-text column) to the list.
+   — fix `FIELDS` (one place) if any differ. Verified against the live
+   list 2026-07-26; all columns matched, and the pipeline-item reference
+   uses the list's `PipelineItem` lookup column.
    Also create an index on the `EventKey` column — the engine's
    idempotency lookup uses a non-indexed `$filter` that SharePoint may
    start rejecting once the list passes the ~5,000-item view threshold.
