@@ -70,6 +70,12 @@ function createStageEngine({
     }
     const eventKey = buildEventKey(item.id, fields);
     if (await activityClient.findSuccessByEventKey(eventKey)) {
+      // Already processed, but if PreviousStage wasn't advanced due to an
+      // updatePipelineItem failure, re-attempt the advance to self-heal.
+      await sharepointClient.updatePipelineItem(item.id, {
+        PreviousStage: fields.Stage,
+        StageChangedAt: new Date().toISOString(),
+      });
       return { action: "no-op-duplicate", itemId: item.id, eventKey };
     }
     try {
@@ -92,7 +98,7 @@ function createStageEngine({
           text: [
             `Processing the "${fields.Stage}" stage failed for pipeline item ${item.id}.`,
             ``,
-            `Error: ${err.message}`,
+            `Error: ${String(err.message || err)}`,
             ``,
             `Check Railway logs. The transition will retry on the next change`,
             `notification for this item.`,
@@ -137,9 +143,19 @@ function createStageEngine({
     deltaLink = result.deltaLink;
     const outcomes = [];
     for (const item of result.items) {
-      outcomes.push(
-        await itemLock.withItemLock(item.id, () => processItem(item)),
-      );
+      try {
+        outcomes.push(
+          await itemLock.withItemLock(item.id, () => processItem(item)),
+        );
+      } catch (err) {
+        const errorMsg = String(err.message || err);
+        console.error(`[stage-engine] item ${item.id} failed:`, errorMsg);
+        outcomes.push({
+          action: "error",
+          itemId: item.id,
+          error: errorMsg,
+        });
+      }
     }
     return outcomes;
   }
