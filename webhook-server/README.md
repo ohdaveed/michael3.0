@@ -210,6 +210,15 @@ registration).
 
 ### Flow E deploy checklist
 
+0. Backfill `PreviousStage = Stage` on ALL existing Client Pipeline items
+   before setting the Flow E env vars below. The engine's first delta call
+   is a full baseline of every list item; any historical item whose
+   `Stage` doesn't already equal `PreviousStage` (e.g. one manually
+   sitting in "Consult Held") would otherwise look like a fresh transition
+   on day one — emailing Michael and writing ledger rows for matters
+   handled long ago. Do a one-time bulk edit (SharePoint grid view, or a
+   Graph `PATCH` per item) to set `PreviousStage` equal to the current
+   `Stage` everywhere first.
 1. Confirm the `Pipeline Activity` list's internal column names match
    `lib/pipeline-activity.js` `FIELDS` (`EventKey`, `EventType`,
    `EventSource`, `EventTimestamp`, `ActorOrFlow`, `Summary`, `Outcome`,
@@ -217,10 +226,18 @@ registration).
    `GET https://graph.microsoft.com/v1.0/sites/{site-id}/lists/{activity-list-id}/columns`
    — fix `FIELDS` (one place) if any differ, and add any missing columns
    (e.g. `PipelineItemID` as a single-line-of-text column) to the list.
+   Also create an index on the `EventKey` column — the engine's
+   idempotency lookup uses a non-indexed `$filter` that SharePoint may
+   start rejecting once the list passes the ~5,000-item view threshold.
 2. Set the three env vars above in Railway and redeploy.
 3. Watch the boot log for `[subscriptions] {"action":"created",...}` —
    the validation handshake fails (and subscription creation errors) if
-   the deployed URL isn't reachable over HTTPS.
+   the deployed URL isn't reachable over HTTPS. If the boot log shows
+   `{"action":"created",...}` on EVERY restart instead of settling into
+   `checked`/`ok`, Graph is echoing the subscription resource string in a
+   different format than `sites/{site-id}/lists/{list-id}` and the
+   resource filter in `lib/subscriptions.js` needs adjusting — otherwise
+   duplicate subscriptions will accumulate.
 4. Test end-to-end: move a test item's `Stage` to `Consult Held` in the
    SharePoint UI; expect exactly one reminder email, one success row in
    `Pipeline Activity`, and `PreviousStage`/`StageChangedAt` set on the

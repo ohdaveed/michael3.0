@@ -265,6 +265,47 @@ test("processNotifications continues past a failing item and returns all outcome
   assert.equal(outcomes[1].itemId, "2");
 });
 
+test("processNotifications catches a failure that escapes processItem (recordActivity throws inside the Failed path) and still processes the rest of the batch", async () => {
+  const sp = fakeSharepoint({
+    deltaBatches: [
+      {
+        reset: false,
+        items: [
+          {
+            id: "1",
+            fields: {
+              Stage: "Consult Held",
+              PreviousStage: "Consult Scheduled",
+            },
+          },
+          {
+            id: "2",
+            fields: {
+              Stage: "Consult Held",
+              PreviousStage: "Consult Scheduled",
+            },
+          },
+        ],
+        deltaLink: "link-1",
+      },
+    ],
+  });
+  const { engine } = makeEngine({
+    sharepoint: sp,
+    activity: fakeActivity({ recordThrows: true }),
+    mailer: fakeMailer({ throws: true }),
+  });
+
+  const outcomes = await engine.processNotifications();
+
+  assert.equal(outcomes.length, 2);
+  assert.equal(outcomes[0].action, "error");
+  assert.equal(outcomes[0].itemId, "1");
+  assert.match(outcomes[0].error, /activity write failed/);
+  assert.equal(outcomes[1].action, "error");
+  assert.equal(outcomes[1].itemId, "2");
+});
+
 test("processNotifications stores the deltaLink between calls", async () => {
   const sp = fakeSharepoint({
     deltaBatches: [
