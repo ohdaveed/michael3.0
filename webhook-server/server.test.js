@@ -37,8 +37,8 @@ function fakeMailer() {
   };
 }
 
-async function withServer(pipelineSync, fn) {
-  const app = createApp({ pipelineSync, mailer: fakeMailer() });
+async function withServer(pipelineSync, fn, appOptions = {}) {
+  const app = createApp({ pipelineSync, mailer: fakeMailer(), ...appOptions });
   const server = app.listen(0);
   await new Promise((resolve) => server.once("listening", resolve));
   const { port } = server.address();
@@ -138,7 +138,10 @@ const TALLY_BODY_DROPDOWN_SHAPE = {
         label: "Service needed",
         value: ["b57cf5ca-38a1-4741-8820-eb125dafc31f"],
         options: [
-          { id: "b57cf5ca-38a1-4741-8820-eb125dafc31f", text: "Complete Living Trust Package" },
+          {
+            id: "b57cf5ca-38a1-4741-8820-eb125dafc31f",
+            text: "Complete Living Trust Package",
+          },
           { id: "other-option-id", text: "Will Only" },
         ],
       },
@@ -162,6 +165,91 @@ test("POST /webhooks/tally resolves a dropdown field's option ID to its display 
     assert.equal(sync.calls.tally.length, 1);
     assert.equal(sync.calls.tally[0].service, "Complete Living Trust Package");
   });
+});
+
+// The Tally handler responds before its email sends finish — poll until the
+// background block has produced the expected number of mailer calls.
+async function until(cond, timeoutMs = 2000) {
+  const start = Date.now();
+  while (!cond()) {
+    if (Date.now() - start > timeoutMs) {
+      throw new Error("Timed out waiting for background processing");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+}
+
+test("POST /webhooks/tally sends the lead an acknowledgment when leadAckEnabled is true", async () => {
+  const sync = fakePipelineSync();
+  const mailer = fakeMailer();
+  await withServer(
+    sync,
+    async (base) => {
+      const res = await fetch(`${base}/webhooks/tally`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(TALLY_BODY),
+      });
+      assert.equal(res.status, 200);
+      await until(() => mailer.calls.length >= 2);
+      const ack = mailer.calls.find((c) => c.to === "jane@example.com");
+      assert.ok(ack, "expected an email to the lead");
+      assert.ok(ack.text.includes("what-to-expect.html"));
+      assert.ok(ack.text.includes("https://calendly.example/consult"));
+      assert.ok(ack.html.includes("https://calendly.example/consult"));
+      const michael = mailer.calls.find((c) => c.to !== "jane@example.com");
+      assert.ok(michael, "Michael's notification must still send");
+    },
+    {
+      mailer,
+      leadAckEnabled: true,
+      bookingUrl: "https://calendly.example/consult",
+    },
+  );
+});
+
+test("POST /webhooks/tally sends no lead acknowledgment when leadAckEnabled is false (default)", async () => {
+  const sync = fakePipelineSync();
+  const mailer = fakeMailer();
+  await withServer(
+    sync,
+    async (base) => {
+      const res = await fetch(`${base}/webhooks/tally`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(TALLY_BODY),
+      });
+      assert.equal(res.status, 200);
+      await until(() => mailer.calls.length >= 1);
+      // Give any stray second send a moment to appear before asserting.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      assert.equal(mailer.calls.length, 1);
+      assert.notEqual(mailer.calls[0].to, "jane@example.com");
+    },
+    { mailer, leadAckEnabled: false },
+  );
+});
+
+test("POST /webhooks/tally skips the lead acknowledgment when the submission has no usable email", async () => {
+  const sync = fakePipelineSync();
+  const mailer = fakeMailer();
+  const body = JSON.parse(JSON.stringify(TALLY_BODY));
+  body.data.fields = body.data.fields.filter((f) => f.label !== "Email");
+  await withServer(
+    sync,
+    async (base) => {
+      const res = await fetch(`${base}/webhooks/tally`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      assert.equal(res.status, 200);
+      await until(() => mailer.calls.length >= 1);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      assert.equal(mailer.calls.length, 1);
+    },
+    { mailer, leadAckEnabled: true },
+  );
 });
 
 const CALENDLY_CREATED_BODY = {

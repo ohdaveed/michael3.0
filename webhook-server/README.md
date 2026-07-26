@@ -48,7 +48,21 @@ MICHAEL_EMAIL         michael@lehr-law.com
 CALENDLY_WEBHOOK_SIGNING_KEY   <from Calendly — see below>
 TALLY_FORM_ID         ob17lb
 DOWNSTREAM_URL        (leave blank for now, or paste a Power Automate URL)
+LEAD_ACK_ENABLED      (leave unset until the acknowledgment copy is approved)
+BOOKING_URL           (optional — defaults to the Calendly consultation page)
 ```
+
+**Lead acknowledgment email.** When `LEAD_ACK_ENABLED=true`, every valid
+Tally contact-form submission also sends the lead an acknowledgment from
+`MICHAEL_EMAIL` — "received, here's what happens next" with links to the
+what-to-expect page and the booking page (`BOOKING_URL`; keep it in sync
+with `public/js/booking-url.js` if overridden). This is Flow D step 5 of
+`docs/client-pipeline.md`. It ships **disabled** because the template copy
+in `lib/lead-ack.js` needs Michael's approval (decision **[D17]**) before
+it goes in front of prospects — flip the variable on in Railway once he
+signs off. Rejected payloads (unknown form, bad `form_source`) never get
+an acknowledgment, and a failed acknowledgment send never blocks Michael's
+own notification.
 
 (The `GRAPH_*`/`SHAREPOINT_*` variables that power both the SharePoint sync
 and email sending are set up in the "SharePoint Client Pipeline sync"
@@ -129,12 +143,12 @@ app-only OAuth2 flow isn't subject to that restriction.
 2. Under **API permissions** → **Add a permission** → **Microsoft Graph** →
    **Application permissions** → search for and add both `Sites.Selected`
    and `Mail.Send`. An admin must grant consent for both.
-3. `Mail.Send` allows the app to send mail as *any* mailbox in the tenant
+3. `Mail.Send` allows the app to send mail as _any_ mailbox in the tenant
    by default — restrict it to `michael@lehr-law.com` only via an Exchange
    **application access policy** (Exchange Online PowerShell:
    `New-ApplicationAccessPolicy -AppId <client-id> -PolicyScopeGroupId
-   michael@lehr-law.com -AccessRight RestrictAccess -Description "Webhook
-   server — Michael's mailbox only"`). Without this, the app's blast radius
+michael@lehr-law.com -AccessRight RestrictAccess -Description "Webhook
+server — Michael's mailbox only"`). Without this, the app's blast radius
    if the client secret ever leaks extends to every mailbox in the tenant.
 4. Under **Certificates & secrets** → **New client secret**. **Set an
    expiration of 12 months or less** — do not create a secret with no

@@ -14,6 +14,7 @@ const { createGraphClient } = require("./lib/graph-client");
 const { createSharepointClient } = require("./lib/sharepoint");
 const { createPipelineSync } = require("./lib/pipeline-sync");
 const { createMailer } = require("./lib/mailer");
+const { buildLeadAckEmail } = require("./lib/lead-ack");
 
 // ---------------------------------------------------------------------------
 // Config — all values come from environment variables (set in Railway)
@@ -25,6 +26,16 @@ const CALENDLY_SIGNING_KEY = process.env.CALENDLY_WEBHOOK_SIGNING_KEY || "";
 // (Power Automate HTTP trigger, Relay.app, Zapier catch-hook, etc.)
 const DOWNSTREAM_URL = process.env.DOWNSTREAM_URL || "";
 const TALLY_FORM_ID = process.env.TALLY_FORM_ID || "ob17lb";
+// Client-facing acknowledgment email (client-pipeline.md Flow D step 5).
+// Off by default: the template copy needs Michael's approval [D17] before
+// it goes in front of leads — set LEAD_ACK_ENABLED=true in Railway once
+// approved.
+const LEAD_ACK_ENABLED = process.env.LEAD_ACK_ENABLED === "true";
+// Keep in sync with public/js/booking-url.js (the site's single source of
+// truth for the booking destination).
+const BOOKING_URL =
+  process.env.BOOKING_URL ||
+  "https://calendly.com/lehrlaw/estate-planning-consultation";
 
 // ---------------------------------------------------------------------------
 // Downstream forwarding (optional)
@@ -117,6 +128,8 @@ function validateCalendlySignature(req) {
 function createApp({
   pipelineSync = buildDefaultPipelineSync(),
   mailer = buildDefaultMailer(),
+  leadAckEnabled = LEAD_ACK_ENABLED,
+  bookingUrl = BOOKING_URL,
 } = {}) {
   const app = express();
 
@@ -273,8 +286,27 @@ function createApp({
   </p>
 </div>`;
 
-        await Promise.all([
+        // Acknowledgment to the lead (Flow D step 5): "received, here's
+        // what happens next" + the booking link. Sent regardless of the
+        // sync outcome — the message was received either way — but never
+        // for payloads that failed validation (those 400'd above and no
+        // acknowledgment is sent). mailer.sendEmail catches its own
+        // failures, so a bad lead address can't break Michael's
+        // notification.
+        const sends = [
           mailer.sendEmail({ to: MICHAEL_EMAIL, subject, text, html }),
+        ];
+        if (leadAckEnabled && email.includes("@")) {
+          sends.push(
+            mailer.sendEmail({
+              to: email,
+              ...buildLeadAckEmail({ firstName, service, bookingUrl }),
+            }),
+          );
+        }
+
+        await Promise.all([
+          ...sends,
           forwardDownstream({
             source: "tally",
             submissionId,
@@ -525,8 +557,13 @@ if (require.main === module) {
   const app = createApp();
   app.listen(PORT, () => {
     console.log(`[server] Listening on port ${PORT}`);
-    console.log(`[server] Email notifications → ${MICHAEL_EMAIL} (via Microsoft Graph)`);
+    console.log(
+      `[server] Email notifications → ${MICHAEL_EMAIL} (via Microsoft Graph)`,
+    );
     console.log(`[server] Calendly signing: ${Boolean(CALENDLY_SIGNING_KEY)}`);
+    console.log(
+      `[server] Lead acknowledgment: ${LEAD_ACK_ENABLED ? "enabled" : "disabled (set LEAD_ACK_ENABLED=true once copy is approved)"}`,
+    );
     console.log(`[server] Downstream URL: ${DOWNSTREAM_URL || "(none)"}`);
   });
 }

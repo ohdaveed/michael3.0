@@ -32,7 +32,11 @@ Pipeline` list with a trimmed column set (§4.1 below is still the fuller,
 > not-yet-built future schema) and left email notifications on **Microsoft
 > Graph's `/sendMail`**, not SMTP — this tenant's Security Defaults policy
 > blocks Basic Auth SMTP outright, which Power Automate's Outlook connector
-> would also be subject to. Sections 3 onward (product contract) and
+> would also be subject to. The client acknowledgment email (Flow D step 5)
+> is **implemented in `webhook-server`** (July 2026) but ships disabled
+> behind the `LEAD_ACK_ENABLED` environment variable — the template copy in
+> `webhook-server/lib/lead-ack.js` awaits Michael's approval **[D17]**
+> before the flag is turned on. Sections 3 onward (product contract) and
 > everything from §4.2 on (Pipeline Activity/Matter Tasks/Product
 > Playbooks lists, Flow E stage engine, e-signature, document generation,
 > Clio boundary) remain a **future plan, not yet built**.
