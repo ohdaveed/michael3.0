@@ -222,8 +222,8 @@ registration).
    the validation handshake fails (and subscription creation errors) if
    the deployed URL isn't reachable over HTTPS.
 4. Test end-to-end: move a test item's `Stage` to `Consult Held` in the
-   SharePoint UI; expect exactly one reminder email, one `Pipeline
-Activity` Success row, and `PreviousStage`/`StageChangedAt` set on the
+   SharePoint UI; expect exactly one reminder email, one success row in
+   `Pipeline Activity`, and `PreviousStage`/`StageChangedAt` set on the
    item — and no repeat when the item is touched again.
 
 ---
