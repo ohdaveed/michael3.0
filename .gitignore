@@ -43,6 +43,7 @@ coverage/
 # Agent tooling (Desktop Commander / gstack / Claude skills)
 .agents/
 .claude/
+.mcp.json
 bun.lock
 skills-lock.json
 
