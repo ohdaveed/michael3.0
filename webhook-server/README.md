@@ -8,11 +8,18 @@ structured JSON to a downstream URL (Power Automate, Relay.app, Zapier, etc.).
 
 ## Endpoints
 
-| Method | Path                 | Description                                 |
-| ------ | -------------------- | ------------------------------------------- |
-| GET    | `/`                  | Health check                                |
-| POST   | `/webhooks/tally`    | Tally form submission                       |
-| POST   | `/webhooks/calendly` | Calendly invitee.created / invitee.canceled |
+| Method | Path                       | Description                                                                |
+| ------ | -------------------------- | -------------------------------------------------------------------------- |
+| GET    | `/`                        | Health check                                                               |
+| POST   | `/webhooks/tally`          | Tally form submission                                                      |
+| POST   | `/webhooks/calendly`       | Calendly invitee.created / invitee.canceled                                |
+| POST   | `/webhooks/graph-pipeline` | Microsoft Graph change notifications for the Client Pipeline list (Flow E) |
+
+- `POST /webhooks/graph-pipeline` — Microsoft Graph change notifications
+  for the SharePoint Client Pipeline list (Flow E stage engine). Handles
+  the subscription validation handshake (`?validationToken=...`) and
+  rejects any notification whose `clientState` doesn't match
+  `GRAPH_SUBSCRIPTION_CLIENT_STATE`.
 
 ---
 
@@ -186,12 +193,38 @@ In the Railway dashboard → your project → **Variables**, add the five
 `GRAPH_*`/`SHAREPOINT_*` values from `.env.example` above, using the
 tenant ID, client ID, client secret, site ID, and list ID from steps 2–3.
 
+```
+# Flow E — stage engine (Graph change notifications)
+
+GRAPH_NOTIFICATION_URL=https://<your-railway-url>/webhooks/graph-pipeline
+GRAPH_SUBSCRIPTION_CLIENT_STATE=<long random string — rotate like CALENDLY_WEBHOOK_SIGNING_KEY>
+SHAREPOINT_ACTIVITY_LIST_ID=<list id of the Pipeline Activity list>
+```
+
 ### 5. Rotation reminder
 
 Set a calendar reminder for one month before the client secret's expiration
 to generate a new one (Certificates & secrets → New client secret → update
 `GRAPH_CLIENT_SECRET` in Railway → delete the old secret from the app
 registration).
+
+### Flow E deploy checklist
+
+1. Confirm the `Pipeline Activity` list's internal column names match
+   `lib/pipeline-activity.js` `FIELDS` (`EventKey`, `EventType`,
+   `EventSource`, `EventTimestamp`, `ActorOrFlow`, `Summary`, `Outcome`,
+   `ErrorDetails`, `PipelineItemID`):
+   `GET https://graph.microsoft.com/v1.0/sites/{site-id}/lists/{activity-list-id}/columns`
+   — fix `FIELDS` (one place) if any differ, and add any missing columns
+   (e.g. `PipelineItemID` as a single-line-of-text column) to the list.
+2. Set the three env vars above in Railway and redeploy.
+3. Watch the boot log for `[subscriptions] {"action":"created",...}` —
+   the validation handshake fails (and subscription creation errors) if
+   the deployed URL isn't reachable over HTTPS.
+4. Test end-to-end: move a test item's `Stage` to `Consult Held` in the
+   SharePoint UI; expect exactly one reminder email, one `Pipeline
+Activity` Success row, and `PreviousStage`/`StageChangedAt` set on the
+   item — and no repeat when the item is touched again.
 
 ---
 

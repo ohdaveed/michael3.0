@@ -15,6 +15,10 @@ const { createSharepointClient } = require("./lib/sharepoint");
 const { createPipelineSync } = require("./lib/pipeline-sync");
 const { createMailer } = require("./lib/mailer");
 const { buildLeadAckEmail } = require("./lib/lead-ack");
+const { createPipelineActivityClient } = require("./lib/pipeline-activity");
+const { createSubscriptionsClient } = require("./lib/subscriptions");
+const { createStageEngine } = require("./lib/stage-engine");
+const { createItemLock } = require("./lib/pipeline-item-lock");
 
 // ---------------------------------------------------------------------------
 // Config — all values come from environment variables (set in Railway)
@@ -36,6 +40,11 @@ const LEAD_ACK_ENABLED = process.env.LEAD_ACK_ENABLED === "true";
 const BOOKING_URL =
   process.env.BOOKING_URL ||
   "https://calendly.com/lehrlaw/estate-planning-consultation";
+// Flow E — Graph change notifications on the Client Pipeline list.
+// Both must be set for the subscription bootstrap to run; the webhook
+// route itself rejects everything (401) while the clientState is unset.
+const GRAPH_CLIENT_STATE = process.env.GRAPH_SUBSCRIPTION_CLIENT_STATE || "";
+const GRAPH_NOTIFICATION_URL = process.env.GRAPH_NOTIFICATION_URL || "";
 
 // ---------------------------------------------------------------------------
 // Downstream forwarding (optional)
@@ -74,6 +83,19 @@ function buildDefaultPipelineSync() {
 // application permission).
 function buildDefaultMailer() {
   return createMailer({ fromMailbox: MICHAEL_EMAIL });
+}
+
+// Flow E stage engine — shares one Graph client across the SharePoint,
+// activity-ledger, and mail dependencies.
+function buildDefaultStageEngine(mailer) {
+  const graphClient = createGraphClient();
+  return createStageEngine({
+    sharepointClient: createSharepointClient({ graphClient }),
+    activityClient: createPipelineActivityClient({ graphClient }),
+    itemLock: createItemLock(),
+    mailer,
+    michaelEmail: MICHAEL_EMAIL,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -122,6 +144,25 @@ function validateCalendlySignature(req) {
 }
 
 // ---------------------------------------------------------------------------
+// Graph clientState validation
+// Graph echoes the subscription's clientState verbatim on every
+// notification — a static shared secret, not an HMAC. Still compared
+// constant-time (SHA-256 both sides so timingSafeEqual gets equal-length
+// buffers), consistent with validateCalendlySignature's discipline.
+// ---------------------------------------------------------------------------
+function validateGraphClientState(notifications, expected) {
+  if (!expected || notifications.length === 0) return false;
+  const expectedHash = crypto.createHash("sha256").update(expected).digest();
+  return notifications.every((n) => {
+    const gotHash = crypto
+      .createHash("sha256")
+      .update(String(n.clientState || ""))
+      .digest();
+    return crypto.timingSafeEqual(gotHash, expectedHash);
+  });
+}
+
+// ---------------------------------------------------------------------------
 // App factory — accepts injectable deps so tests can pass a fake
 // pipelineSync/mailer instead of hitting real Graph/SharePoint/Mail.
 // ---------------------------------------------------------------------------
@@ -130,8 +171,11 @@ function createApp({
   mailer = buildDefaultMailer(),
   leadAckEnabled = LEAD_ACK_ENABLED,
   bookingUrl = BOOKING_URL,
+  stageEngine = null,
+  graphClientState = GRAPH_CLIENT_STATE,
 } = {}) {
   const app = express();
+  const engine = stageEngine || buildDefaultStageEngine(mailer);
 
   async function syncPipelineSafely(fn, contextLabel) {
     try {
@@ -546,6 +590,53 @@ function createApp({
     }
   });
 
+  // -------------------------------------------------------------------------
+  // POST /webhooks/graph-pipeline
+  // Graph change notifications for the Client Pipeline list (Flow E).
+  // Notifications carry no item data — the stage engine delta-queries the
+  // list to find what changed.
+  // -------------------------------------------------------------------------
+  app.post("/webhooks/graph-pipeline", (req, res) => {
+    try {
+      // Subscription-creation validation handshake: echo the token as
+      // text/plain within 10 seconds, before touching any Graph state —
+      // it fires before a subscription exists to look anything up against.
+      if (req.query.validationToken) {
+        return res
+          .status(200)
+          .type("text/plain")
+          .send(req.query.validationToken);
+      }
+
+      const notifications = req.body?.value || [];
+      if (!validateGraphClientState(notifications, graphClientState)) {
+        console.warn("[graph-pipeline] clientState rejected");
+        return res.status(401).json({ error: "Invalid clientState" });
+      }
+
+      // Graph enforces a fast-ack SLA on notification endpoints — respond
+      // now, process in the background (same pattern as the other hooks).
+      res.status(202).send();
+
+      (async () => {
+        const outcomes = await engine.processNotifications();
+        const acted = outcomes.filter(
+          (o) => o.action !== "skip" && o.action !== "unhandled",
+        );
+        console.log(
+          `[graph-pipeline] delta: ${outcomes.length} changed item(s), ${acted.length} acted on`,
+        );
+      })().catch((err) => {
+        console.error("[graph-pipeline] Background processing failed:", err);
+      });
+    } catch (err) {
+      console.error("[graph-pipeline] Handler error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Internal server error" });
+      }
+    }
+  });
+
   return app;
 }
 
@@ -566,6 +657,27 @@ if (require.main === module) {
     );
     console.log(`[server] Downstream URL: ${DOWNSTREAM_URL || "(none)"}`);
   });
+
+  // Flow E subscription bootstrap: ensure immediately on boot (an interval
+  // alone can miss a lapse across Railway restarts), then re-check every
+  // 12 hours — renewals trigger when a subscription is within 48h of
+  // expiry, far inside the ~30-day window.
+  if (GRAPH_NOTIFICATION_URL && GRAPH_CLIENT_STATE) {
+    const subscriptions = createSubscriptionsClient();
+    const ensure = () =>
+      subscriptions
+        .ensureSubscription()
+        .then((r) => console.log(`[subscriptions] ${JSON.stringify(r)}`))
+        .catch((err) =>
+          console.error("[subscriptions] ensure failed:", err.message),
+        );
+    ensure();
+    setInterval(ensure, 12 * 60 * 60 * 1000).unref();
+  } else {
+    console.log(
+      "[server] Graph pipeline notifications disabled (set GRAPH_NOTIFICATION_URL and GRAPH_SUBSCRIPTION_CLIENT_STATE)",
+    );
+  }
 }
 
 module.exports = { createApp };

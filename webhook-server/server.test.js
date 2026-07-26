@@ -317,3 +317,128 @@ test("POST /webhooks/calendly (invitee.canceled) calls syncCalendlyCancellation 
     );
   });
 });
+
+function fakeStageEngine({ throws = false } = {}) {
+  const calls = [];
+  return {
+    calls,
+    processNotifications: async () => {
+      calls.push("run");
+      if (throws) throw new Error("delta failed");
+      return [];
+    },
+  };
+}
+
+test("POST /webhooks/graph-pipeline echoes the validationToken as text/plain without processing", async () => {
+  const engine = fakeStageEngine();
+  await withServer(
+    fakePipelineSync(),
+    async (base) => {
+      const res = await fetch(
+        `${base}/webhooks/graph-pipeline?validationToken=abc%20123`,
+        { method: "POST" },
+      );
+      assert.equal(res.status, 200);
+      assert.match(res.headers.get("content-type"), /text\/plain/);
+      assert.equal(await res.text(), "abc 123");
+      assert.equal(engine.calls.length, 0);
+    },
+    { stageEngine: engine, graphClientState: "test-secret" },
+  );
+});
+
+test("POST /webhooks/graph-pipeline rejects a wrong clientState with 401 before any processing", async () => {
+  const engine = fakeStageEngine();
+  await withServer(
+    fakePipelineSync(),
+    async (base) => {
+      const res = await fetch(`${base}/webhooks/graph-pipeline`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          value: [{ subscriptionId: "s1", clientState: "wrong" }],
+        }),
+      });
+      assert.equal(res.status, 401);
+      assert.equal(engine.calls.length, 0);
+    },
+    { stageEngine: engine, graphClientState: "test-secret" },
+  );
+});
+
+test("POST /webhooks/graph-pipeline rejects a batch where any entry has a bad clientState", async () => {
+  const engine = fakeStageEngine();
+  await withServer(
+    fakePipelineSync(),
+    async (base) => {
+      const res = await fetch(`${base}/webhooks/graph-pipeline`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          value: [
+            { subscriptionId: "s1", clientState: "test-secret" },
+            { subscriptionId: "s1", clientState: "wrong" },
+          ],
+        }),
+      });
+      assert.equal(res.status, 401);
+      assert.equal(engine.calls.length, 0);
+    },
+    { stageEngine: engine, graphClientState: "test-secret" },
+  );
+});
+
+test("POST /webhooks/graph-pipeline accepts a valid batch with 202 and runs the stage engine", async () => {
+  const engine = fakeStageEngine();
+  await withServer(
+    fakePipelineSync(),
+    async (base) => {
+      const res = await fetch(`${base}/webhooks/graph-pipeline`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          value: [{ subscriptionId: "s1", clientState: "test-secret" }],
+        }),
+      });
+      assert.equal(res.status, 202);
+      assert.equal(engine.calls.length, 1);
+    },
+    { stageEngine: engine, graphClientState: "test-secret" },
+  );
+});
+
+test("POST /webhooks/graph-pipeline rejects an empty notification batch", async () => {
+  const engine = fakeStageEngine();
+  await withServer(
+    fakePipelineSync(),
+    async (base) => {
+      const res = await fetch(`${base}/webhooks/graph-pipeline`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: [] }),
+      });
+      assert.equal(res.status, 401);
+      assert.equal(engine.calls.length, 0);
+    },
+    { stageEngine: engine, graphClientState: "test-secret" },
+  );
+});
+
+test("POST /webhooks/graph-pipeline still returns 202 when background processing throws", async () => {
+  const engine = fakeStageEngine({ throws: true });
+  await withServer(
+    fakePipelineSync(),
+    async (base) => {
+      const res = await fetch(`${base}/webhooks/graph-pipeline`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          value: [{ subscriptionId: "s1", clientState: "test-secret" }],
+        }),
+      });
+      assert.equal(res.status, 202);
+    },
+    { stageEngine: engine, graphClientState: "test-secret" },
+  );
+});
