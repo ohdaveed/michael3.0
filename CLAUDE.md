@@ -9,7 +9,7 @@ Two independently deployed pieces live in this repo:
 1. **The marketing site** — a static site for Michael Lehr Estate Planning (San Francisco). Plain HTML/CSS/JS compiled with Vite, no JS framework. Source lives under `public/`; `npm run build` compiles to `dist/`, which is uploaded to Bluehost over FTPS by GitHub Actions.
 2. **`webhook-server/`** — a small Express service (its own `package.json`, `node >=18`) that receives Tally contact-form submissions, Calendly booking events, and Microsoft Graph change notifications for the SharePoint "Client Pipeline" list. It is **not** part of the Vite build and does not ship with the site; it is deployed separately to Railway. See `webhook-server/README.md` for endpoints, env vars, and deploy steps.
 
-The two share one contract file (the product taxonomy — see [Cross-file contracts](#cross-file-contracts)).
+They share a product taxonomy, but **not** a file: `public/js/product-contract.json` and `webhook-server/product-contract.json` are two byte-identical copies that must be edited together. The duplication is deliberate — Railway's root directory is `webhook-server/`, so the service cannot read anything above it. See [Cross-file contracts](#cross-file-contracts).
 
 ## Commands
 
