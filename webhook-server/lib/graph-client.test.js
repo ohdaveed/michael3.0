@@ -187,3 +187,138 @@ test("graphFetch returns null for a 202 Accepted response", async () => {
 
   assert.equal(result, null);
 });
+
+// --- Throttling / retry -----------------------------------------------------
+
+function tokenResponse() {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({ access_token: "tok", expires_in: 3600 }),
+  };
+}
+
+// Minimal stand-in for the Headers object graphFetch reads Retry-After from.
+function headers(map = {}) {
+  return { get: (name) => map[name.toLowerCase()] ?? null };
+}
+
+test("retries a 429 and returns the eventual success", async () => {
+  const slept = [];
+  const responses = [
+    { ok: false, status: 429, headers: headers({ "retry-after": "2" }) },
+    { ok: true, status: 200, json: async () => ({ value: "done" }) },
+  ];
+  let call = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) =>
+      url.includes("login.microsoftonline.com")
+        ? tokenResponse()
+        : responses[call++],
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  assert.deepEqual(await client.graphFetch("/thing"), { value: "done" });
+  // Retry-After: 2 seconds, honoured in preference to the backoff schedule.
+  assert.deepEqual(slept, [2000]);
+});
+
+test("falls back to exponential backoff when Retry-After is absent", async () => {
+  const slept = [];
+  let call = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) => {
+      if (url.includes("login.microsoftonline.com")) return tokenResponse();
+      call++;
+      return call <= 2
+        ? { ok: false, status: 503, headers: headers() }
+        : { ok: true, status: 200, json: async () => ({ ok: 1 }) };
+    },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  assert.deepEqual(await client.graphFetch("/thing"), { ok: 1 });
+  assert.deepEqual(slept, [500, 1000]);
+});
+
+test("gives up after the retry budget and throws with the status attached", async () => {
+  const slept = [];
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) =>
+      url.includes("login.microsoftonline.com")
+        ? tokenResponse()
+        : {
+            ok: false,
+            status: 429,
+            headers: headers(),
+            text: async () => "throttled",
+          },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  await assert.rejects(
+    () => client.graphFetch("/thing"),
+    (err) => err.status === 429 && /throttled/.test(err.message),
+  );
+  // MAX_RETRIES = 3, so three waits then the throw.
+  assert.equal(slept.length, 3);
+});
+
+test("does not retry a non-transient status and attaches it to the error", async () => {
+  let calls = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) => {
+      if (url.includes("login.microsoftonline.com")) return tokenResponse();
+      calls++;
+      return {
+        ok: false,
+        status: 410,
+        headers: headers(),
+        text: async () => "gone",
+      };
+    },
+    sleep: async () => assert.fail("must not sleep for a 410"),
+  });
+
+  await assert.rejects(
+    () => client.graphFetch("/delta"),
+    (err) => err.status === 410,
+  );
+  assert.equal(calls, 1);
+});
+
+test("caps the backoff wait", async () => {
+  const slept = [];
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) =>
+      url.includes("login.microsoftonline.com")
+        ? tokenResponse()
+        : {
+            ok: false,
+            status: 429,
+            // Far beyond MAX_BACKOFF_MS — a hostile or buggy header must not
+            // park the request for an hour.
+            headers: headers({ "retry-after": "3600" }),
+            text: async () => "",
+          },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  await assert.rejects(() => client.graphFetch("/thing"));
+  assert.deepEqual(slept, [20_000, 20_000, 20_000]);
+});

@@ -30,13 +30,19 @@ test("sendEmail POSTs to the sendMail endpoint for the configured mailbox", asyn
     html: "<p>hi</p>",
   });
 
-  assert.equal(graphClient.calls[0].path, "/users/michael%40lehr-law.com/sendMail");
+  assert.equal(
+    graphClient.calls[0].path,
+    "/users/michael%40lehr-law.com/sendMail",
+  );
   assert.equal(graphClient.calls[0].options.method, "POST");
   const body = JSON.parse(graphClient.calls[0].options.body);
   assert.equal(body.message.subject, "Test");
   assert.equal(body.message.body.contentType, "HTML");
   assert.equal(body.message.body.content, "<p>hi</p>");
-  assert.equal(body.message.toRecipients[0].emailAddress.address, "michael@lehr-law.com");
+  assert.equal(
+    body.message.toRecipients[0].emailAddress.address,
+    "michael@lehr-law.com",
+  );
   assert.equal(body.saveToSentItems, false);
 });
 
@@ -67,6 +73,10 @@ test("sendEmail catches Graph failures instead of throwing", async () => {
   });
 
   await assert.doesNotReject(() =>
-    mailer.sendEmail({ to: "michael@lehr-law.com", subject: "Test", text: "hi" }),
+    mailer.sendEmail({
+      to: "michael@lehr-law.com",
+      subject: "Test",
+      text: "hi",
+    }),
   );
 });

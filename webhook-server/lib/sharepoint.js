@@ -79,7 +79,11 @@ function createSharepointClient({ graphClient = createGraphClient() } = {}) {
       try {
         data = await graphClient.graphFetch(path, { method: "GET" });
       } catch (err) {
-        if (/failed: 410\b/.test(String(err.message))) {
+        // 410 Gone = the delta token expired; Graph wants a full resync.
+        // graphFetch attaches err.status, so this reads the code rather than
+        // pattern-matching the error message. The message check stays as a
+        // fallback for any error that reaches here without a status.
+        if (err.status === 410 || /failed: 410\b/.test(String(err.message))) {
           return { reset: true, items: [], deltaLink: null };
         }
         throw err;

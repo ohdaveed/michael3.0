@@ -9,6 +9,8 @@
 // EventKey idempotency check against the Pipeline Activity list, then a
 // per-stage handler. Phase 1 implements only the `Consult Held` case.
 
+const { logger } = require("./logger");
+
 function buildEventKey(itemId, fields) {
   return `${itemId}|${fields.Stage}|${fields.TimelineVersion ?? 0}`;
 }
@@ -149,7 +151,10 @@ function createStageEngine({
         );
       } catch (err) {
         const errorMsg = String(err.message || err);
-        console.error(`[stage-engine] item ${item.id} failed:`, errorMsg);
+        logger.error(
+          { scope: "stage-engine", itemId: item.id, err: errorMsg },
+          "item failed",
+        );
         outcomes.push({
           action: "error",
           itemId: item.id,

@@ -30,7 +30,9 @@ const mailer = createMailer({ fromMailbox });
 mailer
   .sendEmail({ to, ...buildLeadAckEmail({ firstName, service, bookingUrl }) })
   .then(() => {
+    // console, not pino: this is an operator-facing CLI, where a readable
+    // line beats a JSON log record. The mailer itself logs through pino.
     console.log(
-      `Done — check for "[email] Sent:" above (from ${fromMailbox}).`,
+      `Done — look for a {"scope":"email","msg":"sent"} line above (from ${fromMailbox}).`,
     );
   });

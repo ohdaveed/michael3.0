@@ -10,6 +10,14 @@
 
 const crypto = require("crypto");
 const express = require("express");
+const rateLimit = require("express-rate-limit");
+const { logger } = require("./lib/logger");
+const { escapeHtml } = require("./lib/html");
+const {
+  parseTallyWebhook,
+  parseCalendlyWebhook,
+  parseGraphNotification,
+} = require("./lib/schemas");
 const { createGraphClient } = require("./lib/graph-client");
 const { createSharepointClient } = require("./lib/sharepoint");
 const { createPipelineSync } = require("./lib/pipeline-sync");
@@ -57,9 +65,9 @@ async function forwardDownstream(payload) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    console.log(`[downstream] ${res.status} ${DOWNSTREAM_URL}`);
+    logger.info({ scope: "downstream", status: res.status }, "forwarded");
   } catch (err) {
-    console.error("[downstream] Forward failed:", err.message);
+    logger.error({ scope: "downstream", err: err.message }, "forward failed");
   }
 }
 
@@ -137,10 +145,16 @@ function validateCalendlySignature(req) {
     .update(`${timestamp}.${req.rawBody}`)
     .digest("hex");
 
-  return crypto.timingSafeEqual(
-    Buffer.from(signature, "hex"),
-    Buffer.from(expectedSig, "hex"),
-  );
+  // timingSafeEqual throws on a length mismatch, and a malformed v1= value
+  // decodes to a short buffer. Without this guard a junk signature became an
+  // exception caught by the route's outer try/catch and answered 500 instead
+  // of 401. Comparing lengths first is not a timing leak: the expected length
+  // is a constant.
+  const received = Buffer.from(signature, "hex");
+  const expected = Buffer.from(expectedSig, "hex");
+  if (received.length !== expected.length) return false;
+
+  return crypto.timingSafeEqual(received, expected);
 }
 
 // ---------------------------------------------------------------------------
@@ -177,20 +191,35 @@ function createApp({
   const app = express();
   const engine = stageEngine || buildDefaultStageEngine(mailer);
 
-  async function syncPipelineSafely(fn, contextLabel) {
+  // `contextLabel` identifies the record and must stay free of contact
+  // details, because it is logged. The lead's email is passed separately: it
+  // goes under a key lib/logger.js redacts, while the alert email — sent to
+  // Michael's own mailbox about his own prospective client — still names them.
+  async function syncPipelineSafely(fn, contextLabel, email = "") {
+    const who = email ? `${contextLabel} <${email}>` : contextLabel;
     try {
       const result = await fn();
-      console.log(
-        `[pipeline] ${contextLabel}: ${result.action} (item ${result.itemId || "n/a"})`,
+      logger.info(
+        {
+          scope: "pipeline",
+          context: contextLabel,
+          email,
+          action: result.action,
+          itemId: result.itemId || null,
+        },
+        "sync complete",
       );
       return result;
     } catch (err) {
-      console.error(`[pipeline] ${contextLabel} failed:`, err.message);
+      logger.error(
+        { scope: "pipeline", context: contextLabel, email, err: err.message },
+        "sync failed",
+      );
       await mailer.sendEmail({
         to: MICHAEL_EMAIL,
-        subject: `[ALERT] SharePoint sync failed — ${contextLabel}`,
+        subject: `[ALERT] SharePoint sync failed — ${who}`,
         text: [
-          `SharePoint sync failed for: ${contextLabel}`,
+          `SharePoint sync failed for: ${who}`,
           ``,
           `Error: ${err.message}`,
           ``,
@@ -202,20 +231,50 @@ function createApp({
     }
   }
 
-  // Capture rawBody for Calendly HMAC validation before JSON parsing
-  app.use((req, res, next) => {
-    let raw = "";
-    req.on("data", (chunk) => (raw += chunk));
-    req.on("end", () => {
-      req.rawBody = raw;
-      try {
-        req.body = raw ? JSON.parse(raw) : {};
-      } catch {
-        req.body = {};
-      }
-      next();
-    });
+  // express.json rather than a hand-rolled parser, for the `limit`: the
+  // previous version concatenated request chunks into a string with no size
+  // cap and no error listener, so an oversized or aborted body was
+  // unbounded work on a public endpoint. 100kb is far above any real Tally,
+  // Calendly, or Graph payload.
+  //
+  // `verify` runs before parsing, which is the only place the raw bytes are
+  // still available — validateCalendlySignature needs them as a string for
+  // the HMAC.
+  app.use(
+    express.json({
+      limit: "100kb",
+      verify: (req, res, buf) => {
+        req.rawBody = buf.toString("utf8");
+      },
+    }),
+  );
+
+  // express.json rejects malformed JSON and oversized bodies by passing an
+  // error here. Answer with the status it determined (400 / 413) instead of
+  // letting Express's default handler emit an HTML 500 to a webhook sender.
+  app.use((err, req, res, next) => {
+    if (!err) return next();
+    const status = err.status || err.statusCode || 400;
+    logger.warn(
+      { scope: "http", status, err: err.type || err.message },
+      "rejected request body",
+    );
+    if (res.headersSent) return next(err);
+    return res.status(status).json({ error: "Invalid request body" });
   });
+
+  // Public, unauthenticated endpoints. Generous enough that a real burst
+  // (Calendly retries, a Graph notification batch) is never touched.
+  const webhookLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 120,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: { error: "Too many requests" },
+  });
+  // Scoped to /webhooks so the health check stays unlimited — Railway probes
+  // it continuously and must never be throttled.
+  app.use("/webhooks", webhookLimiter);
 
   // -------------------------------------------------------------------------
   // Health check
@@ -229,25 +288,32 @@ function createApp({
   // Tally sends: { eventId, createdAt, data: { submissionId, formId, fields[] } }
   // -------------------------------------------------------------------------
   app.post("/webhooks/tally", (req, res) => {
+    const log = logger.child({ scope: "tally" });
     let submissionId;
     try {
-      const body = req.body;
-      submissionId = body?.data?.submissionId;
-      const formId = body?.data?.formId;
+      const parsed = parseTallyWebhook(req.body);
+      if (!parsed.ok) {
+        log.warn({ reason: parsed.error }, "rejected malformed payload");
+        return res.status(400).json({ error: "Invalid payload" });
+      }
+      const body = parsed.data;
+      submissionId = body.data.submissionId;
+      const formId = body.data.formId;
 
       if (formId !== TALLY_FORM_ID) {
-        console.warn(`[tally] Unknown formId: ${formId}`);
+        log.warn({ formId }, "unknown formId");
         return res.status(400).json({ error: "Unknown form" });
       }
 
       const fields = {};
-      for (const f of body?.data?.fields || []) {
+      for (const f of body.data.fields) {
         fields[f.label] = resolveTallyFieldValue(f);
       }
 
       if (fields["form_source"] !== "lehr-law-contact") {
-        console.warn(
-          `[tally] Unexpected form_source: ${fields["form_source"]}`,
+        log.warn(
+          { formSource: fields["form_source"] },
+          "unexpected form_source",
         );
         return res.status(400).json({ error: "Invalid form_source" });
       }
@@ -261,8 +327,11 @@ function createApp({
       const page = fields["page"] || "";
       const contractVersion = fields["contract_version"] || "";
 
-      console.log(
-        `[tally] Submission ${submissionId} from ${firstName} ${lastName} <${email}>`,
+      // firstName/lastName/email are redacted by lib/logger.js; they are
+      // passed so the shape is greppable, not so the values are readable.
+      log.info(
+        { submissionId, firstName, lastName, email },
+        "submission received",
       );
 
       // Respond immediately — Tally closes the connection ~10s after sending
@@ -283,7 +352,8 @@ function createApp({
               phone,
               service,
             }),
-          `Tally submission ${submissionId} <${email}>`,
+          `Tally submission ${submissionId}`,
+          email,
         );
 
         const subjectPrefix =
@@ -311,22 +381,22 @@ function createApp({
   <h2 style="color:#0b1d33">New contact form submission</h2>
   <table style="width:100%;border-collapse:collapse">
     <tr><td style="padding:8px;color:#6b6559;width:100px">Name</td>
-        <td style="padding:8px;font-weight:600">${firstName} ${lastName}</td></tr>
+        <td style="padding:8px;font-weight:600">${escapeHtml(firstName)} ${escapeHtml(lastName)}</td></tr>
     <tr style="background:#f5f0e8">
         <td style="padding:8px;color:#6b6559">Email</td>
-        <td style="padding:8px"><a href="mailto:${email}">${email}</a></td></tr>
+        <td style="padding:8px"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td></tr>
     <tr><td style="padding:8px;color:#6b6559">Phone</td>
-        <td style="padding:8px">${phone}</td></tr>
+        <td style="padding:8px">${escapeHtml(phone)}</td></tr>
     <tr style="background:#f5f0e8">
         <td style="padding:8px;color:#6b6559">Service</td>
-        <td style="padding:8px">${service}</td></tr>
+        <td style="padding:8px">${escapeHtml(service)}</td></tr>
   </table>
   <div style="margin-top:20px;padding:16px;background:#f5f0e8;border-left:3px solid #c5a55a">
     <strong>Message:</strong><br/><br/>
-    ${message.replace(/\n/g, "<br/>")}
+    ${escapeHtml(message).replace(/\n/g, "<br/>")}
   </div>
   <p style="margin-top:20px;font-size:12px;color:#9a9088">
-    Submission ID: ${submissionId} &middot; Received: ${new Date().toISOString()}
+    Submission ID: ${escapeHtml(submissionId)} &middot; Received: ${new Date().toISOString()}
   </p>
 </div>`;
 
@@ -367,13 +437,13 @@ function createApp({
           }),
         ]);
       })().catch((err) => {
-        console.error(
-          `[tally] Background processing failed for ${submissionId}:`,
-          err,
+        log.error(
+          { submissionId, err: err.message },
+          "background processing failed",
         );
       });
     } catch (err) {
-      console.error("[tally] Handler error:", err);
+      log.error({ err: err.message }, "handler error");
       if (!res.headersSent) {
         res.status(500).json({ error: "Internal server error" });
       }
@@ -386,19 +456,25 @@ function createApp({
   // Supported events: invitee.created, invitee.canceled
   // -------------------------------------------------------------------------
   app.post("/webhooks/calendly", (req, res) => {
+    const log = logger.child({ scope: "calendly" });
     let eventType;
     try {
       // Validate HMAC signature
       if (!validateCalendlySignature(req)) {
-        console.warn("[calendly] Invalid signature — rejecting");
+        log.warn("invalid signature - rejecting");
         return res.status(401).json({ error: "Invalid signature" });
       }
 
-      const body = req.body;
-      eventType = body?.event;
-      const payload = body?.payload || {};
-      const invitee = payload?.invitee || {};
-      const event = payload?.event || {};
+      const parsed = parseCalendlyWebhook(req.body);
+      if (!parsed.ok) {
+        log.warn({ reason: parsed.error }, "rejected malformed payload");
+        return res.status(400).json({ error: "Invalid payload" });
+      }
+      const body = parsed.data;
+      eventType = body.event;
+      const payload = body.payload;
+      const invitee = payload.invitee || {};
+      const event = payload.event || {};
       // The invitee's own URI is the stable idempotency key — present and
       // unchanged across both invitee.created and invitee.canceled for the
       // same booking.
@@ -429,9 +505,7 @@ function createApp({
         .map((qa) => `${qa.question}: ${qa.answer}`)
         .join("\n");
 
-      console.log(
-        `[calendly] ${eventType} — ${name} <${email}> @ ${startTime}`,
-      );
+      log.info({ eventType, name, email, startTime }, "booking event");
 
       // Respond immediately — the SharePoint sync and email send continue
       // in the background below (see the /webhooks/tally handler for why).
@@ -451,7 +525,8 @@ function createApp({
                 cancelUrl,
                 rescheduleUrl,
               }),
-            `Calendly booking ${eventUri} <${email}>`,
+            `Calendly booking ${eventUri}`,
+            email,
           );
 
           const subjectPrefix =
@@ -477,27 +552,27 @@ function createApp({
   <h2 style="color:#0b1d33">New consultation booked</h2>
   <table style="width:100%;border-collapse:collapse">
     <tr><td style="padding:8px;color:#6b6559;width:100px">Name</td>
-        <td style="padding:8px;font-weight:600">${name}</td></tr>
+        <td style="padding:8px;font-weight:600">${escapeHtml(name)}</td></tr>
     <tr style="background:#f5f0e8">
         <td style="padding:8px;color:#6b6559">Email</td>
-        <td style="padding:8px"><a href="mailto:${email}">${email}</a></td></tr>
+        <td style="padding:8px"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td></tr>
     <tr><td style="padding:8px;color:#6b6559">Time</td>
-        <td style="padding:8px;font-weight:600;color:#c5a55a">${startTime}</td></tr>
+        <td style="padding:8px;font-weight:600;color:#c5a55a">${escapeHtml(startTime)}</td></tr>
     <tr style="background:#f5f0e8">
         <td style="padding:8px;color:#6b6559">Event</td>
-        <td style="padding:8px">${eventName}</td></tr>
+        <td style="padding:8px">${escapeHtml(eventName)}</td></tr>
   </table>
   ${
     qas
       ? `<div style="margin-top:20px;padding:16px;background:#f5f0e8;border-left:3px solid #c5a55a">
            <strong>Intake responses:</strong><br/><br/>
-           ${qas.replace(/\n/g, "<br/>")}
+           ${escapeHtml(qas).replace(/\n/g, "<br/>")}
          </div>`
       : ""
   }
   <div style="margin-top:20px">
-    <a href="${rescheduleUrl}" style="margin-right:16px;color:#0b1d33">Reschedule</a>
-    <a href="${cancelUrl}" style="color:#c62828">Cancel</a>
+    <a href="${escapeHtml(rescheduleUrl)}" style="margin-right:16px;color:#0b1d33">Reschedule</a>
+    <a href="${escapeHtml(cancelUrl)}" style="color:#c62828">Cancel</a>
   </div>
   <p style="margin-top:20px;font-size:12px;color:#9a9088">
     Received: ${new Date().toISOString()}
@@ -540,15 +615,15 @@ function createApp({
   <h2 style="color:#c62828">Consultation canceled</h2>
   <table style="width:100%;border-collapse:collapse">
     <tr><td style="padding:8px;color:#6b6559;width:100px">Name</td>
-        <td style="padding:8px;font-weight:600">${name}</td></tr>
+        <td style="padding:8px;font-weight:600">${escapeHtml(name)}</td></tr>
     <tr style="background:#f5f0e8">
         <td style="padding:8px;color:#6b6559">Email</td>
-        <td style="padding:8px"><a href="mailto:${email}">${email}</a></td></tr>
+        <td style="padding:8px"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td></tr>
     <tr><td style="padding:8px;color:#6b6559">Was</td>
-        <td style="padding:8px">${startTime}</td></tr>
+        <td style="padding:8px">${escapeHtml(startTime)}</td></tr>
     <tr style="background:#f5f0e8">
         <td style="padding:8px;color:#6b6559">Reason</td>
-        <td style="padding:8px">${reason}</td></tr>
+        <td style="padding:8px">${escapeHtml(reason)}</td></tr>
   </table>
   <p style="margin-top:20px;font-size:12px;color:#9a9088">
     Received: ${new Date().toISOString()}
@@ -571,19 +646,20 @@ function createApp({
 
           await syncPipelineSafely(
             () => pipelineSync.syncCalendlyCancellation({ eventUri }),
-            `Calendly cancellation ${eventUri} <${email}>`,
+            `Calendly cancellation ${eventUri}`,
+            email,
           );
         } else {
-          console.log(`[calendly] Unhandled event type: ${eventType}`);
+          log.info({ eventType }, "unhandled event type");
         }
       })().catch((err) => {
-        console.error(
-          `[calendly] Background processing failed for ${eventType}:`,
-          err,
+        log.error(
+          { eventType, err: err.message },
+          "background processing failed",
         );
       });
     } catch (err) {
-      console.error("[calendly] Handler error:", err);
+      log.error({ err: err.message }, "handler error");
       if (!res.headersSent) {
         res.status(500).json({ error: "Internal server error" });
       }
@@ -597,6 +673,7 @@ function createApp({
   // list to find what changed.
   // -------------------------------------------------------------------------
   app.post("/webhooks/graph-pipeline", (req, res) => {
+    const log = logger.child({ scope: "graph-pipeline" });
     try {
       // Subscription-creation validation handshake: echo the token as
       // text/plain within 10 seconds, before touching any Graph state —
@@ -608,9 +685,14 @@ function createApp({
           .send(req.query.validationToken);
       }
 
-      const notifications = req.body?.value || [];
+      const parsedGraph = parseGraphNotification(req.body);
+      if (!parsedGraph.ok) {
+        log.warn({ reason: parsedGraph.error }, "rejected malformed payload");
+        return res.status(400).json({ error: "Invalid payload" });
+      }
+      const notifications = parsedGraph.data.value;
       if (!validateGraphClientState(notifications, graphClientState)) {
-        console.warn("[graph-pipeline] clientState rejected");
+        log.warn("clientState rejected");
         return res.status(401).json({ error: "Invalid clientState" });
       }
 
@@ -623,14 +705,15 @@ function createApp({
         const acted = outcomes.filter(
           (o) => o.action !== "skip" && o.action !== "unhandled",
         );
-        console.log(
-          `[graph-pipeline] delta: ${outcomes.length} changed item(s), ${acted.length} acted on`,
+        log.info(
+          { changed: outcomes.length, acted: acted.length },
+          "delta processed",
         );
       })().catch((err) => {
-        console.error("[graph-pipeline] Background processing failed:", err);
+        log.error({ err: err.message }, "background processing failed");
       });
     } catch (err) {
-      console.error("[graph-pipeline] Handler error:", err);
+      log.error({ err: err.message }, "handler error");
       if (!res.headersSent) {
         res.status(500).json({ error: "Internal server error" });
       }
@@ -647,15 +730,17 @@ function createApp({
 if (require.main === module) {
   const app = createApp();
   app.listen(PORT, () => {
-    console.log(`[server] Listening on port ${PORT}`);
-    console.log(
-      `[server] Email notifications → ${MICHAEL_EMAIL} (via Microsoft Graph)`,
+    logger.info(
+      {
+        scope: "server",
+        port: PORT,
+        notificationsTo: MICHAEL_EMAIL,
+        calendlySigning: Boolean(CALENDLY_SIGNING_KEY),
+        leadAck: LEAD_ACK_ENABLED,
+        downstream: Boolean(DOWNSTREAM_URL),
+      },
+      "listening",
     );
-    console.log(`[server] Calendly signing: ${Boolean(CALENDLY_SIGNING_KEY)}`);
-    console.log(
-      `[server] Lead acknowledgment: ${LEAD_ACK_ENABLED ? "enabled" : "disabled (set LEAD_ACK_ENABLED=true once copy is approved)"}`,
-    );
-    console.log(`[server] Downstream URL: ${DOWNSTREAM_URL || "(none)"}`);
   });
 
   // Flow E subscription bootstrap: ensure immediately on boot (an interval
@@ -667,15 +752,19 @@ if (require.main === module) {
     const ensure = () =>
       subscriptions
         .ensureSubscription()
-        .then((r) => console.log(`[subscriptions] ${JSON.stringify(r)}`))
+        .then((r) => logger.info({ scope: "subscriptions", ...r }, "ensured"))
         .catch((err) =>
-          console.error("[subscriptions] ensure failed:", err.message),
+          logger.error(
+            { scope: "subscriptions", err: err.message },
+            "ensure failed",
+          ),
         );
     ensure();
     setInterval(ensure, 12 * 60 * 60 * 1000).unref();
   } else {
-    console.log(
-      "[server] Graph pipeline notifications disabled (set GRAPH_NOTIFICATION_URL and GRAPH_SUBSCRIPTION_CLIENT_STATE)",
+    logger.info(
+      { scope: "server" },
+      "graph pipeline notifications disabled (set GRAPH_NOTIFICATION_URL and GRAPH_SUBSCRIPTION_CLIENT_STATE)",
     );
   }
 }
