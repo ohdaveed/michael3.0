@@ -32,7 +32,7 @@
     "htmlhint": "^1.9.2",
     "husky": "^9.1.7",
     "lighthouse": "^12.6.1",
-    "linkinator": "^7.6.1",
+    "linkinator": "^8.0.3",
     "lint-staged": "^17.0.8",
     "pa11y": "^9.1.1",
     "prettier": "^3.8.3",
