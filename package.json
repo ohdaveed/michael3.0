@@ -16,12 +16,19 @@
     "lighthouse": "lighthouse http://localhost:5173 --output=html --output-path=./lighthouse-report.html --chrome-flags=\"--headless=new --no-sandbox\"",
     "browser:check": "agent-browser open http://localhost:5173 && agent-browser wait --load networkidle && agent-browser snapshot -i",
     "test:e2e": "playwright test",
-    "check": "npm run format:check && npm run html:check",
+    "lint": "eslint .",
+    "check": "npm run format:check && npm run lint && npm run html:check",
     "prepare": "husky"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "agent-browser": "^0.26.0",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-playwright": "^2.11.0",
+    "globals": "^17.9.0",
     "htmlhint": "^1.9.2",
     "husky": "^9.1.7",
     "lighthouse": "^12.6.1",
@@ -41,7 +48,9 @@
   "lint-staged": {
     "**/*.{html,css,js,json,md}": "prettier --write",
     "public/*.html": "htmlhint",
-    "public/partials/*.html": "htmlhint --rules tagname-lowercase,attr-value-double-quotes,tag-pair,spec-char-escape,id-unique,src-not-empty,attr-no-duplication"
+    "public/partials/*.html": "htmlhint --rules tagname-lowercase,attr-value-double-quotes,tag-pair,spec-char-escape,id-unique,src-not-empty,attr-no-duplication",
+    "{public/js,tests}/**/*.js": "eslint --max-warnings=0",
+    "{vite,playwright}.config.js": "eslint --max-warnings=0"
   },
   "packageManager": "npm@12.0.1"
 }

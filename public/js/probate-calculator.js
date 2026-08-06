@@ -13,7 +13,7 @@
 
   function calcStatutoryFee(value) {
     // California Probate Code §10810 - attorney fee (executor fee is equal)
-    var fee = 0;
+    var fee;
     if (value <= 100000) {
       fee = value * 0.04;
     } else if (value <= 200000) {

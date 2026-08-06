@@ -55,8 +55,8 @@ export function useScroll(callback, threshold) {
  */
 export function useIntersectionObserver(first, second, third) {
   let elementsOrSelector = null;
-  let callback = null;
-  let options = null;
+  let callback;
+  let options;
 
   if (typeof first === "function") {
     callback = first;
@@ -76,7 +76,7 @@ export function useIntersectionObserver(first, second, third) {
         ? document.querySelectorAll(targets)
         : targets;
 
-    if (NodeList.prototype.isPrototypeOf(elements) || Array.isArray(elements)) {
+    if (elements instanceof NodeList || Array.isArray(elements)) {
       elements.forEach((el) => observer.observe(el));
     } else if (elements instanceof Element) {
       observer.observe(elements);
