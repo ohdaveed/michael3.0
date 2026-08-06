@@ -96,6 +96,15 @@ if (mobileToggle && navLinks) {
   // Crossing the breakpoint (resize, orientation change) must re-evaluate:
   // the attribute is correct for one layout and wrong for the other.
   mobileNavQuery.addEventListener("change", () => {
+    // Leaving the mobile layout with the menu open would strand the page:
+    // `.open` and the aria state are cosmetic here, but `inert` on main/footer
+    // and `body { overflow: hidden }` are not — the desktop page would be
+    // unscrollable and unfocusable. Close it properly rather than only
+    // correcting aria-hidden.
+    if (!mobileNavQuery.matches) {
+      setMobileMenuState(false);
+      return;
+    }
     syncNavLinksHidden(navLinks.classList.contains("open"));
   });
   mobileToggle.addEventListener("click", () => {

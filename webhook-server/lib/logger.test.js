@@ -4,11 +4,12 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { Writable } = require("node:stream");
 
-const pino = require("pino");
+const { createLogger } = require("./logger");
 
-// Rebuilds the module's configuration against a capture stream. Asserting on
-// the exported singleton would mean intercepting stdout; this keeps the
-// redaction contract under test without that.
+// Uses the module's own factory rather than rebuilding its config here. An
+// inlined copy of the redact list would keep these tests passing after a
+// change to logger.js, which would defeat the point of testing a privacy
+// control — the assertions must fail if production redaction regresses.
 function captureLogger() {
   const lines = [];
   const stream = new Writable({
@@ -17,29 +18,7 @@ function captureLogger() {
       cb();
     },
   });
-  const logger = pino(
-    {
-      redact: {
-        paths: [
-          "email",
-          "name",
-          "firstName",
-          "lastName",
-          "phone",
-          "message",
-          "*.email",
-          "*.name",
-          "*.firstName",
-          "*.lastName",
-          "*.phone",
-          "*.message",
-        ],
-        censor: "[redacted]",
-      },
-    },
-    stream,
-  );
-  return { logger, lines };
+  return { logger: createLogger(stream), lines };
 }
 
 test("redacts lead contact details at the top level", () => {
@@ -78,4 +57,13 @@ test("leaves non-identifying operational fields intact", () => {
   assert.equal(lines[0].scope, "tally");
   assert.equal(lines[0].submissionId, "sub_123");
   assert.equal(lines[0].productCode, "WILL_ONLY");
+});
+
+test("redacts the email subject, which is built from the lead's name", () => {
+  const { logger, lines } = captureLogger();
+  // server.js builds subjects like "New message from Jane Doe — Will Only",
+  // so an unredacted subject leaks the same identity as the name field.
+  logger.info({ scope: "email", subject: "New message from Jane Doe" }, "sent");
+  assert.equal(lines[0].subject, "[redacted]");
+  assert.equal(lines[0].scope, "email");
 });

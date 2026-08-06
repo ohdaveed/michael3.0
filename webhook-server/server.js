@@ -12,7 +12,7 @@ const crypto = require("crypto");
 const express = require("express");
 const rateLimit = require("express-rate-limit");
 const { logger } = require("./lib/logger");
-const { escapeHtml } = require("./lib/html");
+const { escapeHtml, safeHttpsUrl, singleLine } = require("./lib/html");
 const {
   parseTallyWebhook,
   parseCalendlyWebhook,
@@ -65,7 +65,16 @@ async function forwardDownstream(payload) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    logger.info({ scope: "downstream", status: res.status }, "forwarded");
+    // fetch resolves for 4xx/5xx, so status has to be checked explicitly —
+    // otherwise a rejected forward is logged as a delivered one.
+    if (res.ok) {
+      logger.info({ scope: "downstream", status: res.status }, "forwarded");
+    } else {
+      logger.error(
+        { scope: "downstream", status: res.status },
+        "forward rejected by downstream",
+      );
+    }
   } catch (err) {
     logger.error({ scope: "downstream", err: err.message }, "forward failed");
   }
@@ -189,6 +198,13 @@ function createApp({
   graphClientState = GRAPH_CLIENT_STATE,
 } = {}) {
   const app = express();
+  // Railway serves this behind a reverse proxy, so req.ip is the proxy's
+  // address unless Express is told to read X-Forwarded-For. Without this the
+  // rate limiter below keys every request to the same bucket: one caller
+  // could burn the shared budget and lock out real Tally, Calendly, and
+  // Graph deliveries. `1` trusts exactly one hop — `true` would let a client
+  // spoof the header and evade the limit entirely.
+  app.set("trust proxy", 1);
   const engine = stageEngine || buildDefaultStageEngine(mailer);
 
   // `contextLabel` identifies the record and must stay free of contact
@@ -358,7 +374,9 @@ function createApp({
 
         const subjectPrefix =
           syncResult.action === "flagged-multiple" ? "[NEEDS REVIEW] " : "";
-        const subject = `${subjectPrefix}New message from ${firstName} ${lastName} — ${service}`;
+        const subject = singleLine(
+          `${subjectPrefix}New message from ${firstName} ${lastName} — ${service}`,
+        );
         const text = [
           `New contact form submission via lehr-law.com`,
           ``,
@@ -474,7 +492,11 @@ function createApp({
       eventType = body.event;
       const payload = body.payload;
       const invitee = payload.invitee || {};
-      const event = payload.event || {};
+      // payload.event is either the expanded object or the scheduled-event
+      // URI string (see lib/schemas.js). Only the object form carries the
+      // fields below; the string degrades to the same defaults as before.
+      const event =
+        payload.event && typeof payload.event === "object" ? payload.event : {};
       // The invitee's own URI is the stable idempotency key — present and
       // unchanged across both invitee.created and invitee.canceled for the
       // same booking.
@@ -497,8 +519,11 @@ function createApp({
           })
         : "(unknown)";
       const eventName = event.name || "Estate Planning Consultation";
-      const cancelUrl = payload?.cancel_url || "";
-      const rescheduleUrl = payload?.reschedule_url || "";
+      // Rendered into href attributes below. escapeHtml cannot reject a
+      // `javascript:` scheme, so these are scheme-checked here instead; a
+      // rejected value becomes "" and the link is simply omitted.
+      const cancelUrl = safeHttpsUrl(payload?.cancel_url);
+      const rescheduleUrl = safeHttpsUrl(payload?.reschedule_url);
 
       // Questions & answers (custom intake questions from the Calendly form)
       const qas = (payload?.questions_and_answers || [])
@@ -531,7 +556,9 @@ function createApp({
 
           const subjectPrefix =
             syncResult.action === "flagged-multiple" ? "[NEEDS REVIEW] " : "";
-          const subject = `${subjectPrefix}New booking: ${name} — ${startTime}`;
+          const subject = singleLine(
+            `${subjectPrefix}New booking: ${name} — ${startTime}`,
+          );
           const text = [
             `New consultation booked via Calendly`,
             ``,
@@ -597,7 +624,7 @@ function createApp({
           ]);
         } else if (eventType === "invitee.canceled") {
           const reason = invitee?.cancellation?.reason || "(no reason given)";
-          const subject = `Booking canceled: ${name}`;
+          const subject = singleLine(`Booking canceled: ${name}`);
           const text = [
             `Consultation canceled`,
             ``,

@@ -61,11 +61,23 @@ const calendlyWebhookSchema = z.object({
           email: z.string().optional(),
         })
         .optional(),
+      // Calendly sends this two ways depending on how the hook is wired: an
+      // expanded object when something upstream enriches the payload (what
+      // server.test.js's fixture models), or the bare scheduled-event URI
+      // string on a direct v2 invitee.* delivery. Accept both.
+      //
+      // This must stay a union. Before validation existed the handler read
+      // `payload.event || {}` and a string simply degraded start_time to
+      // "(unknown)"; rejecting the string outright would turn that graceful
+      // degradation into a 400 that drops a real booking on the floor.
       event: z
-        .object({
-          name: z.string().optional(),
-          start_time: z.string().optional(),
-        })
+        .union([
+          z.string(),
+          z.object({
+            name: z.string().optional(),
+            start_time: z.string().optional(),
+          }),
+        ])
         .optional(),
       questions_and_answers: z
         .array(

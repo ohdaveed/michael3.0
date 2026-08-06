@@ -13,12 +13,13 @@
 
 const pino = require("pino");
 
-const logger = pino({
-  level: process.env.LOG_LEVEL || "info",
-  // Paths are matched literally, so every place a value is logged has to use
-  // one of these key names. Keep new PII on an existing key rather than
-  // inventing one the redactor does not know about.
-  redact: {
+const LEVEL = process.env.LOG_LEVEL || "info";
+
+function redactConfig() {
+  return {
+    // Paths are matched literally, so every place a value is logged has to use
+    // one of these key names. Keep new PII on an existing key rather than
+    // inventing one the redactor does not know about.
     paths: [
       "email",
       "name",
@@ -26,15 +27,31 @@ const logger = pino({
       "lastName",
       "phone",
       "message",
+      // Email subjects are built from the lead's name in server.js
+      // ("New message from Jane Doe — Will Only"), so logging one leaks the
+      // same identity the fields above are redacted to protect.
+      "subject",
       "*.email",
       "*.name",
       "*.firstName",
       "*.lastName",
       "*.phone",
       "*.message",
+      "*.subject",
     ],
     censor: "[redacted]",
-  },
-});
+  };
+}
 
-module.exports = { logger };
+// Exported so the tests exercise this configuration rather than a copy of it —
+// a duplicated redact list in the test would keep passing after a change here,
+// which defeats the point of testing a privacy control.
+function createLogger(destination) {
+  return destination
+    ? pino({ level: LEVEL, redact: redactConfig() }, destination)
+    : pino({ level: LEVEL, redact: redactConfig() });
+}
+
+const logger = createLogger();
+
+module.exports = { logger, createLogger };

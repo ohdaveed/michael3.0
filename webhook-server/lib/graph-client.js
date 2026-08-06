@@ -4,10 +4,30 @@
 // (cached until near expiry) plus a thin authenticated-fetch wrapper.
 // No SharePoint- or pipeline-specific knowledge lives here — see
 // lib/sharepoint.js for that.
-// Graph throttles with 429 + Retry-After and sheds load with 503/504. Those
-// are transient by definition, so retry them; everything else (401, 404, the
-// 410 an expired delta token produces) is a real answer and is thrown at once.
-const RETRYABLE_STATUSES = new Set([429, 503, 504]);
+// Graph throttles with 429 + Retry-After and sheds load with 503/504.
+// Everything else (401, 404, the 410 an expired delta token produces) is a
+// real answer and is thrown at once.
+//
+// The two are not equally safe to retry. A 429 is a rejection: Graph refused
+// the request before doing the work, so replaying it cannot duplicate
+// anything, whatever the method. A 503/504 is ambiguous — the request may
+// have been processed and only the response lost. Neither of the POSTs this
+// client makes is idempotent: /sendMail is fire-and-forget with no client-side
+// dedupe key, and creating a Client Pipeline list item has none either, so a
+// blind replay can mean a second email to a prospective client or a duplicate
+// pipeline row. Retry an ambiguous failure only for methods HTTP defines as
+// idempotent.
+const THROTTLE_STATUS = 429;
+const AMBIGUOUS_STATUSES = new Set([503, 504]);
+const IDEMPOTENT_METHODS = new Set(["GET", "HEAD", "PUT", "DELETE", "OPTIONS"]);
+
+function isRetryable(status, method) {
+  if (status === THROTTLE_STATUS) return true;
+  return (
+    AMBIGUOUS_STATUSES.has(status) &&
+    IDEMPOTENT_METHODS.has(String(method || "GET").toUpperCase())
+  );
+}
 const MAX_RETRIES = 3;
 const BASE_BACKOFF_MS = 500;
 const MAX_BACKOFF_MS = 20_000;
@@ -81,7 +101,7 @@ function createGraphClient({
         return res.status === 204 || res.status === 202 ? null : res.json();
       }
 
-      if (RETRYABLE_STATUSES.has(res.status) && attempt < MAX_RETRIES) {
+      if (isRetryable(res.status, options.method) && attempt < MAX_RETRIES) {
         const headerWait = parseRetryAfter(
           res.headers && res.headers.get
             ? res.headers.get("retry-after")
