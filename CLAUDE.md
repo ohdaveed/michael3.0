@@ -15,8 +15,8 @@ The two share one contract file (the product taxonomy — see [Cross-file contra
 
 See `package.json` for the full script list. The non-obvious ones:
 
-- **`npm run check`** = `format:check` + `html:check`. This is the CI gate and what `.husky/pre-push` runs (alongside `npm run build`). Run it before pushing.
-- **`npm run test:e2e`** starts its own dev server — `playwright.config.js` has a `webServer` block (`reuseExistingServer: !CI`), so you do _not_ need `npm run dev` running first.
+- **`npm run check`** = `format:check` + `html:check`. This is the formatting/HTML gate only, and what `.husky/pre-push` runs (alongside `npm run build`). CI runs more than this, so a green `check` is not a green PR — for the full CI-equivalent sequence run `npm run check && npm run test:e2e && npm run build`, plus the webhook-server tests below.
+- **`npm run test:e2e`** starts its own dev server — `playwright.config.js` has a `webServer` block (`reuseExistingServer: !process.env.CI`), so you do _not_ need `npm run dev` running first.
 - **`links:check`, `a11y:check`, `lighthouse`, `browser:check`** _do_ require `npm run dev` in another terminal — they hit `http://localhost:5173`, not the filesystem.
 - **`webhook-server/` tests** run from that directory: `cd webhook-server && npm ci && npm test` (`node --test lib/*.test.js server.test.js`). The root `npm test` does not cover them.
 
@@ -32,7 +32,10 @@ There is no lint/format config file — Prettier and htmlhint run on defaults pl
 `root: "public"`, `build.outDir: "../dist"`, `emptyOutDir: true`. Four plugins run in order:
 
 1. **`htmlIncludePlugin`** — replaces `<!--#include:partials/foo.html?KEY=value-->` with the partial's contents, substituting `{{KEY}}` from the query string, then the `GLOBAL_TOKENS` (currently just `{{BOOKING_URL}}`), then stripping any leftover `{{TOKEN}}` to `""`. Runs in dev _and_ build, so what you see at `localhost:5173` is what ships.
-2. **`staticImagesPlugin`** — copies the files in `STATIC_IMAGES` straight into `dist/images/`. These are referenced only from partials, from JSON-LD string literals, or via absolute `og:image`/`twitter:image` URLs, so Vite's asset scanner never sees them. **An image used only in those ways must be added to `STATIC_IMAGES` or it 404s in production.** Images referenced by a normal tag attribute in a page (favicons, the About photo) are handled by Vite and land hashed under `dist/assets/`.
+2. **`staticImagesPlugin`** — copies the files in `STATIC_IMAGES` straight into `dist/images/` under their original names. Vite rewrites image paths it can see in a tag attribute, emitting them hashed into `dist/assets/`; it cannot see a reference inside a partial, a JSON-LD string literal, or an absolute `og:image`/`twitter:image` URL, so nothing is emitted at `/images/<name>` for those. **The rule is about the reference, not the image: if an image is referenced anywhere by a path Vite does not rewrite, it needs a `STATIC_IMAGES` entry or that URL 404s in production.**
+
+   Being used in a normal tag attribute somewhere else does not exempt it. `michael-lehr.webp` is exactly this case — `public/index.html` loads it with `src="images/michael-lehr.webp"` _and_ every page's `og:image`/`twitter:image` points at `https://www.lehr-law.com/images/michael-lehr.webp`. It correctly produces both outputs: a hashed `dist/assets/michael-lehr-<hash>.webp` for the tag, and `dist/images/michael-lehr.webp` for the absolute URL. Drop it from `STATIC_IMAGES` and the page still renders while every social and schema preview breaks.
+
 3. **`ViteImageOptimizer`** — quality 80 for png/jpeg/webp, `multipass` for SVG.
 4. **`seoFilesPlugin`** — generates `sitemap.xml`, `robots.txt`, and `llms.txt` into the build output.
    - Sitemap URLs keep their `.html` extension because Bluehost serves the pages only at those paths (no rewrites) and each page's canonical tag uses them. This is why `vite-plugin-sitemap` was replaced — it strips the extension, producing 404s that contradict the canonical tags.
@@ -41,12 +44,15 @@ There is no lint/format config file — Prettier and htmlhint run on defaults pl
 
 ### Adding a page
 
-The steps span three places — missing any one fails quietly:
+Two files, `public/<name>.html` and `vite.config.js`. Both required steps are:
 
 1. Create `public/<name>.html` with the four includes (`head-analytics`, `nav.html?NAV_CLASS_ATTR=…`, `sticky-cta`, `footer`), a `<link rel="canonical">`, and OG tags on `SITE_URL`.
-2. Register it in `build.rollupOptions.input` in `vite.config.js`. **A page not listed there is never built**, even though it works fine in dev.
-3. Optionally add it to `LLMS_PAGE_ORDER` or `LLMS_OPTIONAL_PAGES` to control where it appears in `llms.txt`.
-4. If it is `noindex`, add it to the exclusion filter in `seoFilesPlugin` alongside `thank-you.html`.
+2. Register it in `build.rollupOptions.input` in `vite.config.js`. **This is the one that fails quietly — a page not listed there is never built**, even though it works fine in dev.
+
+Then two further `vite.config.js` edits, neither of which is required and which apply in different cases:
+
+- **Optional:** add it to `LLMS_PAGE_ORDER` or `LLMS_OPTIONAL_PAGES` to place it in `llms.txt`. Skipping this only affects ordering — an unlisted page is still appended.
+- **Only if the page is `noindex`:** add it to the exclusion filter in `seoFilesPlugin` alongside `thank-you.html`.
 
 ## Site source conventions (`public/`)
 
