@@ -129,3 +129,57 @@ test("rejects a Graph value that is not an array", () => {
   const result = parseGraphNotification({ value: "nope" });
   assert.equal(result.ok, false);
 });
+
+// --- Non-stripping behaviour ------------------------------------------------
+// These guard the `.loose()` decision in schemas.js. A bare `z.object()` would
+// pass every assertion above and still delete these fields on the way through,
+// which is exactly how they were lost the first time.
+
+test("preserves event.end_time, which the handler writes to ConsultEnd", () => {
+  const result = parseCalendlyWebhook({
+    event: "invitee.created",
+    payload: {
+      event: {
+        name: "Consultation",
+        start_time: "2026-09-01T17:00:00Z",
+        end_time: "2026-09-01T17:30:00Z",
+      },
+    },
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.data.payload.event.end_time, "2026-09-01T17:30:00Z");
+});
+
+test("preserves invitee.cancellation, which the handler reads for the reason", () => {
+  const result = parseCalendlyWebhook({
+    event: "invitee.canceled",
+    payload: {
+      invitee: {
+        email: "jane@example.com",
+        cancellation: { reason: "Rescheduling", canceled_by: "Jane Doe" },
+      },
+    },
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.data.payload.invitee.cancellation.reason, "Rescheduling");
+});
+
+test("preserves unrecognised keys rather than deleting them", () => {
+  const result = parseCalendlyWebhook({
+    event: "invitee.created",
+    payload: { uri: "https://x", some_future_calendly_field: "kept" },
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.data.payload.some_future_calendly_field, "kept");
+});
+
+test("preserves unrecognised Tally field keys", () => {
+  const result = parseTallyWebhook({
+    data: {
+      formId: "ob17lb",
+      fields: [{ label: "Email", value: "a@b.c", newTallyProperty: "kept" }],
+    },
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.data.data.fields[0].newTallyProperty, "kept");
+});

@@ -299,7 +299,7 @@ test("does not retry a non-transient status and attaches it to the error", async
   assert.equal(calls, 1);
 });
 
-test("caps the backoff wait", async () => {
+test("refuses to retry when Retry-After exceeds what we will wait", async () => {
   const slept = [];
   const client = createGraphClient({
     tenantId: "t",
@@ -320,7 +320,32 @@ test("caps the backoff wait", async () => {
   });
 
   await assert.rejects(() => client.graphFetch("/thing"));
-  assert.deepEqual(slept, [20_000, 20_000, 20_000]);
+  // An hour is longer than holding the request open is worth: fail now and
+  // let the next redelivery try, rather than retry early into a shut window.
+  assert.deepEqual(slept, []);
+});
+
+test("honours a long-but-acceptable Retry-After without clamping it", async () => {
+  const slept = [];
+  let call = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) => {
+      if (url.includes("login.microsoftonline.com")) return tokenResponse();
+      call++;
+      return call === 1
+        ? { ok: false, status: 429, headers: headers({ "retry-after": "60" }) }
+        : { ok: true, status: 200, json: async () => ({ ok: 1 }) };
+    },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  assert.deepEqual(await client.graphFetch("/thing"), { ok: 1 });
+  // 60s exceeds MAX_BACKOFF_MS but is what Graph asked for; clamping it to
+  // 20s would retry three times before the window opened and drop the call.
+  assert.deepEqual(slept, [60_000]);
 });
 
 test("does not retry an ambiguous 503 for a POST", async () => {

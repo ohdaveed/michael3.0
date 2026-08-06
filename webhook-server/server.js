@@ -247,6 +247,22 @@ function createApp({
     }
   }
 
+  // Public, unauthenticated endpoints. Generous enough that a real burst
+  // (Calendly retries, a Graph notification batch) is never touched.
+  const webhookLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 120,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: { error: "Too many requests" },
+  });
+  // Mounted before express.json deliberately. Behind the parser, a malformed
+  // or near-limit body is buffered, parsed, rejected, and logged before the
+  // limiter ever sees it — so the cheapest requests to send would be the ones
+  // that skip the budget entirely. Scoped to /webhooks so the health check
+  // stays unlimited; Railway probes it continuously.
+  app.use("/webhooks", webhookLimiter);
+
   // express.json rather than a hand-rolled parser, for the `limit`: the
   // previous version concatenated request chunks into a string with no size
   // cap and no error listener, so an oversized or aborted body was
@@ -278,19 +294,6 @@ function createApp({
     if (res.headersSent) return next(err);
     return res.status(status).json({ error: "Invalid request body" });
   });
-
-  // Public, unauthenticated endpoints. Generous enough that a real burst
-  // (Calendly retries, a Graph notification batch) is never touched.
-  const webhookLimiter = rateLimit({
-    windowMs: 60_000,
-    limit: 120,
-    standardHeaders: "draft-7",
-    legacyHeaders: false,
-    message: { error: "Too many requests" },
-  });
-  // Scoped to /webhooks so the health check stays unlimited — Railway probes
-  // it continuously and must never be throttled.
-  app.use("/webhooks", webhookLimiter);
 
   // -------------------------------------------------------------------------
   // Health check

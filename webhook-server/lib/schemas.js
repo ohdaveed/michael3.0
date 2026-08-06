@@ -7,10 +7,22 @@
 // way into an email and a SharePoint row instead of being rejected. These
 // schemas fail fast at the route boundary.
 //
-// They are deliberately permissive about fields the handlers do not read:
-// Tally and Calendly both add keys over time, and rejecting an unrecognised
-// one would break the integration on their release schedule, not ours. What
-// is validated is what the handlers actually depend on.
+// Every object here is `.loose()`, and that is load-bearing rather than
+// stylistic. Zod strips undeclared keys by default, so a plain `.object()`
+// validates the shape and then silently deletes everything it was not told
+// about — including fields the handlers still read. That turned validation
+// into data loss: `event.end_time` reached SharePoint as an undefined
+// ConsultEnd, and `invitee.cancellation.reason` was dropped so every
+// cancellation email read "(no reason given)".
+//
+// Declaring each of those individually would only fix the two we noticed.
+// `.loose()` fixes the class: the shape is checked, unrecognised keys pass
+// through untouched. That also matches the intent — Tally and Calendly add
+// keys on their own release schedule, and neither rejecting nor discarding
+// an unrecognised one is our call to make.
+//
+// **Keep new object schemas `.loose()`.** A bare `.object()` here will not
+// fail a test; it will quietly delete a field somewhere downstream.
 
 const { z } = require("zod");
 
@@ -19,20 +31,22 @@ const { z } = require("zod");
 // A field's `value` is a string for text inputs, an array of option IDs for
 // choice inputs, a number for numeric ones, or null when left blank.
 // resolveTallyFieldValue() in server.js turns all of those into a string.
-const tallyFieldSchema = z.object({
+const tallyFieldSchema = z.looseObject({
   key: z.string().optional(),
   label: z.string(),
   type: z.string().optional(),
   value: z
     .union([z.string(), z.number(), z.boolean(), z.array(z.string()), z.null()])
     .optional(),
-  options: z.array(z.object({ id: z.string(), text: z.string() })).optional(),
+  options: z
+    .array(z.looseObject({ id: z.string(), text: z.string() }))
+    .optional(),
 });
 
-const tallyWebhookSchema = z.object({
+const tallyWebhookSchema = z.looseObject({
   eventId: z.string().optional(),
   createdAt: z.string().optional(),
-  data: z.object({
+  data: z.looseObject({
     submissionId: z.string().optional(),
     formId: z.string(),
     fields: z.array(tallyFieldSchema).default([]),
@@ -41,10 +55,10 @@ const tallyWebhookSchema = z.object({
 
 // --- Calendly ---------------------------------------------------------------
 
-const calendlyWebhookSchema = z.object({
+const calendlyWebhookSchema = z.looseObject({
   event: z.string(),
   payload: z
-    .object({
+    .looseObject({
       uri: z.string().optional(),
       email: z.string().optional(),
       name: z.string().optional(),
@@ -54,7 +68,7 @@ const calendlyWebhookSchema = z.object({
       reschedule_url: z.string().optional(),
       // Present on invitee.* events; the handler reads name/email off it.
       invitee: z
-        .object({
+        .looseObject({
           name: z.string().optional(),
           first_name: z.string().nullish(),
           last_name: z.string().nullish(),
@@ -73,7 +87,7 @@ const calendlyWebhookSchema = z.object({
       event: z
         .union([
           z.string(),
-          z.object({
+          z.looseObject({
             name: z.string().optional(),
             start_time: z.string().optional(),
           }),
@@ -81,7 +95,7 @@ const calendlyWebhookSchema = z.object({
         .optional(),
       questions_and_answers: z
         .array(
-          z.object({
+          z.looseObject({
             question: z.string().default(""),
             answer: z.string().nullish(),
           }),
@@ -93,13 +107,13 @@ const calendlyWebhookSchema = z.object({
 
 // --- Microsoft Graph change notifications -----------------------------------
 
-const graphNotificationSchema = z.object({
+const graphNotificationSchema = z.looseObject({
   value: z
     .array(
-      z.object({
+      z.looseObject({
         clientState: z.string().nullish(),
         resource: z.string().optional(),
-        resourceData: z.object({ id: z.string().optional() }).nullish(),
+        resourceData: z.looseObject({ id: z.string().optional() }).nullish(),
         subscriptionId: z.string().optional(),
         changeType: z.string().optional(),
       }),

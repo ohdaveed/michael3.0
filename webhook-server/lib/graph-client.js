@@ -30,7 +30,15 @@ function isRetryable(status, method) {
 }
 const MAX_RETRIES = 3;
 const BASE_BACKOFF_MS = 500;
+// Ceiling for our own exponential backoff only.
 const MAX_BACKOFF_MS = 20_000;
+// A Retry-After is Graph telling us when it will accept the request; honour it
+// as given rather than clamping to MAX_BACKOFF_MS, because retrying early is
+// just another throttled call that burns an attempt before the window opens.
+// Past this point waiting is worse than failing — the caller (a Calendly
+// redelivery, the next Graph notification) will come round again sooner than
+// we would.
+const MAX_RETRY_AFTER_MS = 90_000;
 
 // Retry-After is seconds or an HTTP-date. Graph sends seconds in practice;
 // the date form is handled so an unexpected one does not become NaN and skip
@@ -108,14 +116,20 @@ function createGraphClient({
             : null,
           now(),
         );
-        // Graph's own Retry-After wins when present; it knows the throttle
-        // window. Otherwise back off exponentially from BASE_BACKOFF_MS.
-        const wait = Math.min(
-          headerWait ?? BASE_BACKOFF_MS * 2 ** attempt,
-          MAX_BACKOFF_MS,
-        );
-        await sleep(wait);
-        continue;
+        if (headerWait !== null && headerWait > MAX_RETRY_AFTER_MS) {
+          // Longer than we are willing to hold the request open. Fall through
+          // and throw rather than retry early against a window we know is
+          // still shut.
+        } else {
+          // Graph's own Retry-After wins when present; it knows the throttle
+          // window, and clamping it would retry before it opens. Only the
+          // exponential fallback is capped.
+          const wait =
+            headerWait ??
+            Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS);
+          await sleep(wait);
+          continue;
+        }
       }
 
       const body = await (res.text ? res.text() : Promise.resolve(""));
