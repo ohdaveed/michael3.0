@@ -4,12 +4,62 @@
 // (cached until near expiry) plus a thin authenticated-fetch wrapper.
 // No SharePoint- or pipeline-specific knowledge lives here — see
 // lib/sharepoint.js for that.
+// Graph throttles with 429 + Retry-After and sheds load with 503/504.
+// Everything else (401, 404, the 410 an expired delta token produces) is a
+// real answer and is thrown at once.
+//
+// The two are not equally safe to retry. A 429 is a rejection: Graph refused
+// the request before doing the work, so replaying it cannot duplicate
+// anything, whatever the method. A 503/504 is ambiguous — the request may
+// have been processed and only the response lost. Neither of the POSTs this
+// client makes is idempotent: /sendMail is fire-and-forget with no client-side
+// dedupe key, and creating a Client Pipeline list item has none either, so a
+// blind replay can mean a second email to a prospective client or a duplicate
+// pipeline row. Retry an ambiguous failure only for methods HTTP defines as
+// idempotent.
+const THROTTLE_STATUS = 429;
+const AMBIGUOUS_STATUSES = new Set([503, 504]);
+const IDEMPOTENT_METHODS = new Set(["GET", "HEAD", "PUT", "DELETE", "OPTIONS"]);
+
+function isRetryable(status, method) {
+  if (status === THROTTLE_STATUS) return true;
+  return (
+    AMBIGUOUS_STATUSES.has(status) &&
+    IDEMPOTENT_METHODS.has(String(method || "GET").toUpperCase())
+  );
+}
+const MAX_RETRIES = 3;
+const BASE_BACKOFF_MS = 500;
+// Ceiling for our own exponential backoff only.
+const MAX_BACKOFF_MS = 20_000;
+// A Retry-After is Graph telling us when it will accept the request; honour it
+// as given rather than clamping to MAX_BACKOFF_MS, because retrying early is
+// just another throttled call that burns an attempt before the window opens.
+// Past this point waiting is worse than failing — the caller (a Calendly
+// redelivery, the next Graph notification) will come round again sooner than
+// we would.
+const MAX_RETRY_AFTER_MS = 90_000;
+
+// Retry-After is seconds or an HTTP-date. Graph sends seconds in practice;
+// the date form is handled so an unexpected one does not become NaN and skip
+// the wait entirely. Returns null when the header is absent or unparseable,
+// leaving the caller on exponential backoff.
+function parseRetryAfter(header, nowMs) {
+  if (!header) return null;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const at = Date.parse(header);
+  return Number.isNaN(at) ? null : Math.max(0, at - nowMs);
+}
+
 function createGraphClient({
   tenantId = process.env.GRAPH_TENANT_ID,
   clientId = process.env.GRAPH_CLIENT_ID,
   clientSecret = process.env.GRAPH_CLIENT_SECRET,
   fetchImpl = fetch,
   now = () => Date.now(),
+  // Injectable so tests exercise the retry path without real delays.
+  sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 } = {}) {
   let cachedToken = null; // { accessToken, expiresAt }
 
@@ -42,24 +92,56 @@ function createGraphClient({
   }
 
   async function graphFetch(path, options = {}) {
-    const token = await getAccessToken();
-    const res = await fetchImpl(`https://graph.microsoft.com/v1.0${path}`, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
-    });
-    if (!res.ok) {
+    for (let attempt = 0; ; attempt++) {
+      const token = await getAccessToken();
+      const res = await fetchImpl(`https://graph.microsoft.com/v1.0${path}`, {
+        ...options,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+        },
+      });
+
+      if (res.ok) {
+        // 204 (No Content) and 202 (Accepted, e.g. /sendMail) never carry a
+        // JSON body — attempting to parse either would throw.
+        return res.status === 204 || res.status === 202 ? null : res.json();
+      }
+
+      if (isRetryable(res.status, options.method) && attempt < MAX_RETRIES) {
+        const headerWait = parseRetryAfter(
+          res.headers && res.headers.get
+            ? res.headers.get("retry-after")
+            : null,
+          now(),
+        );
+        if (headerWait !== null && headerWait > MAX_RETRY_AFTER_MS) {
+          // Longer than we are willing to hold the request open. Fall through
+          // and throw rather than retry early against a window we know is
+          // still shut.
+        } else {
+          // Graph's own Retry-After wins when present; it knows the throttle
+          // window, and clamping it would retry before it opens. Only the
+          // exponential fallback is capped.
+          const wait =
+            headerWait ??
+            Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS);
+          await sleep(wait);
+          continue;
+        }
+      }
+
       const body = await (res.text ? res.text() : Promise.resolve(""));
-      throw new Error(
+      const err = new Error(
         `[graph] ${options.method || "GET"} ${path} failed: ${res.status} ${body}`,
       );
+      // Carried so callers can branch on the code instead of regex-matching
+      // this message — lib/sharepoint.js reads it to detect an expired
+      // delta token (410).
+      err.status = res.status;
+      throw err;
     }
-    // 204 (No Content) and 202 (Accepted, e.g. /sendMail) never carry a
-    // JSON body — attempting to parse either would throw.
-    return res.status === 204 || res.status === 202 ? null : res.json();
   }
 
   return { getAccessToken, graphFetch };

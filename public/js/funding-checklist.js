@@ -18,7 +18,7 @@
   function loadState() {
     try {
       return JSON.parse(window.localStorage.getItem(STORAGE_KEY)) || {};
-    } catch (e) {
+    } catch {
       return {};
     }
   }
@@ -26,7 +26,7 @@
   function saveState(state) {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {
+    } catch {
       // localStorage unavailable (private browsing, quota) - degrade to session-only state
     }
   }

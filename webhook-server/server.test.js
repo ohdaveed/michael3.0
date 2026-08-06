@@ -442,3 +442,96 @@ test("POST /webhooks/graph-pipeline still returns 202 when background processing
     { stageEngine: engine, graphClientState: "test-secret" },
   );
 });
+
+// ---------------------------------------------------------------------------
+// Request body handling
+// ---------------------------------------------------------------------------
+
+test("POST /webhooks/tally rejects a body over the size limit", async () => {
+  await withServer(fakePipelineSync(), async (base) => {
+    // Comfortably past the 100kb cap. The point is that this is refused up
+    // front rather than buffered — the previous hand-rolled parser had no cap.
+    const oversized = JSON.stringify({
+      data: { formId: "ob17lb", fields: [], pad: "x".repeat(200_000) },
+    });
+    const res = await fetch(`${base}/webhooks/tally`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: oversized,
+    });
+    assert.equal(res.status, 413);
+    assert.deepEqual(await res.json(), { error: "Invalid request body" });
+  });
+});
+
+test("POST /webhooks/tally answers 400 for malformed JSON", async () => {
+  await withServer(fakePipelineSync(), async (base) => {
+    const res = await fetch(`${base}/webhooks/tally`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{not json",
+    });
+    // Previously this parsed to {} and fell through to the formId check.
+    // An explicit 400 with a JSON body is the better answer to a webhook
+    // sender, and it must not be Express's default HTML 500.
+    assert.equal(res.status, 400);
+    assert.deepEqual(await res.json(), { error: "Invalid request body" });
+  });
+});
+
+test("POST /webhooks/tally rejects a structurally invalid payload", async () => {
+  await withServer(fakePipelineSync(), async (base) => {
+    const res = await fetch(`${base}/webhooks/tally`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: { fields: [] } }), // no formId
+    });
+    assert.equal(res.status, 400);
+    assert.deepEqual(await res.json(), { error: "Invalid payload" });
+  });
+});
+
+test("POST /webhooks/calendly rejects a payload with no event type", async () => {
+  await withServer(fakePipelineSync(), async (base) => {
+    const res = await fetch(`${base}/webhooks/calendly`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payload: { invitee: {} } }),
+    });
+    assert.equal(res.status, 400);
+    assert.deepEqual(await res.json(), { error: "Invalid payload" });
+  });
+});
+
+test("the health check is not rate limited", async () => {
+  await withServer(fakePipelineSync(), async (base) => {
+    // Railway probes this continuously; throttling it would fail the deploy.
+    // The limiter is mounted on /webhooks only, so well past its 120/min
+    // budget still succeeds here.
+    for (let i = 0; i < 150; i++) {
+      const res = await fetch(`${base}/`);
+      assert.equal(res.status, 200);
+    }
+  });
+});
+
+test("the webhook routes are rate limited", async () => {
+  await withServer(fakePipelineSync(), async (base) => {
+    const send = () =>
+      fetch(`${base}/webhooks/tally`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: { fields: [] } }), // 400s, still counted
+      });
+
+    let limited = false;
+    for (let i = 0; i < 130; i++) {
+      const res = await send();
+      if (res.status === 429) {
+        limited = true;
+        break;
+      }
+    }
+    assert.equal(limited, true, "expected a 429 within 130 requests");
+  });
+});

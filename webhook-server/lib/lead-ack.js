@@ -10,16 +10,10 @@
 
 const WHAT_TO_EXPECT_URL = "https://www.lehr-law.com/what-to-expect.html";
 
-// Field values come from the form submission — escape anything interpolated
-// into the HTML body (the Michael-facing notification emails render form
-// content too, but this one goes to an external recipient).
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+// Field values come from the form submission, so everything interpolated into
+// the HTML body is escaped. Shared with the Michael-facing notification
+// emails in server.js, which render the same untrusted form content.
+const { escapeHtml } = require("./html");
 
 function buildLeadAckEmail({ firstName, service, bookingUrl }) {
   const greeting = firstName ? `Hi ${firstName},` : "Hello,";

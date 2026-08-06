@@ -10,6 +10,9 @@ test.describe("Shared third-party-blocking fixture", () => {
     });
 
     await page.goto("/index.html");
+    // This spec asserts the third-party requests were blocked, so it has to
+    // wait for the network to settle before inspecting the failed list.
+    // eslint-disable-next-line playwright/no-networkidle
     await page.waitForLoadState("networkidle");
 
     expect(

@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # Site build and tooling.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # The webhook service ships separately to Railway and has its own lockfile.
+  - package-ecosystem: npm
+    directory: "/webhook-server"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

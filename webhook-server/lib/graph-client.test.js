@@ -187,3 +187,295 @@ test("graphFetch returns null for a 202 Accepted response", async () => {
 
   assert.equal(result, null);
 });
+
+// --- Throttling / retry -----------------------------------------------------
+
+function tokenResponse() {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({ access_token: "tok", expires_in: 3600 }),
+  };
+}
+
+// Minimal stand-in for the Headers object graphFetch reads Retry-After from.
+function headers(map = {}) {
+  return { get: (name) => map[name.toLowerCase()] ?? null };
+}
+
+test("retries a 429 and returns the eventual success", async () => {
+  const slept = [];
+  const responses = [
+    { ok: false, status: 429, headers: headers({ "retry-after": "2" }) },
+    { ok: true, status: 200, json: async () => ({ value: "done" }) },
+  ];
+  let call = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) =>
+      url.includes("login.microsoftonline.com")
+        ? tokenResponse()
+        : responses[call++],
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  assert.deepEqual(await client.graphFetch("/thing"), { value: "done" });
+  // Retry-After: 2 seconds, honoured in preference to the backoff schedule.
+  assert.deepEqual(slept, [2000]);
+});
+
+test("falls back to exponential backoff when Retry-After is absent", async () => {
+  const slept = [];
+  let call = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) => {
+      if (url.includes("login.microsoftonline.com")) return tokenResponse();
+      call++;
+      return call <= 2
+        ? { ok: false, status: 503, headers: headers() }
+        : { ok: true, status: 200, json: async () => ({ ok: 1 }) };
+    },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  assert.deepEqual(await client.graphFetch("/thing"), { ok: 1 });
+  assert.deepEqual(slept, [500, 1000]);
+});
+
+test("gives up after the retry budget and throws with the status attached", async () => {
+  const slept = [];
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) =>
+      url.includes("login.microsoftonline.com")
+        ? tokenResponse()
+        : {
+            ok: false,
+            status: 429,
+            headers: headers(),
+            text: async () => "throttled",
+          },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  await assert.rejects(
+    () => client.graphFetch("/thing"),
+    (err) => err.status === 429 && /throttled/.test(err.message),
+  );
+  // MAX_RETRIES = 3, so three waits then the throw.
+  assert.equal(slept.length, 3);
+});
+
+test("does not retry a non-transient status and attaches it to the error", async () => {
+  let calls = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) => {
+      if (url.includes("login.microsoftonline.com")) return tokenResponse();
+      calls++;
+      return {
+        ok: false,
+        status: 410,
+        headers: headers(),
+        text: async () => "gone",
+      };
+    },
+    sleep: async () => assert.fail("must not sleep for a 410"),
+  });
+
+  await assert.rejects(
+    () => client.graphFetch("/delta"),
+    (err) => err.status === 410,
+  );
+  assert.equal(calls, 1);
+});
+
+test("refuses to retry when Retry-After exceeds what we will wait", async () => {
+  const slept = [];
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) =>
+      url.includes("login.microsoftonline.com")
+        ? tokenResponse()
+        : {
+            ok: false,
+            status: 429,
+            // Far beyond MAX_BACKOFF_MS — a hostile or buggy header must not
+            // park the request for an hour.
+            headers: headers({ "retry-after": "3600" }),
+            text: async () => "",
+          },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  await assert.rejects(() => client.graphFetch("/thing"));
+  // An hour is longer than holding the request open is worth: fail now and
+  // let the next redelivery try, rather than retry early into a shut window.
+  assert.deepEqual(slept, []);
+});
+
+test("honours a long-but-acceptable Retry-After without clamping it", async () => {
+  const slept = [];
+  let call = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) => {
+      if (url.includes("login.microsoftonline.com")) return tokenResponse();
+      call++;
+      return call === 1
+        ? { ok: false, status: 429, headers: headers({ "retry-after": "60" }) }
+        : { ok: true, status: 200, json: async () => ({ ok: 1 }) };
+    },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  assert.deepEqual(await client.graphFetch("/thing"), { ok: 1 });
+  // 60s exceeds MAX_BACKOFF_MS but is what Graph asked for; clamping it to
+  // 20s would retry three times before the window opened and drop the call.
+  assert.deepEqual(slept, [60_000]);
+});
+
+test("does not retry an ambiguous 503 for a POST", async () => {
+  // /sendMail and list-item creation are POSTs with no client-side dedupe key.
+  // A 503 may mean the request was processed and only the response lost, so
+  // replaying it risks a second email to a prospective client.
+  let calls = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) => {
+      if (url.includes("login.microsoftonline.com")) return tokenResponse();
+      calls++;
+      return {
+        ok: false,
+        status: 503,
+        headers: headers(),
+        text: async () => "unavailable",
+      };
+    },
+    sleep: async () => assert.fail("must not retry a POST on 503"),
+  });
+
+  await assert.rejects(
+    () => client.graphFetch("/users/x/sendMail", { method: "POST" }),
+    (err) => err.status === 503,
+  );
+  assert.equal(calls, 1);
+});
+
+test("still retries a 429 for a POST, since a throttle means it never ran", async () => {
+  const slept = [];
+  let call = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) => {
+      if (url.includes("login.microsoftonline.com")) return tokenResponse();
+      call++;
+      return call === 1
+        ? { ok: false, status: 429, headers: headers({ "retry-after": "1" }) }
+        : { ok: true, status: 202, json: async () => ({}) };
+    },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  assert.equal(
+    await client.graphFetch("/users/x/sendMail", { method: "POST" }),
+    null,
+  );
+  assert.deepEqual(slept, [1000]);
+});
+
+test("retries an ambiguous 504 for an idempotent GET", async () => {
+  const slept = [];
+  let call = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) => {
+      if (url.includes("login.microsoftonline.com")) return tokenResponse();
+      call++;
+      return call === 1
+        ? { ok: false, status: 504, headers: headers() }
+        : { ok: true, status: 200, json: async () => ({ value: [] }) };
+    },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  assert.deepEqual(await client.graphFetch("/items/delta", { method: "GET" }), {
+    value: [],
+  });
+  assert.deepEqual(slept, [500]);
+});
+
+test("honours an HTTP-date Retry-After against the injected clock", async () => {
+  const slept = [];
+  // Fixed clock so the date arithmetic is deterministic: the header is 4s ahead.
+  const fixedNow = Date.parse("2026-08-06T12:00:00Z");
+  let call = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    now: () => fixedNow,
+    fetchImpl: async (url) => {
+      if (url.includes("login.microsoftonline.com")) return tokenResponse();
+      call++;
+      return call === 1
+        ? {
+            ok: false,
+            status: 429,
+            headers: headers({
+              "retry-after": "Thu, 06 Aug 2026 12:00:04 GMT",
+            }),
+          }
+        : { ok: true, status: 200, json: async () => ({ ok: 1 }) };
+    },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  assert.deepEqual(await client.graphFetch("/thing"), { ok: 1 });
+  assert.deepEqual(slept, [4000]);
+});
+
+test("ignores an unparseable Retry-After and falls back to backoff", async () => {
+  const slept = [];
+  let call = 0;
+  const client = createGraphClient({
+    tenantId: "t",
+    clientId: "c",
+    clientSecret: "s",
+    fetchImpl: async (url) => {
+      if (url.includes("login.microsoftonline.com")) return tokenResponse();
+      call++;
+      return call === 1
+        ? {
+            ok: false,
+            status: 429,
+            headers: headers({ "retry-after": "soon" }),
+          }
+        : { ok: true, status: 200, json: async () => ({ ok: 1 }) };
+    },
+    sleep: async (ms) => slept.push(ms),
+  });
+
+  assert.deepEqual(await client.graphFetch("/thing"), { ok: 1 });
+  // Garbage header must not become NaN and skip the wait entirely.
+  assert.deepEqual(slept, [500]);
+});

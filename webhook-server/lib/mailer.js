@@ -1,6 +1,7 @@
 "use strict";
 
 const { createGraphClient } = require("./graph-client");
+const { logger } = require("./logger");
 
 // Sends mail via Microsoft Graph's /users/{mailbox}/sendMail, using the same
 // client-credentials Graph client as the SharePoint sync. Replaces SMTP AUTH
@@ -23,9 +24,12 @@ function createMailer({ graphClient = createGraphClient(), fromMailbox } = {}) {
           }),
         },
       );
-      console.log(`[email] Sent: ${subject}`);
+      logger.info({ scope: "email", subject }, "sent");
     } catch (err) {
-      console.error("[email] Send failed:", err.message);
+      logger.error(
+        { scope: "email", subject, err: err.message },
+        "send failed",
+      );
     }
   }
 

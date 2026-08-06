@@ -52,12 +52,31 @@ function setCurrentNavLink() {
 
 setCurrentNavLink();
 
+// Matches the breakpoint in css/responsive/general.css where .nav-links flips
+// to display:none and .mobile-toggle appears. Above it the links are always
+// visible, so they must never be aria-hidden.
+const mobileNavQuery = window.matchMedia("(max-width: 1024px)");
+
+// Only meaningful in the mobile layout. On desktop the links are visible and
+// focusable, and marking them aria-hidden hides real tab stops from assistive
+// tech (axe: aria-hidden-focus). Below the breakpoint the closed menu is
+// display:none, which already removes it from the tab order, and aria-hidden
+// keeps assistive tech in step with that.
+function syncNavLinksHidden(isOpen) {
+  if (!navLinks) return;
+  if (mobileNavQuery.matches) {
+    navLinks.setAttribute("aria-hidden", String(!isOpen));
+  } else {
+    navLinks.removeAttribute("aria-hidden");
+  }
+}
+
 function setMobileMenuState(isOpen) {
   if (!mobileToggle || !navLinks) return;
   navLinks.classList.toggle("open", isOpen);
   mobileToggle.setAttribute("aria-expanded", isOpen);
   mobileToggle.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
-  navLinks.setAttribute("aria-hidden", String(!isOpen));
+  syncNavLinksHidden(isOpen);
   document.body.style.overflow = isOpen ? "hidden" : "";
   if (main) main.toggleAttribute("inert", isOpen);
   if (footer) footer.toggleAttribute("inert", isOpen);
@@ -73,7 +92,21 @@ if (nav) {
 if (mobileToggle && navLinks) {
   mobileToggle.setAttribute("aria-haspopup", "true");
   mobileToggle.setAttribute("aria-label", "Open menu");
-  navLinks.setAttribute("aria-hidden", "true");
+  syncNavLinksHidden(false);
+  // Crossing the breakpoint (resize, orientation change) must re-evaluate:
+  // the attribute is correct for one layout and wrong for the other.
+  mobileNavQuery.addEventListener("change", () => {
+    // Leaving the mobile layout with the menu open would strand the page:
+    // `.open` and the aria state are cosmetic here, but `inert` on main/footer
+    // and `body { overflow: hidden }` are not — the desktop page would be
+    // unscrollable and unfocusable. Close it properly rather than only
+    // correcting aria-hidden.
+    if (!mobileNavQuery.matches) {
+      setMobileMenuState(false);
+      return;
+    }
+    syncNavLinksHidden(navLinks.classList.contains("open"));
+  });
   mobileToggle.addEventListener("click", () => {
     const isOpen = !navLinks.classList.contains("open");
     setMobileMenuState(isOpen);
