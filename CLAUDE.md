@@ -4,34 +4,110 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Static marketing site for Michael Lehr Estate Planning (San Francisco). Plain HTML/CSS/JS compiled with Vite (no JS framework). All source pages live under `public/`; `robots.txt`, `sitemap.xml`, and `llms.txt` are generated at build time by the `seoFilesPlugin` in `vite.config.js`. The build output compiles into `dist/` for production deployment.
+Two independently deployed pieces live in this repo:
+
+1. **The marketing site** — a static site for Michael Lehr Estate Planning (San Francisco). Plain HTML/CSS/JS compiled with Vite, no JS framework. Source lives under `public/`; `npm run build` compiles to `dist/`, which is uploaded to Bluehost over FTPS by GitHub Actions.
+2. **`webhook-server/`** — a small Express service (its own `package.json`, `node >=18`) that receives Tally contact-form submissions, Calendly booking events, and Microsoft Graph change notifications for the SharePoint "Client Pipeline" list. It is **not** part of the Vite build and does not ship with the site; it is deployed separately to Railway. See `webhook-server/README.md` for endpoints, env vars, and deploy steps.
+
+The two share one contract file (the product taxonomy — see [Cross-file contracts](#cross-file-contracts)).
 
 ## Commands
 
-See `package.json` scripts for available npm commands.
+See `package.json` for the full script list. The non-obvious ones:
 
-`links:check`, `a11y:check`, `lighthouse`, and `browser:check` all require `npm run dev` running in another terminal first — they hit `http://localhost:5173`, not the filesystem.
+- **`npm run check`** = `format:check` + `html:check`. This is the CI gate and what `.husky/pre-push` runs (alongside `npm run build`). Run it before pushing.
+- **`npm run test:e2e`** starts its own dev server — `playwright.config.js` has a `webServer` block (`reuseExistingServer: !CI`), so you do _not_ need `npm run dev` running first.
+- **`links:check`, `a11y:check`, `lighthouse`, `browser:check`** _do_ require `npm run dev` in another terminal — they hit `http://localhost:5173`, not the filesystem.
+- **`webhook-server/` tests** run from that directory: `cd webhook-server && npm ci && npm test` (`node --test lib/*.test.js server.test.js`). The root `npm test` does not cover them.
 
-There is no test suite; `npm run check` (formatting + HTML lint) is the closest thing to CI-equivalent validation before a push.
+Git hooks (husky, installed via the `prepare` script):
 
-## Architecture
+- `.husky/pre-commit` → `npx lint-staged` (Prettier on all staged files, htmlhint on staged `public/*.html` and `public/partials/*.html`).
+- `.husky/pre-push` → `npm run check && npm run build`.
 
-- `public/` — source files actually served: the HTML pages, `partials/` (nav, footer, sticky CTA, GA snippet — inlined at build time via the `htmlIncludePlugin` in `vite.config.js`), `css/styles.css` (an `@import` manifest over `css/{base,components,sections,responsive}/`), `js/main.js` (an aggregator importing the per-feature modules in `js/`), `images/`.
-- `dist/` — the compiled output from `npm run build`. This is the deploy unit. The build also generates `sitemap.xml`, `robots.txt`, and `llms.txt` (see `seoFilesPlugin` in `vite.config.js`); sitemap URLs keep their `.html` extension because Bluehost serves the pages only at those paths and each page's canonical tag uses them. `robots.txt` allows all user-agents (`Allow: /`), which already covers AI crawlers (GPTBot, ClaudeBot, PerplexityBot, etc.) — `llms.txt` (per the [llmstxt.org](https://llmstxt.org) convention) gives those agents a curated Markdown summary of the site; its per-page entries are pulled from each page's own `<title>`/`<meta name="description">` at build time so they can't drift, per `LLMS_PAGE_ORDER`/`LLMS_OPTIONAL_PAGES` in `vite.config.js`. A newly added page not listed in either array still gets appended automatically rather than silently dropped.
-- `.github/workflows/deploy.yml` — the GitHub Actions FTPS deploy workflow (active). Deploys on every push to `main` that touches `public/`, `vite.config.js`, `package.json`, or the workflow file itself. The action installs dependencies, runs `npm run check`, runs the Vite build to compile assets into `dist/`, and uploads `dist/` to Bluehost using an FTP-diff state file (`.ftp-deploy-sync-state.json`) kept server-side. Requires the `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD` repo secrets (and optionally an `FTP_SERVER_DIR` repo variable if the FTP account's home directory isn't already the site's document root). `.github/workflows/ci.yml` runs the same check + build on pull requests without deploying.
-- Canonical URLs, Open Graph tags, and JSON-LD schema in each HTML page's `<head>` assume the live site is `https://www.lehr-law.com/`. If the deployed hostname changes, that base URL needs a search-and-replace across every `public/*.html` plus `SITE_URL` in `vite.config.js` (which stamps the generated `sitemap.xml`/`robots.txt`) — they must stay consistent with each other.
-- Contact form (`contact.html`) is a Tally form (`tally.so/r/ob17lb`) embedded inline via `js/tally-embed.js`, which also fires the GA4 `generate_lead` event and redirects to `thank-you.html` (`noindex`, excluded from `sitemap.xml`) on submission. Hidden fields (`form_source`, `contract_version`, `page`) come from the embed URL's query string; the product taxonomy contract lives in `js/product-contract.json` and `docs/client-pipeline.md` §3.
-- GA4 tracking ID lives only in `public/partials/head-analytics.html` (`gtag/js` script src + `gtag('config', ...)`), which every page pulls in via the `<!--#include:...-->` mechanism — not read from env.
+There is no lint/format config file — Prettier and htmlhint run on defaults plus the CLI flags in `package.json`. Partials are linted with a reduced htmlhint rule set because they are HTML fragments, not documents.
+
+## Build pipeline (`vite.config.js`)
+
+`root: "public"`, `build.outDir: "../dist"`, `emptyOutDir: true`. Four plugins run in order:
+
+1. **`htmlIncludePlugin`** — replaces `<!--#include:partials/foo.html?KEY=value-->` with the partial's contents, substituting `{{KEY}}` from the query string, then the `GLOBAL_TOKENS` (currently just `{{BOOKING_URL}}`), then stripping any leftover `{{TOKEN}}` to `""`. Runs in dev _and_ build, so what you see at `localhost:5173` is what ships.
+2. **`staticImagesPlugin`** — copies the files in `STATIC_IMAGES` straight into `dist/images/`. These are referenced only from partials, from JSON-LD string literals, or via absolute `og:image`/`twitter:image` URLs, so Vite's asset scanner never sees them. **An image used only in those ways must be added to `STATIC_IMAGES` or it 404s in production.** Images referenced by a normal tag attribute in a page (favicons, the About photo) are handled by Vite and land hashed under `dist/assets/`.
+3. **`ViteImageOptimizer`** — quality 80 for png/jpeg/webp, `multipass` for SVG.
+4. **`seoFilesPlugin`** — generates `sitemap.xml`, `robots.txt`, and `llms.txt` into the build output.
+   - Sitemap URLs keep their `.html` extension because Bluehost serves the pages only at those paths (no rewrites) and each page's canonical tag uses them. This is why `vite-plugin-sitemap` was replaced — it strips the extension, producing 404s that contradict the canonical tags.
+   - `robots.txt` is `Allow: /` for all user-agents, which already covers AI crawlers (GPTBot, ClaudeBot, PerplexityBot). `llms.txt` (per [llmstxt.org](https://llmstxt.org)) gives those agents a curated Markdown summary; per-page entries are pulled from each built page's own `<title>` and `<meta name="description">` so they can't drift. Ordering comes from `LLMS_PAGE_ORDER` / `LLMS_OPTIONAL_PAGES`; a page in neither array is still appended automatically rather than silently dropped.
+   - `thank-you.html` is excluded from both `sitemap.xml` and `llms.txt` (it is `noindex`).
+
+### Adding a page
+
+The steps span three places — missing any one fails quietly:
+
+1. Create `public/<name>.html` with the four includes (`head-analytics`, `nav.html?NAV_CLASS_ATTR=…`, `sticky-cta`, `footer`), a `<link rel="canonical">`, and OG tags on `SITE_URL`.
+2. Register it in `build.rollupOptions.input` in `vite.config.js`. **A page not listed there is never built**, even though it works fine in dev.
+3. Optionally add it to `LLMS_PAGE_ORDER` or `LLMS_OPTIONAL_PAGES` to control where it appears in `llms.txt`.
+4. If it is `noindex`, add it to the exclusion filter in `seoFilesPlugin` alongside `thank-you.html`.
+
+## Site source conventions (`public/`)
+
+- **`partials/`** — `nav.html`, `footer.html`, `sticky-cta.html`, `head-analytics.html`. Inlined at build time; all 11 pages include all four.
+- **`css/styles.css`** is a pure `@import` manifest (44 imports) over `css/{base,components,sections,responsive}/`. The import order encodes the cascade from the original single-file stylesheet — append within the right group rather than reordering.
+- **`js/main.js`** is an import-only aggregator; its order mirrors the original single-file execution order. Two modules are deliberately not imported there:
+  - `js/hooks.js` — shared `useScroll`, `useIntersectionObserver`, `useAccordion`, imported by the feature modules. Reuse these instead of adding fresh scroll/observer listeners.
+  - `js/booking-url.js` — the single source of truth for the Calendly consultation URL, imported directly by `vite.config.js`. HTML references it as `{{BOOKING_URL}}`. **Never hardcode the booking URL in a page.**
+- **`js/analytics.js`** — GA4 custom events. Its header states the rule: send codes and locations only, never names, email addresses, phone numbers, message content, or booking/matter IDs. Keep new events to that standard.
+- **GA4 measurement ID** lives only in `public/partials/head-analytics.html` (both the `gtag/js` src and the `gtag('config', ...)` call) — not read from env. One edit updates every page.
+- **`public/.htaccess`** holds the HTTPS + `www` 301 redirect, HSTS/nosniff/frame/referrer headers, and cache-control rules. Note that **Vite does not copy it into `dist/`**, so it is not part of what the FTPS deploy uploads — it has to be maintained on the Bluehost server directly. Editing it locally has no effect on the live site until it is placed there by hand.
+
+## Testing
+
+- **`tests/e2e/`** — 10 Playwright specs (analytics, faq, fixtures, funding-checklist, navigation, onboarding-tour, probate-calculator, quiz, send-a-message, sticky-cta) plus `tests/e2e/fixtures.js` helpers and a `fixtures/` directory. One `chromium` project, `baseURL http://localhost:5173`, trace on first retry, screenshots on failure. Under CI: `forbidOnly`, 2 retries, 2 workers.
+- **`webhook-server/`** — Node's built-in test runner. Each module is colocated with its tests: `lib/<name>.js` + `lib/<name>.test.js` (graph-client, lead-ack, mailer, pipeline-activity, pipeline-item-lock, pipeline-sync, product-contract, sharepoint, stage-engine, subscriptions), plus `server.test.js`. Follow that colocation when adding a module.
+
+## CI/CD (`.github/workflows/`)
+
+- **`ci.yml`** — on pull requests. Job `check`: `npm ci` → `npm run check` → install chromium → `npm run test:e2e` (uploads `playwright-report/` as an artifact on failure) → `npm run build`. Job `webhook-server`: `npm ci && npm test` inside `webhook-server/`. No deploy.
+- **`deploy.yml`** — "Deploy to Bluehost". Runs on pushes to `main` that touch `public/**`, `vite.config.js`, `package.json`, or the workflow file itself, plus `workflow_dispatch`. Installs deps, runs `npm run check`, builds, then uploads `dist/` via `SamKirkland/FTP-Deploy-Action` over FTPS using an FTP-diff state file (`.ftp-deploy-sync-state.json`) kept server-side. Requires the `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD` secrets (and optionally an `FTP_SERVER_DIR` repo variable if the FTP account's home directory isn't already the document root). If the optional `DEPLOY_WEBHOOK_URL` secret is set, success and failure each POST a JSON status payload to it.
+- **`dolt-sync.yml`** — on pushes to `main`. Mirrors the commit log into DoltHub and appends it to a Google Sheet devlog via `.github/scripts/`. Independent of the site build.
+- **`copilot-setup-steps.yml`** — dependency preinstall for GitHub Copilot agents.
+
+## Cross-file contracts
+
+Things that break silently if only one side is changed:
+
+- **Product taxonomy** — `public/js/product-contract.json` and `webhook-server/product-contract.json` are byte-identical and must stay so. The codes are stable keys that must never change meaning; the labels must match the Tally forms and the SharePoint choice column exactly. Any change requires bumping `contract_version` and updating `docs/client-pipeline.md` §3.
+- **Canonical hostname** — canonical URLs, Open Graph tags, and JSON-LD in every page's `<head>` assume `https://www.lehr-law.com/`. If the deployed hostname changes, search-and-replace across every `public/*.html` **and** update `SITE_URL` in `vite.config.js` (which stamps `sitemap.xml`/`robots.txt`/`llms.txt`) — they must stay consistent with each other.
+- **Booking URL** — `public/js/booking-url.js` only; surfaced in HTML via `{{BOOKING_URL}}`. `webhook-server` has its own optional `BOOKING_URL` env var for the acknowledgment email; keep it in sync if set.
+- **Contact form** — `contact.html` embeds a Tally form (`tally.so/r/ob17lb`) inline via `js/tally-embed.js`, which fires the GA4 `generate_lead` event and redirects to `thank-you.html` (`noindex`, excluded from the sitemap) on submission. Hidden fields (`form_source`, `contract_version`, `page`) come from the embed URL's query string.
+
+## Docs map
+
+- `docs/client-pipeline.md` — the Microsoft 365 Client Pipeline build specification. Source of truth for the product contract, SharePoint list structure, Flows A–G, engagement gates, and the open decisions for Michael. Read the relevant section before touching webhook-server pipeline logic.
+- `docs/webhooks.md` — external webhook and CI/CD notification setup (deploy notifications, Tally → Relay.app/Zapier/Clio, Slack).
+- `docs/superpowers/plans/` and `docs/superpowers/specs/` — dated design and implementation docs for larger efforts. Check for an existing one before designing new webhook-server work.
+- `docs/audit/`, `docs/hours/` (+ `scripts/hours/calculate_hours.py`) — a past multi-agent site audit and billable-hours reporting.
+- `README.md` — human-facing setup: local dev, Tally/Calendly/GA4 configuration, Bluehost FTP one-time setup, launch checklist.
 
 ## Content/copy QA
 
-For any content or copy edits to the marketing/legal pages, the `.cursor/skills/lehr-law-copy-qa/SKILL.md` skill defines this site's voice/tone rules, attorney-advertising constraints, and a review checklist (placeholders, link validity, cross-page consistency of phone/address/price/hours, HTML entity escaping). Read it before editing visible copy — it documents things like: don't add testimonials or `aggregateRating` schema without substantiation, keep results-page case studies anonymized, and get lawyer approval before substantive edits to the privacy/disclaimer/attorney-advertising trio.
+For any content or copy edits to the marketing/legal pages, the `lehr-law-copy-qa` skill (`.claude/skills/lehr-law-copy-qa/SKILL.md`, mirrored at `.cursor/skills/lehr-law-copy-qa/SKILL.md`) defines this site's voice/tone rules, attorney-advertising constraints, and a review checklist (placeholders, link validity, cross-page consistency of phone/address/price/hours, HTML entity escaping). Read it before editing visible copy — it documents things like: don't add testimonials or `aggregateRating` schema without substantiation, keep results-page case studies anonymized, and get lawyer approval before substantive edits to the privacy/disclaimer/attorney-advertising trio.
 
 ## Agent skills
 
+Six skills in `.claude/skills/`, each with a `SKILL.md`:
+
+| Skill                     | Use when                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `lehr-law-copy-qa`        | Proofreading or writing visible copy on any page (see above).                                                                         |
+| `seo-schema-check`        | After adding/renaming a page or changing the hostname — verifies canonical/OG/JSON-LD consistency against `sitemap.xml`/`robots.txt`. |
+| `a11y-audit`              | Running pa11y against the dev server and turning violations into a fix list.                                                          |
+| `lighthouse-perf-audit`   | Performance/SEO/Best-Practices auditing via Lighthouse against the dev server.                                                        |
+| `image-asset-optimize`    | Before committing a new or changed file under `public/images/`.                                                                       |
+| `ftp-deploy-troubleshoot` | A deploy failed, or changes aren't live on lehr-law.com.                                                                              |
+
 ### Issue tracker
 
-GitHub Issues (`ohdaveed/michael3.0`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+GitHub Issues (`ohdaveed/michael3.0`). See `docs/agents/issue-tracker.md` for the conventions — note it is written against the `gh` CLI, which is **not available in Claude Code on the web**; use the GitHub MCP tools (`mcp__github__*`) there instead, applying the same conventions.
 
 ### Triage labels
 
@@ -39,4 +115,4 @@ Default label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `read
 
 ### Domain docs
 
-Single-context — `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+`docs/agents/domain.md` describes a single-context setup with `CONTEXT.md` and `docs/adr/` at the repo root. **Neither currently exists**, which is expected — that doc says to proceed silently when they're absent rather than flagging or pre-creating them.
