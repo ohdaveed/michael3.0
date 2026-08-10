@@ -5,6 +5,11 @@
   --gold: #c5a55a;
   --gold-light: #d4ba78;
   --gold-text: #806b3a;
+  /* Muted gold for large decorative type on --cream. Reaching for --gold-text
+     at a fractional opacity is what this replaces: 50% of #806b3a over cream
+     blends to #bbae91, which is 1.93:1 where WCAG wants 3:1. This is 3.61:1
+     solid, at the same hue (43deg) as --gold. */
+  --gold-text-soft: #8d7c50;
   --gold-muted: rgba(197, 165, 90, 0.15);
   --gold-a05: rgba(197, 165, 90, 0.05);
   --gold-a06: rgba(197, 165, 90, 0.06);

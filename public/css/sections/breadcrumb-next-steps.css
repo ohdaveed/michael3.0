@@ -25,7 +25,11 @@
 }
 .breadcrumb-nav a {
   color: rgba(255, 255, 255, 0.78);
-  text-decoration: none;
+  /* Underlined, not colour-only: at 0.78 white the link is 1.87:1 against the
+     0.55 white of the surrounding crumb text, where distinguishing a link by
+     colour alone needs 3:1. The current crumb is a <span aria-current="page">
+     rather than an <a>, so it stays undecorated. */
+  text-decoration: underline;
 }
 .breadcrumb-nav a:hover {
   color: var(--gold-light);
