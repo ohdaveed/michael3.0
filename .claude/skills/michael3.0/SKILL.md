@@ -68,7 +68,8 @@ dev and is never built).
 
 ## Commits
 
-Conventional commits, and **not only `feat`** — across the full history:
-`feat` (21), `docs` (19), `fix` (11), `test` (9), `chore` (5), `ci` (2), with
-`style` and `refactor` used once each. Explain *why* in the body when the
-change is not self-evident.
+Conventional commits, and **not only `feat`** — the history uses `feat`,
+`docs`, `fix`, `test`, `chore`, `ci`, `style` and `refactor`, with `docs` and
+`fix` both in heavy rotation. Pick the prefix that fits the change instead of
+defaulting to `feat`; `git log --oneline` gives the current distribution if you
+want it. Explain *why* in the body when the change is not self-evident.
