@@ -19,9 +19,11 @@ import { test, expect } from "./fixtures.js";
 //
 // This has to be emulateMedia rather than `test.use({ reducedMotion })`:
 // under Playwright 1.61.1 the context option leaves the media query matching
-// `no-preference`, so the override never applies. That is how the two rules
-// below stayed disabled while the failures they describe went unfixed — and
-// how a page could be reported clean while three quarters of it went unread.
+// `no-preference`, so the override never applies. This spec previously used
+// the context option and disabled color-contrast and link-in-text-block, on
+// the understanding that their failures needed a brand-palette decision. What
+// it was really doing was reporting a page clean while three quarters of it
+// went unread — including a nav that was illegible on three whole pages.
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
 });
@@ -60,6 +62,15 @@ for (const path of PAGES) {
 
     const { violations } = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      // Everything *inside* the Tally form iframe on contact.html is markup
+      // Tally serves and styles, which we can neither fix nor pin — CI caught
+      // a color-contrast failure on one of their styled-components spans. It
+      // is also loaded over the network, so whether the scan sees it at all
+      // depends on timing. The frame-selector pair excludes the frame's
+      // contents while leaving the <iframe> element itself in scope, so our
+      // own markup on it (title, dimensions) is still checked. Matched on
+      // data-tally-src because Tally's resizer renames the element's id.
+      .exclude(["iframe[data-tally-src]", "*"])
       .analyze();
 
     // Map before asserting so a failure prints the rule and the offending
