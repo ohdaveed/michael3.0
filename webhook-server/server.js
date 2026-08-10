@@ -136,8 +136,8 @@ function resolveTallyFieldValue(f) {
 // Calendly sends: t=<timestamp>,v1=<sig> in the
 // Calendly-Webhook-Signature header.
 // ---------------------------------------------------------------------------
-function validateCalendlySignature(req) {
-  if (!CALENDLY_SIGNING_KEY) return true; // skip if key not configured
+function validateCalendlySignature(req, signingKey) {
+  if (!signingKey) return false;
   const header = req.headers["calendly-webhook-signature"] || "";
   const parts = Object.fromEntries(
     header.split(",").map((p) => p.split("=", 2)),
@@ -150,7 +150,7 @@ function validateCalendlySignature(req) {
   if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) return false;
 
   const expectedSig = crypto
-    .createHmac("sha256", CALENDLY_SIGNING_KEY)
+    .createHmac("sha256", signingKey)
     .update(`${timestamp}.${req.rawBody}`)
     .digest("hex");
 
@@ -196,6 +196,7 @@ function createApp({
   bookingUrl = BOOKING_URL,
   stageEngine = null,
   graphClientState = GRAPH_CLIENT_STATE,
+  calendlySigningKey = CALENDLY_SIGNING_KEY,
 } = {}) {
   const app = express();
   // Railway serves this behind a reverse proxy, so req.ip is the proxy's
@@ -481,7 +482,7 @@ function createApp({
     let eventType;
     try {
       // Validate HMAC signature
-      if (!validateCalendlySignature(req)) {
+      if (!validateCalendlySignature(req, calendlySigningKey)) {
         log.warn("invalid signature - rejecting");
         return res.status(401).json({ error: "Invalid signature" });
       }

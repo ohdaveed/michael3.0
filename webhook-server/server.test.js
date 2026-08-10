@@ -1,5 +1,6 @@
 "use strict";
 
+const crypto = require("crypto");
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { createApp } = require("./server");
@@ -38,7 +39,12 @@ function fakeMailer() {
 }
 
 async function withServer(pipelineSync, fn, appOptions = {}) {
-  const app = createApp({ pipelineSync, mailer: fakeMailer(), ...appOptions });
+  const app = createApp({
+    pipelineSync,
+    mailer: fakeMailer(),
+    calendlySigningKey: "test-calendly-signing-key",
+    ...appOptions,
+  });
   const server = app.listen(0);
   await new Promise((resolve) => server.once("listening", resolve));
   const { port } = server.address();
@@ -268,12 +274,24 @@ const CALENDLY_CREATED_BODY = {
   },
 };
 
+function calendlyHeaders(body, timestamp = Math.floor(Date.now() / 1000)) {
+  const rawBody = JSON.stringify(body);
+  const signature = crypto
+    .createHmac("sha256", "test-calendly-signing-key")
+    .update(`${timestamp}.${rawBody}`)
+    .digest("hex");
+  return {
+    "Content-Type": "application/json",
+    "calendly-webhook-signature": `t=${timestamp},v1=${signature}`,
+  };
+}
+
 test("POST /webhooks/calendly (invitee.created) calls syncCalendlyBooking and returns 200", async () => {
   const sync = fakePipelineSync();
   await withServer(sync, async (base) => {
     const res = await fetch(`${base}/webhooks/calendly`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: calendlyHeaders(CALENDLY_CREATED_BODY),
       body: JSON.stringify(CALENDLY_CREATED_BODY),
     });
     assert.equal(res.status, 200);
@@ -306,7 +324,7 @@ test("POST /webhooks/calendly (invitee.canceled) calls syncCalendlyCancellation 
   await withServer(sync, async (base) => {
     const res = await fetch(`${base}/webhooks/calendly`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: calendlyHeaders(CALENDLY_CANCELED_BODY),
       body: JSON.stringify(CALENDLY_CANCELED_BODY),
     });
     assert.equal(res.status, 200);
@@ -495,12 +513,29 @@ test("POST /webhooks/calendly rejects a payload with no event type", async () =>
   await withServer(fakePipelineSync(), async (base) => {
     const res = await fetch(`${base}/webhooks/calendly`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: calendlyHeaders({ payload: { invitee: {} } }),
       body: JSON.stringify({ payload: { invitee: {} } }),
     });
     assert.equal(res.status, 400);
     assert.deepEqual(await res.json(), { error: "Invalid payload" });
   });
+});
+
+test("POST /webhooks/calendly rejects all deliveries when no signing key is configured", async () => {
+  const sync = fakePipelineSync();
+  await withServer(
+    sync,
+    async (base) => {
+      const res = await fetch(`${base}/webhooks/calendly`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(CALENDLY_CREATED_BODY),
+      });
+      assert.equal(res.status, 401);
+      assert.equal(sync.calls.booking.length, 0);
+    },
+    { calendlySigningKey: "" },
+  );
 });
 
 test("the health check is not rate limited", async () => {
