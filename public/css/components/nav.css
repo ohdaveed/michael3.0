@@ -18,6 +18,21 @@
   padding: 0.8rem 0;
   box-shadow: 0 2px 30px rgba(0, 0, 0, 0.2);
 }
+/* The 45%-navy base above lets the backdrop show through, which only reads as
+   navy over a dark one — index.html's hero and the --navy-deep .page-hero on
+   every other content page. The legal pages open on a cream .legal-hero
+   instead, where it blends to roughly #8b8f93 and takes the whole header down
+   with it: white wordmark 3.25:1, nav links 2.67:1, gold "Lehr" and the CTA
+   1.38:1. Those pages opt into the solid background from the top of the page.
+   The `class="scrolled"` already hardcoded in their nav include cannot do this
+   — nav.js clears it below 60px of scroll, which is exactly where the problem
+   is. Declared after .scrolled so it also wins once scrolled (same value; the
+   padding and shadow above still apply). */
+#nav.nav-solid {
+  background: rgba(11, 29, 51, 0.97);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
 #nav .container {
   display: flex;
   justify-content: space-between;

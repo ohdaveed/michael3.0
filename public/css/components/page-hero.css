@@ -29,3 +29,12 @@
   color: var(--gold-light);
   text-decoration: none;
 }
+/* Inline links in the hero's body copy, which are only ever prose links (the
+   hero's buttons are siblings of the <p>, not inside it). Gold-on-white at
+   1.2:1 against the surrounding text is nowhere near the 3:1 that colour-only
+   differentiation needs, so they carry an underline. Scoped to `p a` because
+   the rule above deliberately strips the underline from hero buttons, and
+   `.page-hero a` outranks `.btn-primary`. */
+.page-hero p a {
+  text-decoration: underline;
+}
