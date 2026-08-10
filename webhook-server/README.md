@@ -52,7 +52,7 @@ In the Railway dashboard → your project → **Variables**, add:
 
 ```
 MICHAEL_EMAIL         michael@lehr-law.com
-CALENDLY_WEBHOOK_SIGNING_KEY   <from Calendly — see below>
+CALENDLY_WEBHOOK_SIGNING_KEY   <required for Calendly — see below>
 TALLY_FORM_ID         ob17lb
 DOWNSTREAM_URL        (leave blank for now, or paste a Power Automate URL)
 LEAD_ACK_ENABLED      (leave unset until the acknowledgment copy is approved)
@@ -103,6 +103,7 @@ curl https://<your-railway-url>/
 4. Select events: **invitee.created** and **invitee.canceled**.
 5. Click **Create webhook**. Copy the **Signing key** shown after creation.
 6. In Railway, set `CALENDLY_WEBHOOK_SIGNING_KEY` to that value and redeploy.
+   The server rejects every Calendly delivery until this value is configured.
 
 > **Note:** Calendly webhooks require Standard plan ($10/mo) or above.
 > On the free plan, use Calendly's built-in email notifications to Michael's
