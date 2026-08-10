@@ -35,8 +35,11 @@ There is no jest here.
 - **Site** — Playwright, `tests/e2e/*.spec.js`. `npm run test:e2e` starts its
   own dev server.
 - **`webhook-server/`** — Node's built-in runner (`node --test`). Tests are
-  **colocated**: `lib/<name>.js` beside `lib/<name>.test.js`. Run them from
-  that directory; the root `npm test` does not cover them.
+  **colocated**: `lib/<name>.js` beside `lib/<name>.test.js`, plus
+  `server.test.js` at the package root for `server.js`. Its `npm test` script
+  names both (`node --test lib/*.test.js server.test.js`), so a test file
+  anywhere else is not run. Run them from that directory; the root `npm test`
+  does not cover them.
 
 ## Logging in webhook-server
 
@@ -54,9 +57,14 @@ entirely. This has been introduced and fixed more than once.
 
 ## Things that break silently
 
-Read the "Cross-file contracts" section of `CLAUDE.md` before changing any of:
-the duplicated `product-contract.json`, the canonical hostname, the booking
-URL, `STATIC_IMAGES`, or `build.rollupOptions.input` when adding a page.
+Read the "Cross-file contracts" section of `CLAUDE.md` before changing the
+duplicated `product-contract.json`, the canonical hostname, or the booking URL.
+
+Two more live in the build config, documented elsewhere in `CLAUDE.md`:
+`STATIC_IMAGES` under "Build pipeline" (an image referenced by a path Vite does
+not rewrite 404s in production without an entry), and
+`build.rollupOptions.input` under "Adding a page" (an unregistered page works in
+dev and is never built).
 
 ## Commits
 
