@@ -23,7 +23,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "^1.62.1",
     "agent-browser": "^0.26.0",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
